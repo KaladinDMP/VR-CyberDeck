@@ -26,6 +26,7 @@ class GameService extends EventEmitter implements GamesAPI {
   private metaPath: string
   private blacklistGamesPath: string
   private customBlacklistPath: string
+  private vrpPublicPath: string
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
@@ -40,6 +41,7 @@ class GameService extends EventEmitter implements GamesAPI {
     this.metaPath = join(this.dataPath, '.meta')
     this.blacklistGamesPath = join(this.metaPath, 'nouns', 'blacklist.txt')
     this.customBlacklistPath = join(app.getPath('userData'), 'custom-blacklist.json')
+    this.vrpPublicPath = join(app.getPath('userData'), 'vrp-public.json')
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -190,27 +192,37 @@ class GameService extends EventEmitter implements GamesAPI {
 
   private async fetchVrpPublicInfo(): Promise<void> {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      // Try user-editable vrp-public.json in userData first, then fall back to bundled resource
+      let data: VrpConfig | null = null
 
-      const response = await fetch('https://vrpirates.wiki/downloads/vrp-public.json', {
-        signal: controller.signal
-      })
+      const userFile = this.vrpPublicPath
+      const bundledFile = join(process.resourcesPath, 'vrp-public.json')
 
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      for (const filePath of [userFile, bundledFile]) {
+        try {
+          const exists = await fileExists(filePath)
+          if (exists) {
+            const raw = await fs.readFile(filePath, 'utf-8')
+            data = JSON.parse(raw) as VrpConfig
+            console.log('VRP Config loaded from:', filePath)
+            break
+          }
+        } catch (err) {
+          console.warn('Failed to read vrp-public.json from', filePath, err)
+        }
       }
 
-      const data = await response.json()
-      this.vrpConfig = data as VrpConfig
+      if (!data) {
+        throw new Error('vrp-public.json not found in userData or bundled resources')
+      }
+
+      this.vrpConfig = data
 
       console.log('VRP Config loaded - baseUri:', !!this.vrpConfig?.baseUri)
 
       await this.saveConfig()
     } catch (error) {
-      console.error('Error fetching VRP public info:', error)
+      console.error('Error loading VRP public info:', error)
       throw error
     }
   }

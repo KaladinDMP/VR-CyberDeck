@@ -21,6 +21,8 @@ extraResources:
     to: bin
     filter:
       - '*'
+  - from: resources/vrp-public.json
+    to: vrp-public.json
 win:
   target:
     - target: nsis
