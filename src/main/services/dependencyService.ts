@@ -109,11 +109,7 @@ class DependencyService {
     console.log('Checking network connectivity...')
     progressCallback?.(this.status, { name: 'connectivity-check', percentage: 0 })
 
-    const criticalUrls = [
-      { url: 'https://raw.githubusercontent.com', name: 'GitHub' },
-      { url: 'https://vrpirates.wiki', name: 'VRP Wiki' },
-      { url: 'https://there-is-a.vrpmonkey.help/', name: 'VRP Mirror' }
-    ]
+    const criticalUrls = [{ url: 'https://raw.githubusercontent.com', name: 'GitHub' }]
 
     const failedUrls: string[] = []
     let completedChecks = 0
