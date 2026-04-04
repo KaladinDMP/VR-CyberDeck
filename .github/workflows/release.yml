@@ -3,10 +3,8 @@ name: Create Release
 on:
   workflow_dispatch:
   push:
-    # branches:
-    #   - main
     tags:
-      - 'v*.*.*' # Trigger on version tags like v1.0.0, v1.2.3, etc.
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -15,25 +13,19 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        # You can specify Node versions if needed, e.g., node-version: [18.x, 20.x]
 
     outputs:
-      package_version: ${{ steps.build_details.outputs.package_version }} # Output version for use in release job name
+      package_version: ${{ steps.build_details.outputs.package_version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Cache Electron binaries
         uses: actions/cache@v4
@@ -45,12 +37,12 @@ jobs:
             ~/Library/Caches/electron-builder
             ~/AppData/Local/electron/Cache
             ~/AppData/Local/electron-builder/cache
-          key: ${{ runner.os }}-electron-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-electron-${{ hashFiles('**/package.json', '**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-electron-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile # Assumes pnpm-lock.yaml exists
+        run: npm install --legacy-peer-deps
 
       - name: Determine build command and artifact path
         id: build_details
@@ -60,31 +52,23 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
 
-          # Default output directory for electron-builder is 'dist'
           OUTPUT_DIR="dist"
 
           if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "BUILD_COMMAND=pnpm run build && pnpm exec electron-builder --win --publish never" >> $GITHUB_OUTPUT
-            # Windows builds both setup and portable versions
+            echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --win --x64 --ia32 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.exe" >> $GITHUB_OUTPUT
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            echo "BUILD_COMMAND=pnpm run build && pnpm exec electron-builder --mac --publish never" >> $GITHUB_OUTPUT
-            # Mac builds DMG files for both architectures
+            echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --mac --x64 --arm64 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.dmg" >> $GITHUB_OUTPUT
           elif [ "$RUNNER_OS" == "Linux" ]; then
-            echo "BUILD_COMMAND=pnpm run build && pnpm exec electron-builder --linux --publish never" >> $GITHUB_OUTPUT
-            # Linux builds both AppImage and DEB files - match files ending with either extension
+            echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --linux --x64 --arm64 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.[Ad]*" >> $GITHUB_OUTPUT
           fi
 
       - name: Build application
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # electron-builder might need this for some operations
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ${{ steps.build_details.outputs.BUILD_COMMAND }}
-
-      # - name: List output directory (for debugging)
-      #   run: |
-      #     ls -la dist/ || echo "dist directory not found or empty"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -98,17 +82,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create releases and upload assets
+      contents: write
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts # All artifacts will be downloaded into the 'artifacts' directory
-
-      # - name: List downloaded artifacts (for debugging)
-      #   run: |
-      #     ls -R artifacts
-      #     echo "Tag for release: ${{ github.ref_name }}"
+          path: artifacts
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2.2.2
@@ -117,9 +96,10 @@ jobs:
         with:
           tag_name: v${{ needs.build.outputs.package_version }}
           name: Release v${{ needs.build.outputs.package_version }}
-          draft: false
-          prerelease: false # Set to true if you want to mark releases as pre-releases
-          files: | # Globs to find the downloaded artifacts
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          files: |
             artifacts/build-artifact-windows-latest/*
             artifacts/build-artifact-macos-latest/*
             artifacts/build-artifact-ubuntu-latest/*
