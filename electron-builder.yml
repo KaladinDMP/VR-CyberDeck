@@ -60,13 +60,7 @@ dmg:
 linux:
   target:
     - target: AppImage
-      arch:
-        - x64
-        - arm64
     - target: deb
-      arch:
-        - x64
-        - arm64
   maintainer: electronjs.org
   category: Utility
 appImage:
