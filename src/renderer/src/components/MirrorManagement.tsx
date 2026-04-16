@@ -41,7 +41,9 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     gap: tokens.spacingVerticalM,
-    padding: tokens.spacingVerticalM
+    padding: tokens.spacingVerticalM,
+    overflowY: 'auto',
+    flex: 1
   },
   mirrorGrid: {
     display: 'grid',
@@ -198,9 +200,9 @@ const MirrorManagement: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <ServerConfigSettings />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: tokens.spacingHorizontalS }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: tokens.spacingVerticalS }}>
+        <div style={{ display: 'flex', gap: tokens.spacingHorizontalS, flexWrap: 'wrap' }}>
+          <ServerConfigSettings />
           <Button
             appearance="secondary"
             icon={<PlayRegular />}

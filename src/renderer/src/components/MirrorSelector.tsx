@@ -43,7 +43,9 @@ const useStyles = makeStyles({
   managementDialog: {
     width: '80vw',
     maxWidth: '1200px',
-    height: '80vh'
+    height: '80vh',
+    display: 'flex',
+    flexDirection: 'column'
   }
 })
 
@@ -155,8 +157,8 @@ const MirrorSelector: React.FC = () => {
         </DialogTrigger>
         <DialogSurface className={styles.managementDialog}>
           <DialogTitle>Mirror Management</DialogTitle>
-          <DialogContent>
-            <DialogBody>
+          <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <DialogBody style={{ flex: 1, overflow: 'hidden' }}>
               <MirrorManagement />
             </DialogBody>
             <DialogActions>

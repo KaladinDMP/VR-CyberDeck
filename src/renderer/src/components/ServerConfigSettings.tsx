@@ -1,56 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Card,
-  CardHeader,
   Text,
   Button,
   Input,
   Textarea,
-  Subtitle1,
+  Dialog,
+  DialogTrigger,
+  DialogSurface,
+  DialogTitle,
+  DialogContent,
+  DialogBody,
+  DialogActions,
   makeStyles,
   tokens
 } from '@fluentui/react-components'
-import { CheckmarkCircleRegular, InfoRegular } from '@fluentui/react-icons'
+import {
+  CheckmarkCircleRegular,
+  ServerRegular,
+  DismissCircleRegular
+} from '@fluentui/react-icons'
 import { useSettings } from '../hooks/useSettings'
 
 const useStyles = makeStyles({
-  card: {
-    width: '100%',
-    boxShadow: tokens.shadow4,
-    borderRadius: tokens.borderRadiusMedium
-  },
-  cardContent: {
-    padding: tokens.spacingHorizontalL,
-    paddingBottom: tokens.spacingVerticalXL
-  },
-  formRow: {
+  row: {
     display: 'flex',
-    alignItems: 'center',
-    marginTop: tokens.spacingVerticalM,
     gap: tokens.spacingHorizontalM,
-    width: '100%',
-    maxWidth: '800px'
+    alignItems: 'flex-end'
   },
-  input: {
-    flexGrow: 1
+  field: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXXS,
+    flex: 1
   },
-  error: {
-    color: tokens.colorPaletteRedForeground1,
-    marginTop: tokens.spacingVerticalXS
-  },
-  success: {
-    color: tokens.colorPaletteGreenForeground1,
+  status: {
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalXS,
-    marginTop: tokens.spacingVerticalXS
-  },
-  hint: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: tokens.spacingHorizontalXS,
-    marginTop: tokens.spacingVerticalS,
-    color: tokens.colorNeutralForeground2
+    marginTop: tokens.spacingVerticalS
   }
 })
 
@@ -58,6 +45,7 @@ const ServerConfigSettings: React.FC = () => {
   const styles = useStyles()
   const { serverConfig, setServerConfig } = useSettings()
 
+  const [open, setOpen] = useState(false)
   const [baseUri, setBaseUri] = useState(serverConfig.baseUri)
   const [password, setPassword] = useState(serverConfig.password)
   const [pastedJson, setPastedJson] = useState('')
@@ -108,96 +96,93 @@ const ServerConfigSettings: React.FC = () => {
     }
   }
 
+  const hasConfig = serverConfig.baseUri.length > 0
+
   return (
-    <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">Server Configuration</Subtitle1>} />
-      <div className={styles.cardContent}>
-        <Text>
-          Paste your full <code>ServerInfo.json</code> snippet below, or fill in the fields
-          individually. These credentials are stored locally with your other app settings.
-        </Text>
+    <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>
+      <DialogTrigger disableButtonEnhancement>
+        <Button appearance="secondary" icon={<ServerRegular />}>
+          Server Config{hasConfig ? ' (set)' : ''}
+        </Button>
+      </DialogTrigger>
+      <DialogSurface style={{ maxWidth: '600px' }}>
+        <DialogTitle>Server Configuration</DialogTitle>
+        <DialogContent>
+          <DialogBody
+            style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalM }}
+          >
+            <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
+              Paste the full JSON or fill in the fields. Credentials are stored locally.
+            </Text>
 
-        <div className={styles.formRow} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-          <Text weight="semibold">Paste JSON</Text>
-          <Textarea
-            value={pastedJson}
-            onChange={(_, data) => setPastedJson(data.value)}
-            placeholder='{"baseUri":"https://your-url-here/","password":"your-password-here"}'
-            rows={3}
-          />
-          <div style={{ display: 'flex', gap: tokens.spacingHorizontalS }}>
-            <Button onClick={handleParseJson} appearance="secondary">
-              Apply JSON to fields
+            <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+              <Text size={200} weight="semibold">
+                Paste JSON
+              </Text>
+              <Textarea
+                value={pastedJson}
+                onChange={(_, data) => setPastedJson(data.value)}
+                placeholder='{"baseUri":"https://...","password":"..."}'
+                rows={2}
+                resize="vertical"
+              />
+              <Button size="small" onClick={handleParseJson} appearance="subtle">
+                Apply JSON to fields
+              </Button>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.field}>
+                <Text size={200} weight="semibold">
+                  Base URI
+                </Text>
+                <Input
+                  value={baseUri}
+                  onChange={(_, data) => setBaseUri(data.value)}
+                  placeholder="https://your-url-here/"
+                />
+              </div>
+              <div className={styles.field}>
+                <Text size={200} weight="semibold">
+                  Password
+                </Text>
+                <Input
+                  value={password}
+                  onChange={(_, data) => setPassword(data.value)}
+                  placeholder="your-password-here"
+                  type="password"
+                />
+              </div>
+            </div>
+
+            {localError && (
+              <div className={styles.status}>
+                <DismissCircleRegular style={{ color: tokens.colorPaletteRedForeground1 }} />
+                <Text size={200} style={{ color: tokens.colorPaletteRedForeground1 }}>
+                  {localError}
+                </Text>
+              </div>
+            )}
+            {saveSuccess && (
+              <div className={styles.status}>
+                <CheckmarkCircleRegular style={{ color: tokens.colorPaletteGreenForeground1 }} />
+                <Text size={200} style={{ color: tokens.colorPaletteGreenForeground1 }}>
+                  Saved. Force Sync or restart to use new credentials.
+                </Text>
+              </div>
+            )}
+          </DialogBody>
+          <DialogActions>
+            <Button appearance="secondary" onClick={() => setOpen(false)}>
+              Cancel
             </Button>
-          </div>
-        </div>
-
-        <div className={styles.formRow}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              flexGrow: 1,
-              gap: tokens.spacingVerticalXS
-            }}
-          >
-            <Text>Base URI</Text>
-            <Input
-              className={styles.input}
-              value={baseUri}
-              onChange={(_, data) => setBaseUri(data.value)}
-              placeholder="https://your-url-here/"
-              size="large"
-            />
-          </div>
-        </div>
-
-        <div className={styles.formRow}>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              flexGrow: 1,
-              gap: tokens.spacingVerticalXS
-            }}
-          >
-            <Text>Password</Text>
-            <Input
-              className={styles.input}
-              value={password}
-              onChange={(_, data) => setPassword(data.value)}
-              placeholder="your-password-here"
-              type="password"
-              size="large"
-            />
-          </div>
-        </div>
-
-        <div
-          className={styles.formRow}
-          style={{ justifyContent: 'flex-end', marginTop: tokens.spacingVerticalM }}
-        >
-          <Button onClick={handleSave} appearance="primary" size="large">
-            Save Server Config
-          </Button>
-        </div>
-
-        {localError && <Text className={styles.error}>{localError}</Text>}
-        {saveSuccess && (
-          <Text className={styles.success}>
-            <CheckmarkCircleRegular />
-            Server configuration saved. Resync game data or restart the app to use the new
-            credentials.
-          </Text>
-        )}
-
-        <Text className={styles.hint}>
-          <InfoRegular />
-          After saving, go to the games view and press Force Sync (or restart the app) to pick up
-          the new server credentials.
-        </Text>
-      </div>
-    </Card>
+            <Button appearance="primary" onClick={handleSave}>
+              Save
+            </Button>
+          </DialogActions>
+        </DialogContent>
+      </DialogSurface>
+    </Dialog>
   )
 }
 

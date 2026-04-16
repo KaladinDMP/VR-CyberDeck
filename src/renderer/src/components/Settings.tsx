@@ -291,10 +291,10 @@ const MirrorManagementLink: React.FC = () => {
                 Open Mirror Management
               </Button>
             </DialogTrigger>
-            <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh' }}>
+            <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column' }}>
               <DialogTitle>Mirror Management</DialogTitle>
-              <DialogContent>
-                <DialogBody>
+              <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <DialogBody style={{ flex: 1, overflow: 'hidden' }}>
                   <MirrorManagement />
                 </DialogBody>
                 <DialogActions>
