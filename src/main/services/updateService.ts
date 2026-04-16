@@ -7,7 +7,7 @@ import { compareVersions } from 'compare-versions'
 // Repository that publishes the releases this app checks for.
 // Changing this single constant re-points the updater (and opened pages) at
 // a different fork or mirror.
-const RELEASE_REPO_OWNER = 'mula-bb'
+const RELEASE_REPO_OWNER = 'KaladinDMP'
 const RELEASE_REPO_NAME = 'apprenticeVrSrc'
 const RELEASE_REPO_BRANCH = 'main'
 

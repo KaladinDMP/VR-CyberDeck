@@ -34,6 +34,7 @@ import {
 } from '@fluentui/react-icons'
 import { useMirrors } from '../hooks/useMirrors'
 import { Mirror } from '@shared/types'
+import ServerConfigSettings from './ServerConfigSettings'
 
 const useStyles = makeStyles({
   container: {
@@ -197,6 +198,7 @@ const MirrorManagement: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <ServerConfigSettings />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: tokens.spacingHorizontalS }}>
           <Button
