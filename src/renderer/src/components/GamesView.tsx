@@ -580,7 +580,14 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
         accessorKey: 'size',
         header: 'Size',
         size: COLUMN_WIDTHS.SIZE,
-        cell: (info) => info.getValue() || '-',
+        cell: (info) => {
+          const sizeValue = info.getValue()
+          const sizeStr = String(sizeValue || '')
+          if (sizeStr === '0 MB' || !sizeStr.trim()) {
+            return null
+          }
+          return sizeStr
+        },
         enableResizing: true
       },
       {
@@ -604,8 +611,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styles, tableWidth])
 
+  const filteredGames = useMemo(() => {
+    return games.filter((game) => {
+      const size = String(game.size ?? '').trim()
+      return size !== '0 MB' && size !== ''
+    })
+  }, [games])
+
   const table = useReactTable({
-    data: games,
+    data: filteredGames,
     columns,
     columnResizeMode: 'onChange',
     filterFns: {
