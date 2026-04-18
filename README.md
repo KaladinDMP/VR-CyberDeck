@@ -2,6 +2,14 @@
   <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/446f9bc8-fe7a-4817-a063-09a6186addcf" />
 </p>
 
+<p align="center">
+  🌐 &nbsp;<strong>Language / Idioma:</strong>&nbsp;
+  <a href="README.md"><strong>🇺🇸 English</strong></a> &nbsp;|&nbsp;
+  <a href="README.es.md">🇪🇸 Español</a>
+</p>
+
+---
+
 # ApprenticeVR: VRSrc Edition
 
 **ApprenticeVR: VRSrc Edition** is a modern, cross-platform desktop app built with Electron, React, and TypeScript for managing and sideloading content onto Meta Quest devices. It connects to a community game library, handles downloads and installs automatically, and lets you contribute games back to the library.
@@ -96,8 +104,12 @@ Up to 5 downloads run in parallel.
 
 ## What's New in VRSrc Edition
 
+See the full [Release Notes](RELEASE_NOTES.md) for a detailed changelog.
+
 ### Key Improvements
 
+- **Local file upload** — upload game folders or ZIP files directly from your PC without a connected Quest
+- **Spanish (Castellano) language** — auto-detected from your OS; switch anytime in Settings
 - Fixed YouTube embeds using Electron webview
 - 5 parallel downloads instead of 1
 - Switched from `rclone mount` to `rclone copy`
@@ -121,7 +133,9 @@ Up to 5 downloads run in parallel.
 
 ## Uploading Games
 
-### Workflow
+### From a Connected Quest (automatic)
+
+The app detects games on your device that are missing from or newer than the library and prompts you to upload them.
 
 1. Create staging folder
 2. Pull APK via ADB
@@ -131,6 +145,14 @@ Up to 5 downloads run in parallel.
 6. Compress into ZIP
 7. Upload via rclone
 8. Add to blacklist
+
+### From Local Files (manual)
+
+Use **Uploads → Upload Local Files** to send game folders or ZIP archives directly from your PC.
+
+- Each folder must contain **exactly one APK** file — OBB folders, instruction files, and other content are included automatically
+- If you already have a ZIP, it is sent as-is
+- Multiple folders/ZIPs can be queued at once and upload one at a time with live progress
 
 Uploads do not guarantee inclusion.
 
