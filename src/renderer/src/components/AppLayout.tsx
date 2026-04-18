@@ -409,8 +409,6 @@ const AppLayout: React.FC = () => {
                         {uploadButtonText}
                       </Button>
 
-                      <LocalUploadDialog />
-
                       <TabList
                         selectedValue={activeTab}
                         onTabSelect={(_, data) => setActiveTab(data.value as ActiveTab)}
@@ -426,6 +424,7 @@ const AppLayout: React.FC = () => {
                       </TabList>
                     </>
                   )}
+                  <LocalUploadDialog />
                   <Switch
                     label={colorScheme === 'dark' ? t('darkMode') : t('lightMode')}
                     checked={colorScheme === 'dark'}
