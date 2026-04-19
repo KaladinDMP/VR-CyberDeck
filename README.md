@@ -222,8 +222,7 @@ GNU Affero GPL v3
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/apprenticeVrSrc?label=Last%20Updated)
 ![Created](https://img.shields.io/github/created-at/KaladinDMP/apprenticeVrSrc?label=Created)
 ![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/apprenticeVrSrc?label=Monthly%20Commits)
-![Stars](https://img.shields.io/github/stars/KaladinDMP/apprenticeVrSrc)
-![Contributors](https://img.shields.io/github/contributors/KaladinDMP/apprenticeVrSrc)
+![Stars](https://img.shields.io/github/stars/KaladinDMP)
 
 Contributors on this Repo
 
