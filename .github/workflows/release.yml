@@ -78,9 +78,6 @@ jobs:
           # names AND so app.getVersion() returns the correct value inside the app.
           export VERSION
           node -e "const fs=require('fs');const p=require('./package.json');p.version=process.env.VERSION;fs.writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n');"
-          # Also pin the version into update.txt so the in-app update checker and the
-          # committed update.txt on main agree for the freshly released build.
-          printf '%s\n' "$VERSION" > update.txt
 
           OUTPUT_DIR="dist"
 
@@ -164,25 +161,6 @@ jobs:
           echo "Contents of artifacts directory:"
           ls -laR artifacts || true
 
-      - name: Update update.txt to point at the new release
-        shell: bash
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin "$DEFAULT_BRANCH"
-          git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
-          printf '%s\n' "$VERSION" > update.txt
-          if git diff --quiet update.txt; then
-            echo "update.txt already contains v$VERSION on $DEFAULT_BRANCH; nothing to commit."
-          else
-            git add update.txt
-            git commit -m "chore: bump update.txt to v$VERSION"
-            git push origin "$DEFAULT_BRANCH"
-          fi
-
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2.2.2
         env:
@@ -198,4 +176,3 @@ jobs:
             artifacts/build-artifact-windows-latest/*
             artifacts/build-artifact-macos-latest/*
             artifacts/build-artifact-ubuntu-latest/*
-            update.txt

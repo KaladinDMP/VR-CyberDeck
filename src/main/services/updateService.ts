@@ -4,17 +4,22 @@ import axios from 'axios'
 import { UpdateInfo } from '@shared/types'
 import { compareVersions } from 'compare-versions'
 
-// Repository that publishes the releases this app checks for.
-// Changing this single constant re-points the updater (and opened pages) at
-// a different fork or mirror.
 const RELEASE_REPO_OWNER = 'KaladinDMP'
 const RELEASE_REPO_NAME = 'apprenticeVrSrc'
-const RELEASE_REPO_BRANCH = 'main'
 
 const REPO_URL = `https://github.com/${RELEASE_REPO_OWNER}/${RELEASE_REPO_NAME}`
-const RELEASES_URL = `${REPO_URL}/releases`
-const RELEASES_LATEST_URL = `${RELEASES_URL}/latest`
-const UPDATE_TXT_URL = `https://raw.githubusercontent.com/${RELEASE_REPO_OWNER}/${RELEASE_REPO_NAME}/${RELEASE_REPO_BRANCH}/update.txt`
+const RELEASES_LATEST_URL = `${REPO_URL}/releases/latest`
+const GITHUB_API_LATEST = `https://api.github.com/repos/${RELEASE_REPO_OWNER}/${RELEASE_REPO_NAME}/releases/latest`
+
+interface GitHubRelease {
+  tag_name: string
+  name: string
+  body: string
+  published_at: string
+  html_url: string
+  draft: boolean
+  prerelease: boolean
+}
 
 class UpdateService extends EventEmitter {
   private currentVersion: string = app.getVersion()
@@ -23,76 +28,65 @@ class UpdateService extends EventEmitter {
     super()
   }
 
-  /**
-   * Initialize the update service
-   */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   public initialize(): void {}
 
   /**
-   * Fetch the latest published version string from the repo's update.txt.
-   * Returns null if the file cannot be retrieved or parsed.
+   * Fetches the latest published (non-draft, non-prerelease) release from the
+   * GitHub Releases API. Returns null if unreachable or no release exists yet.
+   * Draft releases are invisible to this endpoint, so users are never nagged
+   * about a version that hasn't been published yet.
    */
-  private async fetchLatestVersionFromUpdateTxt(): Promise<string | null> {
+  private async fetchLatestRelease(): Promise<GitHubRelease | null> {
     try {
-      const response = await axios.get(UPDATE_TXT_URL, {
-        // Disable axios response caching on some platforms and bypass CDN caches.
-        headers: { 'Cache-Control': 'no-cache' },
-        timeout: 10000,
-        responseType: 'text',
-        transformResponse: [(v): string => String(v ?? '')]
+      const response = await axios.get<GitHubRelease>(GITHUB_API_LATEST, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'Cache-Control': 'no-cache'
+        },
+        timeout: 10000
       })
 
-      if (response.status !== 200 || typeof response.data !== 'string') {
-        console.warn('update.txt fetch returned non-OK status:', response.status)
+      if (response.status !== 200 || !response.data?.tag_name) {
+        console.warn('GitHub releases API returned unexpected response:', response.status)
         return null
       }
 
-      // Take the first non-empty line and strip whitespace / optional leading 'v'.
-      const firstLine = response.data
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .find((line) => line.length > 0)
-
-      if (!firstLine) {
-        console.warn('update.txt is empty')
+      return response.data
+    } catch (error: unknown) {
+      // 404 means no published release exists yet — not an error worth logging loudly
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        console.log('No published release found on GitHub yet.')
         return null
       }
-
-      return firstLine.replace(/^v/i, '')
-    } catch (error) {
-      console.error('Error fetching update.txt:', error)
+      console.error('Error fetching latest release from GitHub API:', error)
       return null
     }
   }
 
-  /**
-   * Check for updates by reading the lightweight update.txt file published
-   * alongside releases. Emits 'update-available' with isConnectivityCheck=true
-   * when a newer version is found so the UI can render the "you might be
-   * missing a fix" popup the user asked for.
-   */
   public async checkForUpdates(): Promise<void> {
-    console.log('Checking for updates via update.txt...')
+    console.log('Checking for updates via GitHub Releases API...')
 
     try {
       this.emit('checking-for-update')
 
-      const latestVersion = await this.fetchLatestVersionFromUpdateTxt()
+      const release = await this.fetchLatestRelease()
 
-      if (!latestVersion) {
-        console.log('Could not determine latest version from update.txt; skipping update check.')
+      if (!release) {
+        console.log('Could not determine latest version; skipping update check.')
         return
       }
 
-      console.log(`Current version: ${this.currentVersion}, update.txt version: ${latestVersion}`)
+      const latestVersion = release.tag_name.replace(/^v/i, '')
+
+      console.log(`Current version: ${this.currentVersion}, latest release: ${latestVersion}`)
 
       if (compareVersions(latestVersion, this.currentVersion) > 0) {
         const updateInfo: UpdateInfo = {
           version: latestVersion,
-          // Point the "Download Update" button at the releases/latest page so users
-          // always land on the freshest published assets.
-          downloadUrl: RELEASES_LATEST_URL,
+          releaseNotes: release.body || undefined,
+          releaseDate: release.published_at || undefined,
+          downloadUrl: release.html_url,
           isConnectivityCheck: true
         }
         this.emit('update-available', updateInfo)
@@ -105,25 +99,16 @@ class UpdateService extends EventEmitter {
     }
   }
 
-  /**
-   * Open download URL in browser
-   */
   public openDownloadPage(url: string): void {
     console.log('Opening download page:', url)
     shell.openExternal(url)
   }
 
-  /**
-   * Open the releases/latest page in browser
-   */
   public openReleasesPage(): void {
     console.log('Opening releases page:', RELEASES_LATEST_URL)
     shell.openExternal(RELEASES_LATEST_URL)
   }
 
-  /**
-   * Open repository page in browser
-   */
   public openRepositoryPage(): void {
     console.log('Opening repository page:', REPO_URL)
     shell.openExternal(REPO_URL)
