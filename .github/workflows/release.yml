@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-13, ubuntu-latest, windows-latest]
 
     outputs:
       package_version: ${{ steps.build_details.outputs.package_version }}
@@ -196,6 +196,6 @@ jobs:
           fail_on_unmatched_files: false
           files: |
             artifacts/build-artifact-windows-latest/*
-            artifacts/build-artifact-macos-latest/*
+            artifacts/build-artifact-macos-13/*
             artifacts/build-artifact-ubuntu-latest/*
             update.txt
