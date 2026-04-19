@@ -22,7 +22,7 @@
 
 | File | Platform | Notes |
 |------|----------|-------|
-| `apprenticevr-x.x.x-x64.dmg` | macOS (Intel + Apple Silicon) | x64 DMG — runs natively on Intel; runs via Rosetta 2 on M-series Macs |
+| `apprenticevr-x.x.x-x64.dmg` | macOS | Intel native; Apple Silicon (M1–M5): install Rosetta 2 first — `softwareupdate --install-rosetta` |
 | `apprenticevr-x.x.x-setup-x64.exe` | Windows Installer | Recommended for most users |
 | `apprenticevr-x.x.x-portable-x64.exe` | Windows Portable | No install required |
 | `apprenticevr-x.x.x-x86_64.AppImage` | Linux x64 | Works on most distros |
@@ -259,15 +259,12 @@ GNU Affero GPL v3
 
 ---
 
-![Visitors to this Repo](https://badges.pufler.dev/visits/KaladinDMP/apprenticeVrSrc)
-
-![Last Updated](https://badges.pufler.dev/updated/KaladinDMP/apprenticeVrSrc)
-
-![When was this Repo Created?](https://badges.pufler.dev/created/KaladinDMP/apprenticeVrSrc)
-
-![Monthly Commits by KaladinDMP](https://badges.pufler.dev/commits/monthly/KaladinDMP)
+![Visitors](https://komarev.com/ghpvc/?username=KaladinDMP&label=Visitors&color=blue)
+![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/apprenticeVrSrc?label=Last%20Updated)
+![Created](https://img.shields.io/github/created-at/KaladinDMP/apprenticeVrSrc?label=Created)
+![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/apprenticeVrSrc?label=Monthly%20Commits)
+![Stars](https://img.shields.io/github/stars/KaladinDMP)
 
 Contributors on this Repo
-![Contributors on this Repo:](https://badges.pufler.dev/contributors/KaladinDMP/apprenticeVrSrc?size=50&padding=5&perRow=10&bots=true)
 
-![KaladinDMP's stars](https://img.shields.io/github/stars/KaladinDMP)
+[![Contributors](https://contrib.rocks/image?repo=KaladinDMP/apprenticeVrSrc)](https://github.com/KaladinDMP/apprenticeVrSrc/graphs/contributors)

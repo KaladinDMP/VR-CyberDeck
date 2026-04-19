@@ -85,27 +85,11 @@ jobs:
             echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --win --x64 --ia32 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.exe" >> $GITHUB_OUTPUT
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --mac --x64 --arm64 --publish never" >> $GITHUB_OUTPUT
+            echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --mac --x64 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.dmg" >> $GITHUB_OUTPUT
           elif [ "$RUNNER_OS" == "Linux" ]; then
             echo "BUILD_COMMAND=npx electron-vite build && npx electron-builder --linux --x64 --arm64 --publish never" >> $GITHUB_OUTPUT
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.[Ad]*" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Pre-cache arm64 dmg-builder binary (macOS only)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          CACHE_DIR="$HOME/Library/Caches/electron-builder/dmg-builder/1.2.0"
-          FILE="$CACHE_DIR/dmgbuild-bundle-arm64-75c8a6c.tar.gz"
-          mkdir -p "$CACHE_DIR"
-          if [ ! -f "$FILE" ]; then
-            echo "Downloading arm64 dmg-builder from Huawei mirror..."
-            curl -fL -o "$FILE" \
-              "https://mirrors.huaweicloud.com/electron-builder-binaries/dmg-builder@1.2.0/dmgbuild-bundle-arm64-75c8a6c.tar.gz"
-            echo "Done."
-          else
-            echo "arm64 dmg-builder already cached."
           fi
 
       - name: Build application
