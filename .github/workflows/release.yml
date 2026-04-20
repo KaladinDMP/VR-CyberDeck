@@ -92,6 +92,23 @@ jobs:
             echo "ARTIFACT_PATH=${OUTPUT_DIR}/${PRODUCT_NAME}-${VERSION}-*.[Ad]*" >> $GITHUB_OUTPUT
           fi
 
+      - name: Pre-cache arm64 dmg-builder tool (required on ARM64 runner to build any DMG)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          CACHE_DIR="$HOME/Library/Caches/electron-builder/dmg-builder/1.2.0"
+          FILE="$CACHE_DIR/dmgbuild-bundle-arm64-75c8a6c.tar.gz"
+          mkdir -p "$CACHE_DIR"
+          if [ ! -f "$FILE" ]; then
+            echo "Downloading arm64 dmg-builder tool from GitHub releases..."
+            curl -fL --retry 5 --retry-delay 5 -o "$FILE" \
+              "https://github.com/electron-userland/electron-builder-binaries/releases/download/dmg-builder%401.2.0/dmgbuild-bundle-arm64-75c8a6c.tar.gz"
+            echo "Cached at: $FILE"
+            ls -lh "$FILE"
+          else
+            echo "Already cached: $FILE"
+          fi
+
       - name: Build application
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
