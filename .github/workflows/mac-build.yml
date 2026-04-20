@@ -33,17 +33,13 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           VERSION="${VERSION#v}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          node -e "
-            const fs = require('fs');
-            const p = require('./package.json');
-            p.version = process.env.VERSION;
-            fs.writeFileSync('./package.json', JSON.stringify(p, null, 2) + '\n');
-          "
+          export VERSION
+          node -e "const fs=require('fs');const p=require('./package.json');p.version=process.env.VERSION;fs.writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n');"
           echo "Building version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build app directory (no dmg-builder required)
-        run: npx electron-vite build && npx electron-builder --mac --dir --x64
+        run: npx electron-vite build && npx electron-builder --mac --dir --x64 --publish never
 
       - name: Package DMG using hdiutil (built-in macOS tool)
         shell: bash
