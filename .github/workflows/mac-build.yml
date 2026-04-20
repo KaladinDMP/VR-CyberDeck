@@ -7,6 +7,11 @@ on:
         description: 'Version to build (e.g. 2.2.8) — must match an existing release tag v{version}'
         required: true
         type: string
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 jobs:
   mac-build:
@@ -31,7 +36,7 @@ jobs:
       - name: Pin version in package.json
         shell: bash
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"
           export VERSION
           node -e "const fs=require('fs');const p=require('./package.json');p.version=process.env.VERSION;fs.writeFileSync('./package.json',JSON.stringify(p,null,2)+'\n');"

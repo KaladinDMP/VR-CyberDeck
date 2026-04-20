@@ -133,9 +133,19 @@ jobs:
           path: ${{ steps.build_details.outputs.ARTIFACT_PATH }}
           if-no-files-found: warn
 
+  mac:
+    name: Build macOS DMG
+    needs: build
+    if: always()
+    uses: ./.github/workflows/mac-build.yml
+    with:
+      version: ${{ needs.build.outputs.package_version }}
+    permissions:
+      contents: write
+
   create_release:
     name: Create GitHub Release
-    needs: build
+    needs: [build, mac]
     # Run the release step even if one or more OS builds failed, so the successful
     # artifacts still get published.
     if: always()
