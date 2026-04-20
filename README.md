@@ -26,11 +26,13 @@
 | `apprenticevr-x.x.x-setup-x64.exe` | Windows Installer | Recommended for most users |
 | `apprenticevr-x.x.x-portable-x64.exe` | Windows Portable | No install required |
 | `apprenticevr-x.x.x-x86_64.AppImage` | Linux x64 | Works on most distros |
-| `apprenticevr-x.x.x-arm64.AppImage` | Linux ARM64 | For ARM-based systems |
+| `apprenticevr-x.x.x-arm64.AppImage` | Linux ARM64 | For ARM-based systems (fixed in v2.2.8) |
 | `apprenticevr-x.x.x-amd64.deb` | Debian/Ubuntu x64 | Install with dpkg |
-| `apprenticevr-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 | ARM version |
+| `apprenticevr-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 | ARM version (fixed in v2.2.8) |
 
 > Downloads are on the Releases page. Always use the latest version.
+
+> **macOS note:** Only an x64 DMG is provided. Apple Silicon (M1–M5) users should install Rosetta 2 (`softwareupdate --install-rosetta`) and run the x64 build — it works fine.
 
 ### macOS Fix: "App is damaged"
 
@@ -45,6 +47,26 @@ chmod +x apprenticevr-x.x.x-x86_64.AppImage
 ./apprenticevr-x.x.x-x86_64.AppImage
 ```
 
+### Building from Source
+
+**macOS:**
+```
+npm install --legacy-peer-deps
+npx electron-vite build && npx electron-builder --mac --x64
+```
+
+**Linux:**
+```
+npm install --legacy-peer-deps
+npx electron-vite build && npx electron-builder --linux --x64
+```
+
+**Windows:**
+```
+npm install --legacy-peer-deps
+npx electron-vite build && npx electron-builder --win --x64
+```
+
 ---
 
 ## Step 2: Get Your Server Credentials
@@ -56,9 +78,9 @@ ApprenticeVR requires:
 
 Where to find them:
 
-- Telegram: https://t.me/the_vrSrc  
-- Web preview: https://t.me/s/the_vrSrc  
-- Public JSON: https://qpmegathread.top/pages/public-json.html  
+- Telegram: https://t.me/the_vrSrc
+- Web preview: https://t.me/s/the_vrSrc
+- Public JSON: https://qpmegathread.top/pages/public-json.html
 
 Keep credentials private. Do not share them.
 
@@ -102,7 +124,15 @@ Up to 5 downloads run in parallel.
 
 ## What's New in VRSrc Edition
 
-### Key Improvements
+### v2.2.8
+
+- **install.txt support** — games that ship with an `install.txt` now have their ADB commands read and executed line-by-line instead of the standard APK+OBB flow
+- **ZIP direct install** — drop a ZIP into the manual install picker; the app extracts it, processes `install.txt` if present, installs APK and OBB, then cleans up automatically
+- **Local upload fix** — the upload service now reads `upload.config` from your local VRP data folder instead of fetching from a remote URL
+- **ARM64 Linux binaries fixed** — x86_64 binaries were being bundled in ARM64 AppImages; a real ARM64 static 7zip binary is now included, and adb falls back to the system-installed `adb` (Google does not ship ARM64 Linux platform-tools)
+- **Translation improvements** — additional UI components now respect the selected language
+
+### Key Improvements (all versions)
 
 - **Local file upload** — upload game folders or ZIP files directly from your PC without a connected Quest
 - **Spanish (Castellano) language** — auto-detected from your OS; switch anytime in Settings
@@ -149,6 +179,8 @@ Use **Uploads → Upload Local Files** to send game folders or ZIP archives dire
 - Each folder must contain **exactly one APK** file — OBB folders, instruction files, and other content are included automatically
 - If you already have a ZIP, it is sent as-is
 - Multiple folders/ZIPs can be queued at once and upload one at a time with live progress
+
+> Requires at least one successful VRP connection so that `upload.config` is written locally.
 
 Uploads do not guarantee inclusion.
 
@@ -204,6 +236,15 @@ xattr -c /Applications/ApprenticeVR\ VRSrc\ Edition.app
 chmod +x apprenticevr-*.AppImage && ./apprenticevr-*.AppImage
 ```
 
+### ARM64 Linux: adb not found
+
+Install adb from your package manager:
+
+```
+sudo apt install adb           # Debian/Ubuntu
+sudo pacman -S android-tools   # Arch
+```
+
 ---
 
 ## Inspiration
@@ -222,8 +263,7 @@ GNU Affero GPL v3
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/apprenticeVrSrc?label=Last%20Updated)
 ![Created](https://img.shields.io/github/created-at/KaladinDMP/apprenticeVrSrc?label=Created)
 ![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/apprenticeVrSrc?label=Monthly%20Commits)
-![Stars](https://img.shields.io/github/stars/KaladinDMP/apprenticeVrSrc)
-![Contributors](https://img.shields.io/github/contributors/KaladinDMP/apprenticeVrSrc)
+![Stars](https://img.shields.io/github/stars/KaladinDMP)
 
 Contributors on this Repo
 
