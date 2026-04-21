@@ -1,6 +1,6 @@
 {
   "name": "apprenticevr",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
