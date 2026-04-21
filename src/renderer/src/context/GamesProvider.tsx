@@ -31,6 +31,10 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   const [extractProgress, setExtractProgress] = useState<number>(0)
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState<boolean>(false)
   const [uploadCandidates, setUploadCandidates] = useState<UploadCandidate[]>([])
+  // Incremented only when checkForUploadCandidates finds fresh candidates (not when
+  // addGameToBlacklist filters the list).  The dialog watches this to avoid re-opening
+  // after the user has already dismissed or acted on a prompt.
+  const [uploadCandidatesVersion, setUploadCandidatesVersion] = useState(0)
   const [missingGames] = useState<GameInfo[]>([])
   const [outdatedGames] = useState<GameInfo[]>([])
 
@@ -45,12 +49,11 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   const addGameToBlacklist = useCallback(
     async (packageName: string, version?: number | 'any'): Promise<void> => {
       await window.api.games.addToBlacklist(packageName, version)
-      // remove from candidates
-      setUploadCandidates(
-        uploadCandidates.filter((candidate) => candidate.packageName !== packageName)
-      )
+      // Use the functional-update form so rapid back-to-back calls each operate
+      // on the latest state rather than the stale closure captured at creation time.
+      setUploadCandidates((prev) => prev.filter((c) => c.packageName !== packageName))
     },
-    [uploadCandidates]
+    []
   )
 
   const getBlacklistGames = useCallback(async (): Promise<BlacklistEntry[]> => {
@@ -145,6 +148,9 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       if (candidates.length > 0) {
         console.log('Found upload candidates:', candidates)
         setUploadCandidates(candidates)
+        // Bump the version so the dialog knows these are freshly-detected candidates
+        // and should be shown again (e.g. after the user clicked Refresh Quest).
+        setUploadCandidatesVersion((v) => v + 1)
       }
     }
 
@@ -310,6 +316,7 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       outdatedGames,
       missingGames,
       uploadCandidates,
+      uploadCandidatesVersion,
       getTrailerVideoId,
       addGameToBlacklist,
       getBlacklistGames,
@@ -330,6 +337,7 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       outdatedGames,
       missingGames,
       uploadCandidates,
+      uploadCandidatesVersion,
       getTrailerVideoId,
       addGameToBlacklist,
       getBlacklistGames,

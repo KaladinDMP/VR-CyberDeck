@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Dialog,
   DialogSurface,
@@ -23,50 +23,49 @@ import { useUpload } from '@renderer/hooks/useUpload'
 import { useLanguage } from '@renderer/hooks/useLanguage'
 
 const UploadGamesDialog: React.FC = () => {
-  const { uploadCandidates, addGameToBlacklist } = useGames()
+  const { uploadCandidates, uploadCandidatesVersion, addGameToBlacklist } = useGames()
   const { selectedDevice } = useAdb()
   const { addToQueue } = useUpload()
   const { t } = useLanguage()
+
   const [showUploadDialog, setShowUploadDialog] = useState<boolean>(false)
-  const [selectedCandidates, setSelectedCandidates] = useState<{ [key: string]: boolean }>({})
+  const [selectedCandidates, setSelectedCandidates] = useState<Record<string, boolean>>({})
+
+  // Track the last version we showed the dialog for so we only re-open when
+  // checkForUploadCandidates produces a genuinely fresh batch (e.g. after the
+  // user clicks Refresh Quest), not when addGameToBlacklist filters the list.
+  const lastShownVersion = useRef(0)
 
   useEffect(() => {
-    if (uploadCandidates && uploadCandidates.length > 0) {
-      // Initialize all candidates as selected
+    if (uploadCandidates?.length > 0 && uploadCandidatesVersion > lastShownVersion.current) {
+      lastShownVersion.current = uploadCandidatesVersion
       const initialSelected = uploadCandidates.reduce(
-        (acc, candidate) => {
-          acc[candidate.packageName] = true
-          return acc
-        },
+        (acc, c) => { acc[c.packageName] = true; return acc },
         {} as Record<string, boolean>
       )
-
       setSelectedCandidates(initialSelected)
       setShowUploadDialog(true)
     }
-  }, [uploadCandidates])
+  }, [uploadCandidates, uploadCandidatesVersion])
 
   const handleCandidateToggle = (packageName: string): void => {
-    setSelectedCandidates((prev) => ({
-      ...prev,
-      [packageName]: !prev[packageName]
-    }))
+    setSelectedCandidates((prev) => ({ ...prev, [packageName]: !prev[packageName] }))
   }
 
   const handleSelectAll = (checked: boolean): void => {
-    const updatedSelection = uploadCandidates.reduce(
-      (acc, candidate) => {
-        acc[candidate.packageName] = checked
-        return acc
-      },
-      {} as Record<string, boolean>
+    setSelectedCandidates(
+      uploadCandidates.reduce((acc, c) => { acc[c.packageName] = checked; return acc }, {} as Record<string, boolean>)
     )
-    setSelectedCandidates(updatedSelection)
+  }
+
+  const handleReverseSelection = (): void => {
+    setSelectedCandidates(
+      uploadCandidates.reduce((acc, c) => { acc[c.packageName] = !selectedCandidates[c.packageName]; return acc }, {} as Record<string, boolean>)
+    )
   }
 
   const getHeaderCheckboxState = (): { checked: boolean; indeterminate: boolean } => {
     if (!uploadCandidates?.length) return { checked: false, indeterminate: false }
-
     const selectedCount = Object.values(selectedCandidates).filter(Boolean).length
     return {
       checked: selectedCount > 0 && selectedCount === uploadCandidates.length,
@@ -75,49 +74,44 @@ const UploadGamesDialog: React.FC = () => {
   }
 
   const handleUpload = async (): Promise<void> => {
-    const selectedForUpload = uploadCandidates.filter(
-      (candidate) => selectedCandidates[candidate.packageName]
-    )
-    console.log('Games selected for upload:', selectedForUpload)
-
+    const toUpload = uploadCandidates.filter((c) => selectedCandidates[c.packageName])
     setShowUploadDialog(false)
-
-    for (const candidate of selectedForUpload) {
-      await addToQueue(
-        candidate.packageName,
-        candidate.gameName,
-        candidate.versionCode,
-        selectedDevice!
-      )
+    for (const c of toUpload) {
+      await addToQueue(c.packageName, c.gameName, c.versionCode, selectedDevice!)
     }
   }
 
-  const handleBlacklist = (): void => {
-    const selectedForBlacklist = uploadCandidates.filter(
-      (candidate) => selectedCandidates[candidate.packageName]
-    )
-    console.log('Games selected for blacklist:', selectedForBlacklist)
-
-    const closeAfterBlacklist = uploadCandidates.length === selectedForBlacklist.length
-
-    for (const candidate of selectedForBlacklist) {
-      addGameToBlacklist(candidate.packageName, candidate.versionCode)
+  const handleBlacklist = async (): Promise<void> => {
+    const toBlacklist = uploadCandidates.filter((c) => selectedCandidates[c.packageName])
+    const closeAfter = toBlacklist.length === uploadCandidates.length
+    for (const c of toBlacklist) {
+      await addGameToBlacklist(c.packageName, c.versionCode)
     }
-    // if the list is empy now, close the dialog
-    if (closeAfterBlacklist) {
-      setShowUploadDialog(false)
+    if (closeAfter) setShowUploadDialog(false)
+  }
+
+  // Upload the checked games; blacklist everything that is unchecked, then close.
+  const handleUploadSelectedBlacklistRest = async (): Promise<void> => {
+    const toUpload    = uploadCandidates.filter((c) =>  selectedCandidates[c.packageName])
+    const toBlacklist = uploadCandidates.filter((c) => !selectedCandidates[c.packageName])
+    setShowUploadDialog(false)
+    for (const c of toBlacklist) {
+      await addGameToBlacklist(c.packageName, c.versionCode)
+    }
+    for (const c of toUpload) {
+      await addToQueue(c.packageName, c.gameName, c.versionCode, selectedDevice!)
     }
   }
 
   const headerCheckboxState = getHeaderCheckboxState()
+  const anySelected = Object.values(selectedCandidates).some(Boolean)
+  const anyUnselected = uploadCandidates.some((c) => !selectedCandidates[c.packageName])
 
   return (
     <Dialog open={showUploadDialog} onOpenChange={(_, data) => setShowUploadDialog(data.open)}>
       <DialogSurface
         mountNode={document.getElementById('portal')}
-        style={{
-          maxWidth: '1020px'
-        }}
+        style={{ maxWidth: '1020px' }}
       >
         <DialogBody>
           <DialogTitle>{t('uploadGamesTitle')}</DialogTitle>
@@ -131,7 +125,7 @@ const UploadGamesDialog: React.FC = () => {
                     <Checkbox
                       checked={headerCheckboxState.checked}
                       indeterminate={headerCheckboxState.indeterminate}
-                      onChange={(_event, data) => handleSelectAll(!!data.checked)}
+                      onChange={(_e, data) => handleSelectAll(!!data.checked)}
                     />
                     {t('uploadColumn')}
                   </TableHeaderCell>
@@ -165,21 +159,41 @@ const UploadGamesDialog: React.FC = () => {
               </TableBody>
             </Table>
           </DialogContent>
+
           <DialogActions>
             <DialogTrigger disableButtonEnhancement>
               <Button appearance="secondary">{t('cancel')}</Button>
             </DialogTrigger>
+
+            {/* Reverse the current checkbox selection */}
+            <Button appearance="secondary" onClick={handleReverseSelection}>
+              Reverse selection
+            </Button>
+
+            {/* Blacklist whatever is checked */}
             <Button
               appearance="secondary"
               onClick={handleBlacklist}
-              disabled={Object.values(selectedCandidates).every((value) => value === false)}
+              disabled={!anySelected}
             >
               {t('blacklistSelected')}
             </Button>
+
+            {/* Upload checked + silently blacklist unchecked in one click */}
+            <Button
+              appearance="secondary"
+              onClick={handleUploadSelectedBlacklistRest}
+              disabled={!anySelected || !anyUnselected}
+              title="Upload the selected games and blacklist all unchecked games"
+            >
+              Upload selected, blacklist rest
+            </Button>
+
+            {/* Upload only the checked games */}
             <Button
               appearance="primary"
               onClick={handleUpload}
-              disabled={Object.values(selectedCandidates).every((value) => value === false)}
+              disabled={!anySelected}
             >
               {t('uploadSelectedGames')}
             </Button>

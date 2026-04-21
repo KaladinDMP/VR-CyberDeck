@@ -5,6 +5,7 @@ export interface GamesContextType {
   games: GameInfo[]
   localGames: GameInfo[]
   uploadCandidates: UploadCandidate[]
+  uploadCandidatesVersion: number
   isLoading: boolean
   error: string | null
   lastSyncTime: Date | null
