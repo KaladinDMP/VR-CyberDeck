@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { marked } from 'marked'
 import {
   Button,
   Text,
@@ -101,7 +102,33 @@ const useStyles = makeStyles({
   },
   releaseNotes: {
     maxHeight: '300px',
-    overflowY: 'auto'
+    overflowY: 'auto',
+    '& h1, & h2, & h3': {
+      margin: `${tokens.spacingVerticalS} 0 ${tokens.spacingVerticalXS}`,
+      color: tokens.colorNeutralForeground1,
+      fontWeight: tokens.fontWeightSemibold
+    },
+    '& h2': { fontSize: tokens.fontSizeBase500 },
+    '& h3': { fontSize: tokens.fontSizeBase400 },
+    '& ul, & ol': {
+      paddingLeft: tokens.spacingHorizontalXL,
+      margin: `${tokens.spacingVerticalXS} 0`
+    },
+    '& li': { marginBottom: tokens.spacingVerticalXS },
+    '& a': {
+      color: tokens.colorBrandForeground1,
+      textDecoration: 'none',
+      '&:hover': { textDecoration: 'underline' }
+    },
+    '& p': { margin: `${tokens.spacingVerticalXS} 0` },
+    '& code': {
+      fontFamily: 'monospace',
+      fontSize: tokens.fontSizeBase200,
+      backgroundColor: tokens.colorNeutralBackground3,
+      padding: '1px 4px',
+      borderRadius: tokens.borderRadiusSmall
+    },
+    '& hr': { border: 'none', borderTop: `1px solid ${tokens.colorNeutralStroke2}`, margin: `${tokens.spacingVerticalS} 0` }
   },
   downloadProgress: {
     display: 'flex',
@@ -317,9 +344,12 @@ export function UpdateNotification(): React.ReactElement | null {
 
             <div className={styles.tabContent}>
               {selectedTab === 'release-notes' && hasReleaseNotes && (
-                <div className={styles.releaseNotes}>
-                  <div dangerouslySetInnerHTML={{ __html: updateAvailable.releaseNotes || '' }} />
-                </div>
+                <div
+                  className={styles.releaseNotes}
+                  dangerouslySetInnerHTML={{
+                    __html: marked(updateAvailable.releaseNotes || '', { breaks: true }) as string
+                  }}
+                />
               )}
 
               {selectedTab === 'commits' && hasCommits && (
