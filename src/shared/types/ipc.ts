@@ -156,6 +156,8 @@ export interface IPCSendChannels {
   'update:download': string
   'update:open-releases': void
   'update:open-repository': void
+  'update:start-download': void
+  'update:install': void
 }
 
 // Types for events emitted from main to renderer

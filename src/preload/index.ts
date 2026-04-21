@@ -15,6 +15,7 @@ import {
   UploadAPIRenderer,
   UploadItem,
   UpdateInfo,
+  UpdateProgressInfo,
   UpdateAPIRenderer,
   DependencyAPIRenderer,
   LogsAPIRenderer,
@@ -180,6 +181,8 @@ const api = {
     openDownloadPage: (url: string): void => typedIpcRenderer.send('update:download', url),
     openReleasesPage: (): void => typedIpcRenderer.send('update:open-releases'),
     openRepositoryPage: (): void => typedIpcRenderer.send('update:open-repository'),
+    startDownload: (): void => typedIpcRenderer.send('update:start-download'),
+    installUpdate: (): void => typedIpcRenderer.send('update:install'),
     onCheckingForUpdate: (callback: () => void): (() => void) => {
       const listener = (): void => callback()
       typedIpcRenderer.on('update:checking-for-update', listener)
@@ -194,6 +197,17 @@ const api = {
       const listener = (_: IpcRendererEvent, error: Error): void => callback(error)
       typedIpcRenderer.on('update:error', listener)
       return () => typedIpcRenderer.removeListener('update:error', listener)
+    },
+    onDownloadProgress: (callback: (progressInfo: UpdateProgressInfo) => void): (() => void) => {
+      const listener = (_: IpcRendererEvent, progressInfo: UpdateProgressInfo): void =>
+        callback(progressInfo)
+      typedIpcRenderer.on('update:download-progress', listener)
+      return () => typedIpcRenderer.removeListener('update:download-progress', listener)
+    },
+    onUpdateDownloaded: (callback: (updateInfo: UpdateInfo) => void): (() => void) => {
+      const listener = (_: IpcRendererEvent, updateInfo: UpdateInfo): void => callback(updateInfo)
+      typedIpcRenderer.on('update:update-downloaded', listener)
+      return () => typedIpcRenderer.removeListener('update:update-downloaded', listener)
     }
   } satisfies UpdateAPIRenderer,
   settings: {
