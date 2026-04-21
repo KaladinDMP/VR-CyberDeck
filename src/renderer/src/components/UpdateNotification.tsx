@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { marked } from 'marked'
 import {
   Button,
@@ -102,33 +102,7 @@ const useStyles = makeStyles({
   },
   releaseNotes: {
     maxHeight: '300px',
-    overflowY: 'auto',
-    '& h1, & h2, & h3': {
-      margin: `${tokens.spacingVerticalS} 0 ${tokens.spacingVerticalXS}`,
-      color: tokens.colorNeutralForeground1,
-      fontWeight: tokens.fontWeightSemibold
-    },
-    '& h2': { fontSize: tokens.fontSizeBase500 },
-    '& h3': { fontSize: tokens.fontSizeBase400 },
-    '& ul, & ol': {
-      paddingLeft: tokens.spacingHorizontalXL,
-      margin: `${tokens.spacingVerticalXS} 0`
-    },
-    '& li': { marginBottom: tokens.spacingVerticalXS },
-    '& a': {
-      color: tokens.colorBrandForeground1,
-      textDecoration: 'none',
-      '&:hover': { textDecoration: 'underline' }
-    },
-    '& p': { margin: `${tokens.spacingVerticalXS} 0` },
-    '& code': {
-      fontFamily: 'monospace',
-      fontSize: tokens.fontSizeBase200,
-      backgroundColor: tokens.colorNeutralBackground3,
-      padding: '1px 4px',
-      borderRadius: tokens.borderRadiusSmall
-    },
-    '& hr': { border: 'none', borderTop: `1px solid ${tokens.colorNeutralStroke2}`, margin: `${tokens.spacingVerticalS} 0` }
+    overflowY: 'auto'
   },
   downloadProgress: {
     display: 'flex',
@@ -237,6 +211,15 @@ export function UpdateNotification(): React.ReactElement | null {
     setIsDialogOpen(false)
   }
 
+  const releaseNotesHtml = useMemo(() => {
+    if (!updateAvailable?.releaseNotes) return ''
+    try {
+      return String(marked.parse(updateAvailable.releaseNotes, { breaks: true }))
+    } catch {
+      return updateAvailable.releaseNotes
+    }
+  }, [updateAvailable?.releaseNotes])
+
   const formatCommitDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -344,12 +327,24 @@ export function UpdateNotification(): React.ReactElement | null {
 
             <div className={styles.tabContent}>
               {selectedTab === 'release-notes' && hasReleaseNotes && (
-                <div
-                  className={styles.releaseNotes}
-                  dangerouslySetInnerHTML={{
-                    __html: marked(updateAvailable.releaseNotes || '', { breaks: true }) as string
-                  }}
-                />
+                <>
+                  <style>{`
+                    .avr-rn h1,.avr-rn h2,.avr-rn h3{margin:8px 0 4px;font-weight:600;color:inherit}
+                    .avr-rn h1{font-size:1.25em}.avr-rn h2{font-size:1.1em}.avr-rn h3{font-size:1em}
+                    .avr-rn ul,.avr-rn ol{padding-left:24px;margin:4px 0}
+                    .avr-rn li{margin-bottom:4px}
+                    .avr-rn p{margin:4px 0}
+                    .avr-rn a{color:#0078d4;text-decoration:none}
+                    .avr-rn a:hover{text-decoration:underline}
+                    .avr-rn code{font-family:monospace;font-size:0.9em;background:rgba(128,128,128,0.25);padding:1px 5px;border-radius:3px}
+                    .avr-rn hr{border:none;border-top:1px solid rgba(128,128,128,0.3);margin:8px 0}
+                    .avr-rn strong{font-weight:600}
+                  `}</style>
+                  <div
+                    className={`avr-rn ${styles.releaseNotes}`}
+                    dangerouslySetInnerHTML={{ __html: releaseNotesHtml }}
+                  />
+                </>
               )}
 
               {selectedTab === 'commits' && hasCommits && (
