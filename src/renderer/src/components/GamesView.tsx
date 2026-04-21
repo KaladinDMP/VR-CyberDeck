@@ -55,12 +55,14 @@ import {
   FolderAddRegular,
   DocumentRegular,
   ChevronDownRegular,
-  CopyRegular
+  CopyRegular,
+  WindowConsoleRegular
 } from '@fluentui/react-icons'
 import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
 import MirrorSelector from './MirrorSelector'
+import { AdbShellDialog } from './AdbShellDialog'
 
 // Column width constants
 const COLUMN_WIDTHS = {
@@ -265,6 +267,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
   const styles = useStyles()
   const { t } = useLanguage()
 
+  const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1240,6 +1243,12 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
               </Text>
               <Button
                 appearance="subtle"
+                icon={<WindowConsoleRegular />}
+                onClick={() => setShellDialogOpen(true)}
+                title="Open ADB shell"
+              />
+              <Button
+                appearance="subtle"
                 icon={<PlugDisconnectedRegular />}
                 onClick={disconnectDevice}
                 title={t('disconnectFromDevice')}
@@ -1546,6 +1555,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
                 </DialogBody>
               </DialogSurface>
             </Dialog>
+
+            {/* ADB Shell dialog */}
+            {selectedDevice && (
+              <AdbShellDialog
+                deviceId={selectedDevice}
+                isOpen={shellDialogOpen}
+                onDismiss={() => setShellDialogOpen(false)}
+              />
+            )}
 
             {/* OBB Folder Confirmation Dialog */}
             <Dialog
