@@ -40,7 +40,12 @@ import {
   DialogBody,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Popover,
+  PopoverTrigger,
+  PopoverSurface,
+  Slider,
+  Switch
 } from '@fluentui/react-components'
 import {
   ArrowClockwiseRegular,
@@ -55,12 +60,16 @@ import {
   FolderAddRegular,
   DocumentRegular,
   ChevronDownRegular,
-  CopyRegular
+  CopyRegular,
+  WindowConsoleRegular,
+  OptionsRegular
 } from '@fluentui/react-icons'
 import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
 import MirrorSelector from './MirrorSelector'
+import { AdbShellDialog } from './AdbShellDialog'
+import { useTablePreferences } from '@renderer/hooks/useTablePreferences'
 
 // Column width constants
 const COLUMN_WIDTHS = {
@@ -232,6 +241,16 @@ interface GamesViewProps {
   onBackToDevices: () => void
 }
 
+const COLOR_SWATCHES = [
+  { label: 'None',    value: 'transparent' },
+  { label: 'Cyan',    value: 'rgba(0, 212, 255, 0.07)' },
+  { label: 'Purple',  value: 'rgba(176, 64, 255, 0.07)' },
+  { label: 'Pink',    value: 'rgba(255, 0, 180, 0.06)' },
+  { label: 'Green',   value: 'rgba(0, 255, 128, 0.07)' },
+  { label: 'Blue',    value: 'rgba(40, 120, 255, 0.08)' },
+  { label: 'Subtle',  value: 'rgba(255, 255, 255, 0.05)' },
+] as const
+
 const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
   const {
     selectedDevice,
@@ -265,6 +284,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
   const styles = useStyles()
   const { t } = useLanguage()
 
+  const [shellDialogOpen, setShellDialogOpen] = useState(false)
+  const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
+  const { prefs, setPrefs } = useTablePreferences()
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -302,6 +324,20 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
     const updates = games.filter((g) => g.hasUpdate).length
     return { total, installed, updates }
   }, [games])
+
+  // Apply density + colour CSS variables to the table scroll container so they
+  // cascade to all td/th and thumbnail cells without touching inline styles on
+  // every row.
+  useEffect(() => {
+    const el = tableContainerRef.current
+    if (!el) return
+    const padV  = 4  + (prefs.rowDensity / 100) * 12   // 4 → 16 px
+    const thumb = 48 + (prefs.rowDensity / 100) * 42   // 48 → 90 px
+    el.style.setProperty('--row-pad-v',       `${padV}px`)
+    el.style.setProperty('--row-thumb-size',  `${Math.round(thumb)}px`)
+    el.style.setProperty('--row-even-color',  prefs.evenRowColor)
+    el.style.setProperty('--row-odd-color',   prefs.oddRowColor)
+  }, [prefs])
 
   useEffect(() => {
     setColumnFilters((prev) => {
@@ -645,12 +681,19 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
   })
 
   const { rows } = table.getRowModel()
+  // Estimated row height scales with density: ~60 px compact → ~125 px comfortable
+  const estimatedRowHeight = Math.round(60 + (prefs.rowDensity / 100) * 65)
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 115,
+    estimateSize: () => estimatedRowHeight,
     overscan: 10
   })
+
+  // Re-measure all virtualised rows when density changes so scroll height stays accurate
+  useEffect(() => {
+    rowVirtualizer.measure()
+  }, [prefs.rowDensity])
 
   const formatDate = (date: Date | null): string => {
     if (!date) return t('never')
@@ -1240,6 +1283,12 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
               </Text>
               <Button
                 appearance="subtle"
+                icon={<WindowConsoleRegular />}
+                onClick={() => setShellDialogOpen(true)}
+                title="Open ADB shell"
+              />
+              <Button
+                appearance="subtle"
                 icon={<PlugDisconnectedRegular />}
                 onClick={disconnectDevice}
                 title={t('disconnectFromDevice')}
@@ -1344,6 +1393,98 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
         </div>
         <div className="games-toolbar-right">
           <span className="game-count">{table.getFilteredRowModel().rows.length} {t('displayed')}</span>
+
+          {/* ── View Options popover ────────────────────────────────────── */}
+          <Popover
+            open={viewOptionsOpen}
+            onOpenChange={(_, d) => setViewOptionsOpen(d.open)}
+          >
+            <PopoverTrigger disableButtonEnhancement>
+              <Button appearance="subtle" icon={<OptionsRegular />} title="View options" />
+            </PopoverTrigger>
+            <PopoverSurface style={{ padding: '16px', minWidth: '300px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                {/* Density slider */}
+                <div>
+                  <Text size={200} weight="semibold" style={{ display: 'block', marginBottom: '6px' }}>
+                    Row density
+                  </Text>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>Compact</Text>
+                    <Slider
+                      style={{ flex: 1 }}
+                      min={0} max={100} step={5}
+                      value={prefs.rowDensity}
+                      onChange={(_, d) => setPrefs({ rowDensity: d.value })}
+                    />
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>Comfortable</Text>
+                  </div>
+                </div>
+
+                {/* Alternating rows toggle */}
+                <Switch
+                  label="Alternating row colours"
+                  checked={prefs.alternatingRows}
+                  onChange={(_, d) => setPrefs({ alternatingRows: d.checked })}
+                />
+
+                {/* Colour pickers – shown only when alternating is on */}
+                {prefs.alternatingRows && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(
+                      [
+                        { label: 'Even rows', key: 'evenRowColor' as const },
+                        { label: 'Odd rows',  key: 'oddRowColor'  as const },
+                      ] as const
+                    ).map(({ label, key }) => (
+                      <div key={key}>
+                        <Text size={200} style={{ display: 'block', marginBottom: '6px', color: tokens.colorNeutralForeground2 }}>
+                          {label}
+                        </Text>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          {COLOR_SWATCHES.map((sw) => (
+                            <div
+                              key={sw.label}
+                              title={sw.label}
+                              style={{
+                                width: '22px', height: '22px',
+                                borderRadius: '4px',
+                                background: sw.value === 'transparent'
+                                  ? 'repeating-linear-gradient(45deg,#777 0,#777 2px,transparent 0,transparent 50%) 0 0/8px 8px'
+                                  : sw.value,
+                                cursor: 'pointer',
+                                boxSizing: 'border-box',
+                                border: prefs[key] === sw.value
+                                  ? '2px solid #00d4ff'
+                                  : '2px solid rgba(255,255,255,0.18)',
+                              }}
+                              onClick={() => setPrefs({ [key]: sw.value })}
+                            />
+                          ))}
+                          {/* Custom colour picker */}
+                          <input
+                            type="color"
+                            title="Custom colour"
+                            style={{
+                              width: '22px', height: '22px',
+                              padding: 0, border: '2px solid rgba(255,255,255,0.18)',
+                              borderRadius: '4px', cursor: 'pointer',
+                              background: 'none',
+                            }}
+                            onChange={(e) => setPrefs({ [key]: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            </PopoverSurface>
+          </Popover>
+          {/* ───────────────────────────────────────────────────────────── */}
+
           <Input
             value={searchInput}
             onChange={handleSearchChange}
@@ -1374,7 +1515,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
           <div className="no-games-message">{t('noGamesFound')}</div>
         ) : (
           <>
-            <div className="table-wrapper" ref={tableContainerRef}>
+            <div className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`} ref={tableContainerRef}>
               <table className="games-table" style={{ width: table.getTotalSize() }}>
                 <thead
                   style={{
@@ -1427,7 +1568,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
                     const row = rows[virtualRow.index] as Row<GameInfo>
                     const rowClasses = [
                       row.original.isInstalled ? 'row-installed' : 'row-not-installed',
-                      row.original.hasUpdate ? 'row-update-available' : ''
+                      row.original.hasUpdate ? 'row-update-available' : '',
+                      virtualRow.index % 2 === 0 ? 'row-even' : 'row-odd'
                     ]
                       .filter(Boolean)
                       .join(' ')
@@ -1546,6 +1688,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
                 </DialogBody>
               </DialogSurface>
             </Dialog>
+
+            {/* ADB Shell dialog */}
+            {selectedDevice && (
+              <AdbShellDialog
+                deviceId={selectedDevice}
+                isOpen={shellDialogOpen}
+                onDismiss={() => setShellDialogOpen(false)}
+              />
+            )}
 
             {/* OBB Folder Confirmation Dialog */}
             <Dialog
