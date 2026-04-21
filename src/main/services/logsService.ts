@@ -3,7 +3,59 @@ import { join } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import { LogsAPI } from '@shared/types'
 
-const MAX_LOG_BYTES = 150 * 1024 // 150 KB cap for rentry.co
+const MAX_LOG_BYTES = 300 * 1024 // 300 KB cap for rentry.co
+
+// ─── Error-line highlighting ──────────────────────────────────────────────────
+
+/**
+ * Returns true when a log line represents a real error worth highlighting.
+ *
+ * Rules:
+ *  - Skip anything that looks like "error: null / undefined / false" — those
+ *    are logged-but-empty error slots, not actual failures.
+ *  - Highlight lines where electron-log stamped the [error] level.
+ *  - Highlight lines that contain a Node.js syscall error code.
+ *  - Highlight JavaScript stack-trace lines (leading whitespace + "at ").
+ */
+function isActualError(line: string): boolean {
+  // ── Suppress null / no-op error patterns ────────────────────────────────────
+  // Matches: "error: null", "Error: null", ": null" at end of line, etc.
+  if (/\berror[:\s]+null\b/i.test(line)) return false
+  if (/\berror[:\s]+undefined\b/i.test(line)) return false
+  if (/\berror[:\s]+false\b/i.test(line)) return false
+  if (/:\s*null\s*$/.test(line.trim())) return false
+
+  // ── Real error signals ───────────────────────────────────────────────────────
+  // electron-log stamps the level as [error]
+  if (/\[error\]/i.test(line)) return true
+
+  // Node.js syscall error codes that appear inline in messages
+  if (/\b(ENOENT|ECONNREFUSED|ETIMEDOUT|EACCES|EPERM|ENOTFOUND|ECONNRESET|EADDRINUSE|EISDIR|EEXIST)\b/.test(line)) return true
+
+  // JavaScript stack-trace lines: "   at functionName (file:line:col)"
+  if (/^\s{2,}at\s+\S/.test(line)) return true
+
+  return false
+}
+
+/**
+ * Wraps every genuine error line in rentry.co's red colour markup.
+ * Any literal `%%` inside a line is escaped to `% %` so it can't
+ * accidentally close the colour span early.
+ */
+function annotateErrors(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => {
+      if (!isActualError(line)) return line
+      // Escape rentry's colour-close token inside the line content
+      const safe = line.replace(/%%/g, '% %')
+      return `%red%${safe}%%`
+    })
+    .join('\n')
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
 
 class LogsService implements LogsAPI {
   public getLogFilePath(): string {
@@ -43,10 +95,13 @@ class LogsService implements LogsAPI {
       const raw = readFileSync(logFilePath, 'utf-8')
 
       // Truncate to last MAX_LOG_BYTES if the file is too large
-      const content =
+      const trimmed =
         Buffer.byteLength(raw, 'utf-8') > MAX_LOG_BYTES
-          ? `[...truncated — showing last ~150 KB...]\n\n${raw.slice(-MAX_LOG_BYTES)}`
+          ? `[...truncated — showing last ~300 KB...]\n\n${raw.slice(-MAX_LOG_BYTES)}`
           : raw
+
+      // Annotate real error lines with rentry red colour markup
+      const content = annotateErrors(trimmed)
 
       console.log('[LogsService] Uploading log to rentry.co...')
 
@@ -95,7 +150,6 @@ class LogsService implements LogsAPI {
       }
 
       const entryUrl = result.url
-      // Strip protocol + domain to get just the slug (e.g. "abc12345")
       const slug = entryUrl.replace(/^https?:\/\/rentry\.co\//, '')
 
       console.log('[LogsService] Log uploaded successfully:', entryUrl, '(slug:', slug + ')')
