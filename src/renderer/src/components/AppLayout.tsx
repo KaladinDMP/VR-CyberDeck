@@ -23,7 +23,10 @@ import {
   DrawerHeaderTitle,
   DrawerBody,
   TabList,
-  Tab
+  Tab,
+  Dialog,
+  DialogSurface,
+  DialogBody
 } from '@fluentui/react-components'
 import electronLogo from '../assets/icon.svg'
 import { useDependency } from '../hooks/useDependency'
@@ -150,18 +153,20 @@ const useStyles = makeStyles({
 
 interface MainContentProps {
   currentView: AppView
-  activeTab: ActiveTab
   onDeviceConnected: () => void
   onSkipConnection: () => void
   onBackToDeviceList: () => void
+  onTransfers: () => void
+  onSettings: () => void
 }
 
 const MainContent: React.FC<MainContentProps> = ({
   currentView,
-  activeTab,
   onDeviceConnected,
   onSkipConnection,
-  onBackToDeviceList
+  onBackToDeviceList,
+  onTransfers,
+  onSettings
 }) => {
   const styles = useStyles()
   const {
@@ -175,13 +180,7 @@ const MainContent: React.FC<MainContentProps> = ({
     if (currentView === AppView.DEVICE_LIST) {
       return <DeviceList onConnected={onDeviceConnected} onSkip={onSkipConnection} />
     }
-
-    // Return the appropriate content based on active tab
-    if (activeTab === 'settings') {
-      return <Settings />
-    } else {
-      return <GamesView onBackToDevices={onBackToDeviceList} />
-    }
+    return <GamesView onBackToDevices={onBackToDeviceList} onTransfers={onTransfers} onSettings={onSettings} />
   }
 
   if (!dependenciesReady) {
@@ -292,10 +291,10 @@ const MainContent: React.FC<MainContentProps> = ({
 
 const AppLayout: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DEVICE_LIST)
-  const [activeTab, setActiveTab] = useState<ActiveTab>('games')
   const { colorScheme, setColorScheme } = useSettings()
-  const [isDownloadsOpen, setIsDownloadsOpen] = useState(false)
-  const [isUploadsOpen, setIsUploadsOpen] = useState(false)
+  const [isTransfersOpen, setIsTransfersOpen] = useState(false)
+  const [transfersTab, setTransfersTab] = useState<'downloads' | 'uploads'>('downloads')
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
   const mountNodeRef = useRef<HTMLDivElement>(null)
   const styles = useStyles()
@@ -334,79 +333,6 @@ const AppLayout: React.FC = () => {
     setColorScheme(data.checked ? 'dark' : 'light')
   }
 
-  const downloadQueueProgress = useMemo(() => {
-    const activeDownloads = downloadQueue.filter((item) => item.status === 'Downloading')
-    const extractingDownloads = downloadQueue.filter((item) => item.status === 'Extracting')
-    const installingDownloads = downloadQueue.filter((item) => item.status === 'Installing')
-    const queuedDownloads = downloadQueue.filter((item) => item.status === 'Queued')
-    return {
-      activeDownloads,
-      extractingDownloads,
-      installingDownloads,
-      queuedDownloads
-    }
-  }, [downloadQueue])
-
-  const uploadQueueProgress = useMemo(() => {
-    const preparingUploads = uploadQueue.filter((item) => item.status === 'Preparing')
-    const activeUploads = uploadQueue.filter((item) => item.status === 'Uploading')
-    const queuedUploads = uploadQueue.filter((item) => item.status === 'Queued')
-    return {
-      preparingUploads,
-      activeUploads,
-      queuedUploads
-    }
-  }, [uploadQueue])
-
-  const getDownloadButtonContent = (): { icon: React.ReactNode; text: string } => {
-    const { activeDownloads, extractingDownloads, installingDownloads, queuedDownloads } =
-      downloadQueueProgress
-
-    if (activeDownloads.length > 0) {
-      const activeDownload = activeDownloads[0]
-      const activeDownloadProgress = activeDownload.progress
-      const activeDownloadEta = activeDownload.eta || ''
-      const activeDownloadSpeed = activeDownload.speed || ''
-      let text = `${activeDownload.gameName} (${activeDownloadProgress}%) ${activeDownloadEta} ${activeDownloadSpeed}`
-      if (queuedDownloads.length > 0) text += ` (+${queuedDownloads.length})`
-      return { icon: <Spinner size="tiny" style={{ animationDuration: '1s' }} />, text }
-    } else if (extractingDownloads.length > 0) {
-      const d = extractingDownloads[0]
-      let text = `${t('extracting')} ${d.gameName} (${d.extractProgress || 0}%)...`
-      if (queuedDownloads.length > 0) text += ` (+${queuedDownloads.length})`
-      return { icon: <Spinner size="tiny" style={{ animationDuration: '1s' }} />, text }
-    } else if (installingDownloads.length > 0) {
-      const d = installingDownloads[0]
-      let text = `${t('installing')} ${d.gameName}...`
-      if (queuedDownloads.length > 0) text += ` (+${queuedDownloads.length})`
-      return { icon: <Spinner size="tiny" style={{ animationDuration: '1s' }} />, text }
-    } else {
-      return { icon: <DownloadIcon />, text: t('downloads') }
-    }
-  }
-
-  const getUploadButtonContent = (): { icon: React.ReactNode; text: string } => {
-    const { preparingUploads, activeUploads, queuedUploads } = uploadQueueProgress
-
-    if (activeUploads.length > 0) {
-      const u = activeUploads[0]
-      let text = `${t('uploading')} ${u.gameName} (${u.progress}%)`
-      if (queuedUploads.length > 0) text += ` (+${queuedUploads.length})`
-      return { icon: <Spinner size="tiny" style={{ animationDuration: '1s' }} />, text }
-    } else if (preparingUploads.length > 0) {
-      const u = preparingUploads[0]
-      let text = `${u.stage || 'Preparing'} ${u.gameName} (${u.progress}%)`
-      if (queuedUploads.length > 0) text += ` (+${queuedUploads.length})`
-      return { icon: <Spinner size="tiny" style={{ animationDuration: '1s' }} />, text }
-    } else if (queuedUploads.length > 0) {
-      return { icon: <UploadIcon />, text: `${t('uploads')} (${queuedUploads.length})` }
-    } else {
-      return { icon: <UploadIcon />, text: t('uploads') }
-    }
-  }
-
-  const { icon: downloadButtonIcon, text: downloadButtonText } = getDownloadButtonContent()
-  const { icon: uploadButtonIcon, text: uploadButtonText } = getUploadButtonContent()
 
   return (
     <FluentProvider theme={currentTheme}>
@@ -433,51 +359,6 @@ const AppLayout: React.FC = () => {
                   </div>
                 </div>
                 <div className={styles.headerActions}>
-                  {currentView !== AppView.DEVICE_LIST && (
-                    <>
-                      <Button
-                        onClick={() => {
-                          console.log('[AppLayout] Downloads button clicked')
-                          setIsDownloadsOpen(true)
-                        }}
-                        icon={downloadButtonIcon}
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: '12px'
-                        }}
-                      >
-                        {downloadButtonText}
-                      </Button>
-
-                      <Button
-                        onClick={() => {
-                          console.log('[AppLayout] Uploads button clicked')
-                          setIsUploadsOpen(true)
-                        }}
-                        icon={uploadButtonIcon}
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: '12px'
-                        }}
-                      >
-                        {uploadButtonText}
-                      </Button>
-
-                      <TabList
-                        selectedValue={activeTab}
-                        onTabSelect={(_, data) => setActiveTab(data.value as ActiveTab)}
-                        appearance="subtle"
-                        className={styles.tabs}
-                      >
-                        <Tab value="games" icon={<DesktopRegular />}>
-                          {t('games')}
-                        </Tab>
-                        <Tab value="settings" icon={<SettingsRegular />}>
-                          {t('settings')}
-                        </Tab>
-                      </TabList>
-                    </>
-                  )}
                   <LocalUploadDialog />
                   <Switch
                     label={colorScheme === 'dark' ? t('darkMode') : t('lightMode')}
@@ -490,21 +371,23 @@ const AppLayout: React.FC = () => {
               <div className={styles.mainContent} id="mainContent">
                 <MainContent
                   currentView={currentView}
-                  activeTab={activeTab}
                   onDeviceConnected={handleDeviceConnected}
                   onSkipConnection={handleSkipConnection}
                   onBackToDeviceList={handleBackToDeviceList}
+                  onTransfers={() => setIsTransfersOpen(true)}
+                  onSettings={() => setIsSettingsOpen(true)}
                 />
               </div>
 
               {/* Add UpdateNotification component here - it manages its own visibility */}
               <UpdateNotification />
 
+              {/* Transfers drawer (Downloads + Uploads combined) */}
               <Drawer
                 type="overlay"
                 separator
-                open={isDownloadsOpen}
-                onOpenChange={(_, { open }) => setIsDownloadsOpen(open)}
+                open={isTransfersOpen}
+                onOpenChange={(_, { open }) => setIsTransfersOpen(open)}
                 position="end"
                 style={{ width: '700px' }}
                 mountNode={mountNodeRef.current}
@@ -516,49 +399,57 @@ const AppLayout: React.FC = () => {
                         appearance="subtle"
                         aria-label={t('close')}
                         icon={<CloseIcon />}
-                        onClick={() => setIsDownloadsOpen(false)}
+                        onClick={() => setIsTransfersOpen(false)}
                       />
                     }
                   >
-                    {t('downloads')}
+                    Transfers
                   </DrawerHeaderTitle>
                 </DrawerHeader>
-                <DrawerBody>
-                  <div>
-                    <DownloadsView onClose={() => setIsDownloadsOpen(false)} />
+                <DrawerBody style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
+                  <TabList
+                    selectedValue={transfersTab}
+                    onTabSelect={(_, d) => setTransfersTab(d.value as 'downloads' | 'uploads')}
+                    style={{ padding: '0 16px', borderBottom: `1px solid ${tokens.colorNeutralStroke1}`, flexShrink: 0 }}
+                  >
+                    <Tab value="downloads" icon={<DownloadIcon />}>{t('downloads')}</Tab>
+                    <Tab value="uploads" icon={<UploadIcon />}>{t('uploads')}</Tab>
+                  </TabList>
+                  <div style={{ flex: 1, overflow: 'auto' }}>
+                    {transfersTab === 'downloads' ? (
+                      <DownloadsView onClose={() => setIsTransfersOpen(false)} />
+                    ) : (
+                      <UploadsView />
+                    )}
                   </div>
                 </DrawerBody>
               </Drawer>
 
-              <Drawer
-                type="overlay"
-                separator
-                open={isUploadsOpen}
-                onOpenChange={(_, { open }) => setIsUploadsOpen(open)}
-                position="end"
-                style={{ width: '700px' }}
-                mountNode={mountNodeRef.current}
-              >
-                <DrawerHeader>
-                  <DrawerHeaderTitle
-                    action={
-                      <Button
-                        appearance="subtle"
-                        aria-label={t('close')}
-                        icon={<CloseIcon />}
-                        onClick={() => setIsUploadsOpen(false)}
-                      />
-                    }
-                  >
-                    {t('uploads')}
-                  </DrawerHeaderTitle>
-                </DrawerHeader>
-                <DrawerBody>
-                  <div>
-                    <UploadsView />
-                  </div>
-                </DrawerBody>
-              </Drawer>
+              {/* Settings modal */}
+              <Dialog open={isSettingsOpen} onOpenChange={(_, d) => setIsSettingsOpen(d.open)}>
+                <DialogSurface
+                  style={{
+                    maxWidth: '960px',
+                    width: '92vw',
+                    maxHeight: '92vh',
+                    padding: 0,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <DialogBody style={{ padding: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
+                    <Button
+                      appearance="subtle"
+                      icon={<CloseIcon />}
+                      aria-label={t('close')}
+                      onClick={() => setIsSettingsOpen(false)}
+                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+                    />
+                    <Settings />
+                  </DialogBody>
+                </DialogSurface>
+              </Dialog>
             </div>
             <div
               id="portal-parent"

@@ -64,7 +64,9 @@ import {
   WindowConsoleRegular,
   OptionsRegular,
   GridRegular,
-  TableRegular
+  TableRegular,
+  SettingsRegular,
+  ArrowSyncRegular
 } from '@fluentui/react-icons'
 import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
@@ -236,11 +238,119 @@ const useStyles = makeStyles({
   isResizing: {
     background: tokens.colorBrandBackground,
     opacity: 1
+  },
+  layout: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+    overflow: 'hidden'
+  },
+  sidebar: {
+    width: '256px',
+    minWidth: '256px',
+    display: 'flex',
+    flexDirection: 'column',
+    borderRight: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: tokens.colorNeutralBackground2,
+    overflow: 'hidden',
+    transition: 'width 0.18s ease, min-width 0.18s ease',
+    flexShrink: 0
+  },
+  sidebarCollapsed: {
+    width: '44px',
+    minWidth: '44px'
+  },
+  sidebarToggleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}`,
+    flexShrink: 0,
+    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`
+  },
+  sidebarScroll: {
+    flex: 1,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalM}`,
+    gap: tokens.spacingVerticalS
+  },
+  sidebarSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXS,
+    paddingBottom: tokens.spacingVerticalM,
+    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`
+  },
+  sidebarLabel: {
+    fontSize: '10px',
+    fontWeight: '600',
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    color: tokens.colorNeutralForeground3,
+    paddingBottom: tokens.spacingVerticalXXS
+  },
+  storageBarTrack: {
+    height: '4px',
+    borderRadius: '2px',
+    backgroundColor: tokens.colorNeutralStroke1,
+    overflow: 'hidden',
+    marginTop: tokens.spacingVerticalXS
+  },
+  storageBarFill: {
+    height: '100%',
+    borderRadius: '2px',
+    transition: 'width 0.3s ease'
+  },
+  deviceIdRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalXS,
+    cursor: 'pointer',
+    padding: `${tokens.spacingVerticalXXS} 0`,
+    overflow: 'hidden'
+  },
+  sidebarMain: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+  controlRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalS,
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
+    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`,
+    flexShrink: 0,
+    flexWrap: 'nowrap'
+  },
+  searchBoxWrap: {
+    flex: 1,
+    minWidth: '140px'
+  },
+  contentArea: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM} ${tokens.spacingVerticalM}`
   }
 })
 
 interface GamesViewProps {
   onBackToDevices: () => void
+  onTransfers: () => void
+  onSettings: () => void
+}
+
+function parseStorageGB(s: string | null | undefined): number {
+  if (!s) return 0
+  const m = s.match(/(\d+(?:\.\d+)?)\s*([GT])/i)
+  if (!m) return 0
+  return /T/i.test(m[2]) ? parseFloat(m[1]) * 1024 : parseFloat(m[1])
 }
 
 const COLOR_SWATCHES = [
@@ -253,7 +363,7 @@ const COLOR_SWATCHES = [
   { label: 'Subtle',  value: 'rgba(255, 255, 255, 0.05)' },
 ] as const
 
-const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
+const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onSettings }) => {
   const {
     selectedDevice,
     selectedDeviceDetails,
@@ -288,6 +398,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
 
   const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [showDeviceId, setShowDeviceId] = useState(false)
   const { prefs, setPrefs } = useTablePreferences()
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -326,6 +438,18 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
     const updates = games.filter((g) => g.hasUpdate).length
     return { total, installed, updates }
   }, [games])
+
+  const activeTransferCount = useMemo(
+    () =>
+      downloadQueue.filter(
+        (d) =>
+          d.status === 'Downloading' ||
+          d.status === 'Extracting' ||
+          d.status === 'Installing' ||
+          d.status === 'Queued'
+      ).length,
+    [downloadQueue]
+  )
 
   // Apply density + colour CSS variables to the table scroll container so they
   // cascade to all td/th and thumbnail cells without touching inline styles on
@@ -1159,654 +1283,572 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
 
   const isBusy = adbLoading || loadingGames || isLoading || isManualInstalling
 
+  const storageFreeGB = parseStorageGB(selectedDeviceDetails?.storageFree)
+  const storageTotalGB = parseStorageGB(selectedDeviceDetails?.storageTotal)
+  const storageUsedPct =
+    storageTotalGB > 0 ? Math.min(100, Math.round(((storageTotalGB - storageFreeGB) / storageTotalGB) * 100)) : 0
+  const storageBarColor =
+    storageUsedPct > 85
+      ? tokens.colorPaletteRedForeground1
+      : storageUsedPct > 65
+        ? '#ffaa00'
+        : tokens.colorBrandBackground
+
   return (
     <div className={styles.root}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Button appearance="subtle" icon={<ArrowLeftRegular />} onClick={onBackToDevices}>
-            {t('devicesSelection')}
-          </Button>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
-              <Title3>{selectedDeviceDetails?.friendlyModelName || t('games')}</Title3>
-              {selectedDeviceDetails && (
-                <>
-                  {selectedDeviceDetails?.batteryLevel !== null && (
-                    <Badge
-                      appearance="outline"
-                      color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'}
-                      icon={<BatteryChargeRegular />}
-                    >
-                      {selectedDeviceDetails.batteryLevel}%
-                    </Badge>
-                  )}
-                  {selectedDeviceDetails?.storageFree && (
-                    <Badge appearance="outline" icon={<StorageRegular />}>
-                      {selectedDeviceDetails.storageFree} free
-                    </Badge>
-                  )}
-                </>
-              )}
-            </div>
-            {isConnected && (
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}
-              >
-                {isEditingUserName ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: tokens.spacingHorizontalXS
-                    }}
-                  >
-                    <Input
-                      value={editUserNameValue}
-                      onChange={(e) => setEditUserNameValue(e.target.value)}
-                      placeholder={t('enterVrName')}
-                      size="small"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSaveUserName()
-                        } else if (e.key === 'Escape') {
-                          handleCancelEditUserName()
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      onClick={handleSaveUserName}
-                      disabled={loadingUserName || !editUserNameValue.trim()}
-                    >
-                      {loadingUserName ? <Spinner size="tiny" /> : t('save')}
-                    </Button>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      onClick={handleCancelEditUserName}
-                      disabled={loadingUserName}
-                    >
-                      {t('cancel')}
-                    </Button>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: tokens.spacingHorizontalXS
-                    }}
-                  >
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                      {t('usernameInGames')}
+      <div className={styles.layout}>
+
+        {/* ════════════ SIDEBAR ════════════ */}
+        <div className={`${styles.sidebar} ${!sidebarOpen ? styles.sidebarCollapsed : ''}`}>
+          <div className={styles.sidebarToggleRow}>
+            {sidebarOpen && <span className={styles.sidebarLabel} style={{ margin: 0 }}>MENU</span>}
+            <Button
+              appearance="subtle"
+              size="small"
+              onClick={() => setSidebarOpen((v) => !v)}
+              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              style={{ marginLeft: sidebarOpen ? 'auto' : 0, minWidth: 0, fontWeight: 600, fontSize: '14px' }}
+            >
+              {sidebarOpen ? '«' : '»'}
+            </Button>
+          </div>
+
+          {sidebarOpen && (
+            <div className={styles.sidebarScroll}>
+
+              {/* ── DEVICE ── */}
+              <section className={styles.sidebarSection}>
+                <div className={styles.sidebarLabel}>Device</div>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<ArrowLeftRegular />}
+                  onClick={onBackToDevices}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}
+                >
+                  {t('devicesSelection')}
+                </Button>
+                {selectedDeviceDetails ? (
+                  <>
+                    <Text weight="semibold" style={{ fontSize: '14px', marginTop: tokens.spacingVerticalXS }}>
+                      {selectedDeviceDetails.friendlyModelName || t('games')}
                     </Text>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      icon={<PersonRegular />}
-                      iconPosition="before"
-                      onClick={handleEditUserName}
-                      style={{
-                        minHeight: 'auto',
-                        padding: `${tokens.spacingVerticalXS} ${tokens.spacingHorizontalS}`,
-                        borderRadius: tokens.borderRadiusMedium,
-                        border: `1px solid ${tokens.colorNeutralStroke2}`,
-                        backgroundColor: tokens.colorNeutralBackground1
-                      }}
-                      title={t('enterVrName')}
+                    <div style={{ display: 'flex', gap: tokens.spacingHorizontalS, flexWrap: 'wrap', marginTop: tokens.spacingVerticalXXS }}>
+                      {selectedDeviceDetails.batteryLevel !== null && (
+                        <Badge
+                          appearance="outline"
+                          color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'}
+                          icon={<BatteryChargeRegular />}
+                        >
+                          {selectedDeviceDetails.batteryLevel}%
+                        </Badge>
+                      )}
+                    </div>
+                    {selectedDeviceDetails.storageFree && selectedDeviceDetails.storageTotal && (
+                      <>
+                        <Text size={200} style={{ color: tokens.colorNeutralForeground2, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <StorageRegular style={{ fontSize: '13px' }} />
+                          {selectedDeviceDetails.storageFree} free / {selectedDeviceDetails.storageTotal}
+                        </Text>
+                        <div className={styles.storageBarTrack}>
+                          <div className={styles.storageBarFill} style={{ width: `${storageUsedPct}%`, backgroundColor: storageBarColor }} />
+                        </div>
+                        <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{storageUsedPct}% used</Text>
+                      </>
+                    )}
+                    <div
+                      className={styles.deviceIdRow}
+                      onClick={() => setShowDeviceId((v) => !v)}
+                      title={showDeviceId ? 'Click to hide device ID' : 'Click to reveal device ID'}
                     >
-                      {userName || t('clickToSet')}
-                      <EditRegular
-                        style={{ marginLeft: tokens.spacingHorizontalXS, fontSize: '12px' }}
-                      />
-                    </Button>
+                      <Text size={100} style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}>ID:</Text>
+                      <Text
+                        size={100}
+                        style={{
+                          fontFamily: 'monospace',
+                          letterSpacing: showDeviceId ? 'normal' : '0.15em',
+                          userSelect: showDeviceId ? 'text' : 'none',
+                          color: showDeviceId ? tokens.colorNeutralForeground1 : tokens.colorNeutralForeground3,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1
+                        }}
+                      >
+                        {showDeviceId ? selectedDevice : '••••••••••'}
+                      </Text>
+                    </div>
+                    {isConnected && (
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<PlugDisconnectedRegular />}
+                        onClick={disconnectDevice}
+                        style={{ justifyContent: 'flex-start', width: '100%', color: tokens.colorPaletteRedForeground1 }}
+                      >
+                        {t('disconnectFromDevice')}
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Text size={200} style={{ color: tokens.colorPaletteRedForeground1, display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}>
+                    <DismissRegular />
+                    {t('notConnectedToDevice')}
+                  </Text>
+                )}
+              </section>
+
+              {/* ── OPTIONS ── */}
+              <section className={styles.sidebarSection}>
+                <div className={styles.sidebarLabel}>Options</div>
+                {isConnected && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{t('usernameInGames')}</Text>
+                    {isEditingUserName ? (
+                      <>
+                        <Input
+                          value={editUserNameValue}
+                          onChange={(e) => setEditUserNameValue(e.target.value)}
+                          placeholder={t('enterVrName')}
+                          size="small"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveUserName()
+                            else if (e.key === 'Escape') handleCancelEditUserName()
+                          }}
+                          autoFocus
+                        />
+                        <div style={{ display: 'flex', gap: tokens.spacingHorizontalXS }}>
+                          <Button appearance="primary" size="small" onClick={handleSaveUserName} disabled={loadingUserName || !editUserNameValue.trim()}>
+                            {loadingUserName ? <Spinner size="tiny" /> : t('save')}
+                          </Button>
+                          <Button appearance="subtle" size="small" onClick={handleCancelEditUserName} disabled={loadingUserName}>
+                            {t('cancel')}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<PersonRegular />}
+                        onClick={handleEditUserName}
+                        style={{ justifyContent: 'flex-start', width: '100%', border: `1px solid ${tokens.colorNeutralStroke2}` }}
+                      >
+                        {userName || t('clickToSet')}
+                        <EditRegular style={{ marginLeft: 'auto', fontSize: '12px' }} />
+                      </Button>
+                    )}
                   </div>
                 )}
+                <div style={{ marginTop: tokens.spacingVerticalXXS }}>
+                  <MirrorSelector />
+                </div>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<ArrowClockwiseRegular />}
+                  onClick={refreshGames}
+                  disabled={isBusy}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}
+                >
+                  {isBusy ? t('working') : t('refreshGames')}
+                </Button>
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<ArrowClockwiseRegular />}
+                  onClick={() => loadPackages()}
+                  disabled={isBusy || !isConnected}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}
+                  title={!isConnected ? t('connectDeviceToRefresh') : t('refreshInstalledPackages')}
+                >
+                  {isBusy ? t('working') : t('refreshQuest')}
+                </Button>
+                <Menu>
+                  <MenuTrigger disableButtonEnhancement>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      icon={<FolderAddRegular />}
+                      disabled={isBusy || !isConnected}
+                      style={{ justifyContent: 'flex-start', width: '100%' }}
+                    >
+                      {isManualInstalling ? t('manualInstalling') : t('manualInstall')}
+                    </Button>
+                  </MenuTrigger>
+                  <MenuPopover>
+                    <MenuList>
+                      <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>
+                        {t('installApkFile')}
+                      </MenuItem>
+                      <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>
+                        {t('installFolder')}
+                      </MenuItem>
+                      <MenuItem icon={<CopyRegular />} onClick={handleCopyObbFolder} disabled={isManualInstalling}>
+                        {t('copyObbFolder')}
+                      </MenuItem>
+                    </MenuList>
+                  </MenuPopover>
+                </Menu>
+                {isConnected && (
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={<WindowConsoleRegular />}
+                    onClick={() => setShellDialogOpen(true)}
+                    style={{ justifyContent: 'flex-start', width: '100%' }}
+                  >
+                    ADB Shell
+                  </Button>
+                )}
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  icon={<SettingsRegular />}
+                  onClick={onSettings}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}
+                >
+                  {t('settings')}
+                </Button>
+              </section>
+
+              {/* ── TRANSFERS ── */}
+              <section className={styles.sidebarSection}>
+                <div className={styles.sidebarLabel}>Transfers</div>
+                <Button
+                  appearance={activeTransferCount > 0 ? 'primary' : 'subtle'}
+                  size="small"
+                  icon={<ArrowSyncRegular />}
+                  onClick={onTransfers}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}
+                >
+                  Transfers
+                  {activeTransferCount > 0 && (
+                    <Badge appearance="filled" color="brand" size="small" style={{ marginLeft: 'auto' }}>
+                      {activeTransferCount}
+                    </Badge>
+                  )}
+                </Button>
+              </section>
+
+              <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL }}>
+                <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
+                  {t('lastSynced')} {formatDate(lastSyncTime)}
+                </Text>
               </div>
-            )}
-          </div>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: tokens.spacingVerticalS,
-            alignItems: 'flex-end'
-          }}
-        >
-          <MirrorSelector />
-          {isConnected ? (
-            <div className={styles.toolbarRight}>
-              <Text className={styles.connectedDeviceText}>
-                <CheckmarkCircleRegular />
-                {t('connectedTo')} {selectedDevice}
-              </Text>
-              <Button
-                appearance="subtle"
-                icon={<WindowConsoleRegular />}
-                onClick={() => setShellDialogOpen(true)}
-                title="Open ADB shell"
-              />
-              <Button
-                appearance="subtle"
-                icon={<PlugDisconnectedRegular />}
-                onClick={disconnectDevice}
-                title={t('disconnectFromDevice')}
-              />
-            </div>
-          ) : (
-            <div className={styles.toolbarRight}>
-              <Text className={styles.deviceWarningText}>
-                <DismissRegular />
-                {t('notConnectedToDevice')}
-              </Text>
             </div>
           )}
         </div>
-      </div>
 
-      <div className={styles.tableContainer}>
-        <div className="games-toolbar">
-          <div className="games-toolbar-left">
-            <Button icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}>
-              {isBusy ? t('working') : t('refreshGames')}
-            </Button>
-            <Button
-              icon={<ArrowClockwiseRegular />}
-              onClick={() => loadPackages()}
-              disabled={isBusy || !isConnected}
-              title={
-                !isConnected
-                  ? t('connectDeviceToRefresh')
-                  : t('refreshInstalledPackages')
-              }
-            >
-              {isBusy ? t('working') : t('refreshQuest')}
-            </Button>
-            <Menu>
-              <MenuTrigger disableButtonEnhancement>
-                <Button
-                  icon={<FolderAddRegular />}
-                  iconPosition="before"
-                  disabled={isBusy || !isConnected}
-                  title={
-                    !isConnected
-                      ? t('connectDeviceInstall')
-                      : t('installApkOrFolder')
-                  }
-                >
-                  {isManualInstalling ? t('manualInstalling') : t('manualInstall')}
-                  <ChevronDownRegular />
-                </Button>
-              </MenuTrigger>
-              <MenuPopover>
-                <MenuList>
-                  <MenuItem
-                    icon={<DocumentRegular />}
-                    onClick={() => handleManualInstall('apk')}
-                    disabled={isManualInstalling}
-                  >
-                    {t('installApkFile')}
-                  </MenuItem>
-                  <MenuItem
-                    icon={<FolderAddRegular />}
-                    onClick={() => handleManualInstall('folder')}
-                    disabled={isManualInstalling}
-                  >
-                    {t('installFolder')}
-                  </MenuItem>
-                  <MenuItem
-                    icon={<CopyRegular />}
-                    onClick={handleCopyObbFolder}
-                    disabled={isManualInstalling}
-                  >
-                    {t('copyObbFolder')}
-                  </MenuItem>
-                </MenuList>
-              </MenuPopover>
-            </Menu>
-            <span className="last-synced">{t('lastSynced')} {formatDate(lastSyncTime)}</span>
-            {isConnected && (
-              <div className="filter-buttons">
-                <button
-                  onClick={() => setActiveFilter('all')}
-                  className={activeFilter === 'all' ? 'active' : ''}
-                >
-                  {t('filterAll')} ({counts.total})
-                </button>
-                <button
-                  onClick={() => setActiveFilter('installed')}
-                  className={activeFilter === 'installed' ? 'active' : ''}
-                >
-                  {t('filterInstalled')} ({counts.installed})
-                </button>
-                <button
-                  onClick={() => setActiveFilter('update')}
-                  className={activeFilter === 'update' ? 'active' : ''}
-                  disabled={counts.updates === 0}
-                >
-                  {t('filterUpdates')} ({counts.updates})
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="games-toolbar-right">
-          <span className="game-count">{table.getFilteredRowModel().rows.length} {t('displayed')}</span>
+        {/* ════════════ MAIN ════════════ */}
+        <div className={styles.sidebarMain}>
 
-          {/* ── Table / Card view toggle ─────────────────────────────────── */}
-          <Button
-            appearance={prefs.viewMode === 'table' ? 'primary' : 'subtle'}
-            icon={<TableRegular />}
-            title="Table view"
-            size="small"
-            onClick={() => setPrefs({ viewMode: 'table' })}
-          />
-          <Button
-            appearance={prefs.viewMode === 'cards' ? 'primary' : 'subtle'}
-            icon={<GridRegular />}
-            title="Card view"
-            size="small"
-            onClick={() => setPrefs({ viewMode: 'cards' })}
-          />
-
-          {/* ── View Options popover ────────────────────────────────────── */}
-          <Popover
-            open={viewOptionsOpen}
-            onOpenChange={(_, d) => setViewOptionsOpen(d.open)}
-          >
-            <PopoverTrigger disableButtonEnhancement>
-              <Button appearance="subtle" icon={<OptionsRegular />} title="View options" />
-            </PopoverTrigger>
-            <PopoverSurface style={{ padding: '16px', minWidth: '300px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                {/* Density slider */}
-                <div>
-                  <Text size={200} weight="semibold" style={{ display: 'block', marginBottom: '6px' }}>
-                    Row density
-                  </Text>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>Compact</Text>
-                    <Slider
-                      style={{ flex: 1 }}
-                      min={0} max={100} step={5}
-                      value={prefs.rowDensity}
-                      onChange={(_, d) => setPrefs({ rowDensity: d.value })}
-                    />
-                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>Comfortable</Text>
-                  </div>
-                </div>
-
-                {/* Alternating rows toggle */}
-                <Switch
-                  label="Alternating row colours"
-                  checked={prefs.alternatingRows}
-                  onChange={(_, d) => setPrefs({ alternatingRows: d.checked })}
-                />
-
-                {/* Colour pickers – shown only when alternating is on */}
-                {prefs.alternatingRows && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {(
-                      [
-                        { label: 'Even rows', key: 'evenRowColor' as const },
-                        { label: 'Odd rows',  key: 'oddRowColor'  as const },
-                      ] as const
-                    ).map(({ label, key }) => (
-                      <div key={key}>
-                        <Text size={200} style={{ display: 'block', marginBottom: '6px', color: tokens.colorNeutralForeground2 }}>
-                          {label}
-                        </Text>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                          {COLOR_SWATCHES.map((sw) => (
-                            <div
-                              key={sw.label}
-                              title={sw.label}
-                              style={{
-                                width: '22px', height: '22px',
-                                borderRadius: '4px',
-                                background: sw.value === 'transparent'
-                                  ? 'repeating-linear-gradient(45deg,#777 0,#777 2px,transparent 0,transparent 50%) 0 0/8px 8px'
-                                  : sw.value,
-                                cursor: 'pointer',
-                                boxSizing: 'border-box',
-                                border: prefs[key] === sw.value
-                                  ? '2px solid #00d4ff'
-                                  : '2px solid rgba(255,255,255,0.18)',
-                              }}
-                              onClick={() => setPrefs({ [key]: sw.value })}
-                            />
-                          ))}
-                          {/* Custom colour picker */}
-                          <input
-                            type="color"
-                            title="Custom colour"
-                            style={{
-                              width: '22px', height: '22px',
-                              padding: 0, border: '2px solid rgba(255,255,255,0.18)',
-                              borderRadius: '4px', cursor: 'pointer',
-                              background: 'none',
-                            }}
-                            onChange={(e) => setPrefs({ [key]: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              </div>
-            </PopoverSurface>
-          </Popover>
-          {/* ───────────────────────────────────────────────────────────── */}
-
-          <Input
-            value={searchInput}
-            onChange={handleSearchChange}
-            placeholder={t('searchPlaceholder')}
-            type="search"
-          />
-        </div>
-        {isBusy && !loadingGames && !downloadProgress && !extractProgress && (
-          <div className="loading-indicator">{t('processing')}</div>
-        )}
-
-        {installStatusMessage && <div className="loading-indicator">{installStatusMessage}</div>}
-
-        {loadingGames && (downloadProgress > 0 || extractProgress > 0) && (
-          <div className="download-progress">
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${getCurrentProgress()}%` }} />
+          {/* Control Row */}
+          <div className={styles.controlRow}>
+            <Input
+              value={searchInput}
+              onChange={handleSearchChange}
+              placeholder={t('searchPlaceholder')}
+              type="search"
+              className={styles.searchBoxWrap}
+            />
+            <div className="filter-buttons" style={{ margin: 0 }}>
+              <button onClick={() => setActiveFilter('all')} className={activeFilter === 'all' ? 'active' : ''}>
+                {t('filterAll')} ({counts.total})
+              </button>
+              <button onClick={() => setActiveFilter('installed')} className={activeFilter === 'installed' ? 'active' : ''}>
+                {t('filterInstalled')} ({counts.installed})
+              </button>
+              <button onClick={() => setActiveFilter('update')} className={activeFilter === 'update' ? 'active' : ''} disabled={counts.updates === 0}>
+                {t('filterUpdates')} ({counts.updates})
+              </button>
             </div>
-            <div className="progress-text">{getProcessMessage()}</div>
-          </div>
-        )}
-
-        {loadingGames ? (
-          <div className="loading-indicator">{t('loadingGamesLibrary')}</div>
-        ) : gamesError ? (
-          <div className="error-message">{gamesError}</div>
-        ) : games.length === 0 && !loadingGames ? (
-          <div className="no-games-message">{t('noGamesFound')}</div>
-        ) : (
-          <>
-            {prefs.viewMode === 'cards' ? (
-              <div className="games-card-grid">
-                {rows.map((row) => {
-                  const game = row.original
-                  const ds = downloadStatusMap[game.releaseName]
-                  return (
-                    <div
-                      key={row.id}
-                      className="game-card"
-                      onClick={() => {
-                        setDialogGame(game)
-                        setIsDialogOpen(true)
-                      }}
-                    >
-                      <div className="game-card-thumbnail-wrap">
-                        <img
-                          src={
-                            game.thumbnailPath ? `file://${game.thumbnailPath}` : placeholderImage
-                          }
-                          alt={game.name}
-                        />
-                        {game.isInstalled && (
-                          <span
-                            className={`game-card-badge ${game.hasUpdate ? 'update' : 'installed'}`}
-                          >
-                            {game.hasUpdate ? 'Update' : 'Installed'}
-                          </span>
-                        )}
-                      </div>
-                      <div className="game-card-body">
-                        <div className="game-card-title">{game.name}</div>
-                        <div className="game-card-meta">
-                          v{game.version}
-                          {game.size ? ` · ${game.size}` : ''}
-                        </div>
-                        {ds && ds.status !== 'Completed' && (
-                          <div className="game-card-status-text">
-                            {ds.status}
-                            {ds.progress ? ` ${ds.progress}%` : ''}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div
-                className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`}
-                ref={tableContainerRef}
-              >
-                <table className="games-table" style={{ width: table.getTotalSize() }}>
-                  <thead
-                    style={{
-                      display: 'grid',
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1
-                    }}
-                  >
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            colSpan={header.colSpan}
-                            style={{ width: header.getSize(), position: 'relative' }}
-                          >
-                            {header.isPlaceholder ? null : (
-                              <div
-                                {...{
-                                  className: header.column.getCanSort()
-                                    ? 'cursor-pointer select-none'
-                                    : '',
-                                  onClick: header.column.getToggleSortingHandler()
+            <span className="game-count">{table.getFilteredRowModel().rows.length} {t('displayed')}</span>
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={prefs.viewMode === 'table' ? <GridRegular /> : <TableRegular />}
+              onClick={() => setPrefs({ viewMode: prefs.viewMode === 'table' ? 'cards' : 'table' })}
+              title={prefs.viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
+            />
+            <Popover open={viewOptionsOpen} onOpenChange={(_, d) => setViewOptionsOpen(d.open)} positioning="below-end">
+              <PopoverTrigger>
+                <Button appearance="subtle" icon={<OptionsRegular />} title="Display options" size="small" />
+              </PopoverTrigger>
+              <PopoverSurface style={{ minWidth: '280px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalM }}>
+                  <Text weight="semibold">Display Options</Text>
+                  <div>
+                    <Text size={200}>Row Density</Text>
+                    <Slider min={0} max={100} value={prefs.rowDensity} onChange={(_, d) => setPrefs({ rowDensity: d.value })} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text size={200}>Alternating rows</Text>
+                    <Switch checked={prefs.alternatingRows} onChange={(_, d) => setPrefs({ alternatingRows: d.checked })} />
+                  </div>
+                  {prefs.alternatingRows && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS }}>
+                      {(
+                        [
+                          { label: 'Even row colour', key: 'evenRowColor' as const },
+                          { label: 'Odd row colour', key: 'oddRowColor' as const }
+                        ] as { label: string; key: 'evenRowColor' | 'oddRowColor' }[]
+                      ).map(({ label, key }) => (
+                        <div key={key}>
+                          <Text size={200}>{label}</Text>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                            {COLOR_SWATCHES.map((sw) => (
+                              <button
+                                key={sw.label}
+                                title={sw.label}
+                                style={{
+                                  width: '22px', height: '22px', borderRadius: '4px', padding: 0, cursor: 'pointer',
+                                  background: sw.value,
+                                  border: prefs[key] === sw.value ? '2px solid #00d4ff' : '1px solid rgba(128,128,128,0.3)'
                                 }}
-                              >
-                                {flexRender(header.column.columnDef.header, header.getContext())}
-                                {{
-                                  asc: ' 🔼',
-                                  desc: ' 🔽'
-                                }[header.column.getIsSorted() as string] ?? null}
-                              </div>
-                            )}
-                            {header.column.getCanResize() && (
-                              <div
-                                onMouseDown={header.getResizeHandler()}
-                                onTouchStart={header.getResizeHandler()}
-                                className={`${styles.resizer} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
+                                onClick={() => setPrefs({ [key]: sw.value })}
                               />
-                            )}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody
-                    style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
-                  >
-                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                      const row = rows[virtualRow.index] as Row<GameInfo>
-                      const rowClasses = [
-                        row.original.isInstalled ? 'row-installed' : 'row-not-installed',
-                        row.original.hasUpdate ? 'row-update-available' : '',
-                        virtualRow.index % 2 === 0 ? 'row-even' : 'row-odd'
-                      ]
-                        .filter(Boolean)
-                        .join(' ')
+                            ))}
+                            <input
+                              type="color"
+                              value={prefs[key] === 'transparent' ? '#000000' : prefs[key]}
+                              title="Custom colour"
+                              style={{ width: '22px', height: '22px', borderRadius: '4px', border: '1px solid rgba(128,128,128,0.3)', padding: 0, cursor: 'pointer', background: 'none' }}
+                              onChange={(e) => setPrefs({ [key]: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </PopoverSurface>
+            </Popover>
+          </div>
 
+          {/* Status messages */}
+          {isBusy && !loadingGames && !downloadProgress && !extractProgress && (
+            <div className="loading-indicator">{t('processing')}</div>
+          )}
+          {installStatusMessage && <div className="loading-indicator">{installStatusMessage}</div>}
+          {loadingGames && (downloadProgress > 0 || extractProgress > 0) && (
+            <div className="download-progress">
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: `${getCurrentProgress()}%` }} />
+              </div>
+              <div className="progress-text">{getProcessMessage()}</div>
+            </div>
+          )}
+
+          {/* Content area */}
+          <div className={styles.contentArea}>
+            {loadingGames ? (
+              <div className="loading-indicator">{t('loadingGamesLibrary')}</div>
+            ) : gamesError ? (
+              <div className="error-message">{gamesError}</div>
+            ) : games.length === 0 && !loadingGames ? (
+              <div className="no-games-message">{t('noGamesFound')}</div>
+            ) : (
+              <>
+                {prefs.viewMode === 'cards' ? (
+                  <div className="games-card-grid">
+                    {rows.map((row) => {
+                      const game = row.original
+                      const ds = downloadStatusMap[game.releaseName]
                       return (
-                        <tr
+                        <div
                           key={row.id}
-                          className={rowClasses}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: `${virtualRow.size}px`,
-                            transform: `translateY(${virtualRow.start}px)`
-                          }}
-                          onClick={(e) => handleRowClick(e, row)}
+                          className="game-card"
+                          onClick={() => { setDialogGame(game); setIsDialogOpen(true) }}
                         >
-                          {row.getVisibleCells().map((cell) => (
-                            <td
-                              key={cell.id}
-                              style={{
-                                width: cell.column.getSize(),
-                                maxWidth: cell.column.getSize()
-                              }}
-                            >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                          ))}
-                        </tr>
+                          <div className="game-card-thumbnail-wrap">
+                            <img src={game.thumbnailPath ? `file://${game.thumbnailPath}` : placeholderImage} alt={game.name} />
+                            {game.isInstalled && (
+                              <span className={`game-card-badge ${game.hasUpdate ? 'update' : 'installed'}`}>
+                                {game.hasUpdate ? 'Update' : 'Installed'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="game-card-body">
+                            <div className="game-card-title">{game.name}</div>
+                            <div className="game-card-meta">v{game.version}{game.size ? ` · ${game.size}` : ''}</div>
+                            {ds && ds.status !== 'Completed' && (
+                              <div className="game-card-status-text">{ds.status}{ds.progress ? ` ${ds.progress}%` : ''}</div>
+                            )}
+                          </div>
+                        </div>
                       )
                     })}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                ) : (
+                  <div
+                    className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`}
+                    ref={tableContainerRef}
+                  >
+                    <table className="games-table" style={{ width: table.getTotalSize() }}>
+                      <thead style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1 }}>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                          <tr key={headerGroup.id}>
+                            {headerGroup.headers.map((header) => (
+                              <th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize(), position: 'relative' }}>
+                                {header.isPlaceholder ? null : (
+                                  <div
+                                    {...{
+                                      className: header.column.getCanSort() ? 'cursor-pointer select-none' : '',
+                                      onClick: header.column.getToggleSortingHandler()
+                                    }}
+                                  >
+                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                    {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] ?? null}
+                                  </div>
+                                )}
+                                {header.column.getCanResize() && (
+                                  <div
+                                    onMouseDown={header.getResizeHandler()}
+                                    onTouchStart={header.getResizeHandler()}
+                                    className={`${styles.resizer} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
+                                  />
+                                )}
+                              </th>
+                            ))}
+                          </tr>
+                        ))}
+                      </thead>
+                      <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                          const row = rows[virtualRow.index] as Row<GameInfo>
+                          const rowClasses = [
+                            row.original.isInstalled ? 'row-installed' : 'row-not-installed',
+                            row.original.hasUpdate ? 'row-update-available' : '',
+                            virtualRow.index % 2 === 0 ? 'row-even' : 'row-odd'
+                          ].filter(Boolean).join(' ')
+                          return (
+                            <tr
+                              key={row.id}
+                              className={rowClasses}
+                              style={{
+                                position: 'absolute', top: 0, left: 0, width: '100%',
+                                height: `${virtualRow.size}px`,
+                                transform: `translateY(${virtualRow.start}px)`
+                              }}
+                              onClick={(e) => handleRowClick(e, row)}
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <td key={cell.id} style={{ width: cell.column.getSize(), maxWidth: cell.column.getSize() }}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </td>
+                              ))}
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             )}
-
-            {dialogGame && (
-              <GameDetailsDialog
-                game={dialogGame}
-                open={isDialogOpen}
-                onClose={handleCloseDialog}
-                downloadStatusMap={downloadStatusMap}
-                onInstall={handleInstall}
-                onUninstall={handleUninstall}
-                onReinstall={handleReinstall}
-                onUpdate={handleUpdate}
-                onRetry={handleRetry}
-                onCancelDownload={handleCancelDownload}
-                onDeleteDownloaded={handleDeleteDownloaded}
-                onInstallFromCompleted={handleInstallFromCompleted}
-                getNote={getNote}
-                isConnected={isConnected}
-                isBusy={isBusy}
-              />
-            )}
-
-            {/* Manual Installation Progress Dialog */}
-            <Dialog
-              open={showInstallDialog}
-              onOpenChange={(_, data) => !data.open && closeInstallDialog()}
-            >
-              <DialogSurface>
-                <DialogBody>
-                  <DialogTitle>{t('manualOperation')}</DialogTitle>
-                  <DialogContent>
-                    <div style={{ marginBottom: tokens.spacingVerticalM }}>
-                      <Text>{installStatusMessage}</Text>
-                    </div>
-                    {isManualInstalling && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: tokens.spacingHorizontalS,
-                          marginBottom: tokens.spacingVerticalM
-                        }}
-                      >
-                        <Spinner size="small" />
-                        <Text>{t('processing')}</Text>
-                      </div>
-                    )}
-                    {installSuccess !== null && (
-                      <div
-                        style={{
-                          marginTop: tokens.spacingVerticalM,
-                          padding: tokens.spacingVerticalS,
-                          borderRadius: tokens.borderRadiusMedium,
-                          backgroundColor: installSuccess
-                            ? tokens.colorPaletteGreenBackground1
-                            : tokens.colorPaletteRedBackground1,
-                          color: installSuccess
-                            ? tokens.colorPaletteGreenForeground1
-                            : tokens.colorPaletteRedForeground1
-                        }}
-                      >
-                        <Text weight="semibold">
-                          {installSuccess ? t('operationSuccess') : t('operationFailed')}
-                        </Text>
-                        {!installSuccess && (
-                          <div style={{ marginTop: tokens.spacingVerticalXS }}>
-                            <Text size={200}>{t('checkLogs')}</Text>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </DialogContent>
-                  <DialogActions>
-                    <Button
-                      appearance="primary"
-                      onClick={closeInstallDialog}
-                      disabled={isManualInstalling}
-                    >
-                      {isManualInstalling ? t('processing') : t('close')}
-                    </Button>
-                  </DialogActions>
-                </DialogBody>
-              </DialogSurface>
-            </Dialog>
-
-            {/* ADB Shell dialog */}
-            {selectedDevice && (
-              <AdbShellDialog
-                deviceId={selectedDevice}
-                isOpen={shellDialogOpen}
-                onDismiss={() => setShellDialogOpen(false)}
-              />
-            )}
-
-            {/* OBB Folder Confirmation Dialog */}
-            <Dialog
-              open={showObbConfirmDialog}
-              onOpenChange={(_, data) => !data.open && handleObbCancelCopy()}
-            >
-              <DialogSurface>
-                <DialogBody>
-                  <DialogTitle>{t('confirmObbCopy')}</DialogTitle>
-                  <DialogContent>
-                    <div style={{ marginBottom: tokens.spacingVerticalM }}>
-                      <Text>
-                        {t('obbNoPackageFound')} &quot;{obbFolderToConfirm?.split(/[/\\]/).pop()}&quot;.
-                      </Text>
-                      <div style={{ marginTop: tokens.spacingVerticalS }}>
-                        <Text>{t('obbCopyConfirm')}</Text>
-                      </div>
-                    </div>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button
-                      appearance="primary"
-                      onClick={handleObbConfirmCopy}
-                      disabled={isManualInstalling}
-                    >
-                      {t('copyAnyway')}
-                    </Button>
-                    <Button
-                      appearance="secondary"
-                      onClick={handleObbCancelCopy}
-                      disabled={isManualInstalling}
-                    >
-                      {t('cancel')}
-                    </Button>
-                  </DialogActions>
-                </DialogBody>
-              </DialogSurface>
-            </Dialog>
-          </>
-        )}
+          </div>
+        </div>
       </div>
+
+      {/* ════════════ DIALOGS (outside layout) ════════════ */}
+      {dialogGame && (
+        <GameDetailsDialog
+          game={dialogGame}
+          open={isDialogOpen}
+          onClose={handleCloseDialog}
+          downloadStatusMap={downloadStatusMap}
+          onInstall={handleInstall}
+          onUninstall={handleUninstall}
+          onReinstall={handleReinstall}
+          onUpdate={handleUpdate}
+          onRetry={handleRetry}
+          onCancelDownload={handleCancelDownload}
+          onDeleteDownloaded={handleDeleteDownloaded}
+          onInstallFromCompleted={handleInstallFromCompleted}
+          getNote={getNote}
+          isConnected={isConnected}
+          isBusy={isBusy}
+        />
+      )}
+
+      <Dialog open={showInstallDialog} onOpenChange={(_, data) => !data.open && closeInstallDialog()}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>{t('manualOperation')}</DialogTitle>
+            <DialogContent>
+              <div style={{ marginBottom: tokens.spacingVerticalM }}>
+                <Text>{installStatusMessage}</Text>
+              </div>
+              {isManualInstalling && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS, marginBottom: tokens.spacingVerticalM }}>
+                  <Spinner size="small" />
+                  <Text>{t('processing')}</Text>
+                </div>
+              )}
+              {installSuccess !== null && (
+                <div
+                  style={{
+                    marginTop: tokens.spacingVerticalM,
+                    padding: tokens.spacingVerticalS,
+                    borderRadius: tokens.borderRadiusMedium,
+                    backgroundColor: installSuccess ? tokens.colorPaletteGreenBackground1 : tokens.colorPaletteRedBackground1,
+                    color: installSuccess ? tokens.colorPaletteGreenForeground1 : tokens.colorPaletteRedForeground1
+                  }}
+                >
+                  <Text weight="semibold">
+                    {installSuccess ? t('operationSuccess') : t('operationFailed')}
+                  </Text>
+                  {!installSuccess && (
+                    <div style={{ marginTop: tokens.spacingVerticalXS }}>
+                      <Text size={200}>{t('checkLogs')}</Text>
+                    </div>
+                  )}
+                </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="primary" onClick={closeInstallDialog} disabled={isManualInstalling}>
+                {isManualInstalling ? t('processing') : t('close')}
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {selectedDevice && (
+        <AdbShellDialog
+          deviceId={selectedDevice}
+          isOpen={shellDialogOpen}
+          onDismiss={() => setShellDialogOpen(false)}
+        />
+      )}
+
+      <Dialog open={showObbConfirmDialog} onOpenChange={(_, data) => !data.open && handleObbCancelCopy()}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>{t('confirmObbCopy')}</DialogTitle>
+            <DialogContent>
+              <div style={{ marginBottom: tokens.spacingVerticalM }}>
+                <Text>
+                  {t('obbNoPackageFound')} &quot;{obbFolderToConfirm?.split(/[/\\]/).pop()}&quot;.
+                </Text>
+                <div style={{ marginTop: tokens.spacingVerticalS }}>
+                  <Text>{t('obbCopyConfirm')}</Text>
+                </div>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="primary" onClick={handleObbConfirmCopy} disabled={isManualInstalling}>
+                {t('copyAnyway')}
+              </Button>
+              <Button appearance="secondary" onClick={handleObbCancelCopy} disabled={isManualInstalling}>
+                {t('cancel')}
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   )
 }
