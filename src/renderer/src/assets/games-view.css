@@ -182,7 +182,7 @@
 .games-table td {
   /* Remove border-bottom */
   /* border-bottom: 1px solid #e0e0e0; */
-  padding: 10px 12px;
+  padding: var(--row-pad-v, 10px) var(--row-pad-h, 12px);
   text-align: left;
   font-size: 13px;
   vertical-align: middle;
@@ -240,8 +240,8 @@
 
 /* Ensure thumbnail cell aligns correctly */
 .game-thumbnail-cell {
-  width: 70px;
-  height: 70px;
+  width: var(--row-thumb-size, 70px);
+  height: var(--row-thumb-size, 70px);
   padding: 5px; /* Adjust padding as needed */
   display: flex; /* Use flex to center content vertically */
   align-items: center;
@@ -375,4 +375,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Alternating row colours */
+.table-wrapper.alternating-rows tr.row-even td {
+  background-color: var(--row-even-color, transparent);
+}
+.table-wrapper.alternating-rows tr.row-odd td {
+  background-color: var(--row-odd-color, rgba(255, 255, 255, 0.04));
+}
+/* Hover always wins over stripe colour */
+.table-wrapper.alternating-rows tr.row-even:hover td,
+.table-wrapper.alternating-rows tr.row-odd:hover td {
+  background-color: var(--colorNeutralBackground2);
 }
