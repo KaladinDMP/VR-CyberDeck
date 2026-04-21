@@ -419,6 +419,20 @@ app.whenReady().then(async () => {
     updateService.openRepositoryPage()
   })
 
+  typedIpcMain.on('update:start-download', () => {
+    console.log('[IPC] Start download requested')
+    updateService.startDownload().catch((err) => {
+      console.error('[IPC Handler Error] startDownload failed:', err)
+    })
+  })
+
+  typedIpcMain.on('update:install', () => {
+    console.log('[IPC] Install update requested')
+    updateService.installUpdate().catch((err) => {
+      console.error('[IPC Handler Error] installUpdate failed:', err)
+    })
+  })
+
   // Set up update service event forwarding to renderer
   updateService.on('checking-for-update', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -435,6 +449,18 @@ app.whenReady().then(async () => {
   updateService.on('error', (err) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       typedWebContentsSend.send(mainWindow, 'update:error', err)
+    }
+  })
+
+  updateService.on('download-progress', (progressInfo) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      typedWebContentsSend.send(mainWindow, 'update:download-progress', progressInfo)
+    }
+  })
+
+  updateService.on('update-downloaded', (updateInfo) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      typedWebContentsSend.send(mainWindow, 'update:update-downloaded', updateInfo)
     }
   })
 

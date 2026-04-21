@@ -165,10 +165,9 @@ export interface UpdateInfo {
   releaseNotes?: string
   releaseDate?: string
   downloadUrl?: string
+  /** Direct download URL for the platform-specific installer asset. */
+  assetUrl?: string
   commits?: CommitInfo[]
-  // When true, this update notification was triggered by the lightweight
-  // update.txt check. The UI shows a simpler popup that emphasises that
-  // updating may resolve connectivity issues.
   isConnectivityCheck?: boolean
 }
 
@@ -313,12 +312,16 @@ export interface UpdateAPI {
   openDownloadPage: (url: string) => void
   openReleasesPage: () => void
   openRepositoryPage: () => void
+  startDownload: () => void
+  installUpdate: () => void
 }
 
 export interface UpdateAPIRenderer extends UpdateAPI {
   onCheckingForUpdate: (callback: () => void) => () => void
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void
   onUpdateError: (callback: (error: Error) => void) => () => void
+  onDownloadProgress: (callback: (progressInfo: UpdateProgressInfo) => void) => () => void
+  onUpdateDownloaded: (callback: (updateInfo: UpdateInfo) => void) => () => void
 }
 
 export interface ServerConfigInfo {
