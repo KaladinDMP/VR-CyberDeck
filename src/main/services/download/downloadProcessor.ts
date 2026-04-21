@@ -536,6 +536,17 @@ export class DownloadProcessor {
       }
       errorMessage = errorMessage.substring(0, 500)
 
+      // Normalise ENOSPC / "no space left" that surfaces mid-download (rclone
+      // writes fail after the pre-flight disk-space check passed).
+      if (
+        errorMessage.toLowerCase().includes('no space left') ||
+        errorMessage.includes('ENOSPC') ||
+        (isExecaError(error) && error.exitCode === 28)
+      ) {
+        const avail = await getAvailableDiskSpace(item.downloadPath).catch(() => null)
+        errorMessage = `Insufficient disk space. The drive ran out of space during download.${avail !== null ? ` Available: ${formatBytes(avail)}` : ''} Free up space and retry.`
+      }
+
       if (statusBeforeCatch !== 'Cancelled' && statusBeforeCatch !== 'Error') {
         this.updateItemStatus(
           item.releaseName,

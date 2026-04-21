@@ -273,20 +273,43 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                   )}
                   {item.status === 'Error' && (
                     <>
-                      <Text className={styles.errorText}>Error</Text>
+                      <Text className={styles.errorText}>
+                        {item.error?.toLowerCase().includes('insufficient disk space') ||
+                        item.error?.toLowerCase().includes('no space left')
+                          ? '💾 Out of disk space'
+                          : 'Error'}
+                      </Text>
                       {item.error && (
-                        <Text size={200} className={styles.errorText} title={item.error}>
-                          {item.error.substring(0, 30)}...
+                        <Text
+                          size={200}
+                          className={styles.errorText}
+                          title={item.error}
+                          style={
+                            item.error.toLowerCase().includes('insufficient disk space') ||
+                            item.error.toLowerCase().includes('no space left')
+                              ? { whiteSpace: 'normal', wordBreak: 'break-word' }
+                              : undefined
+                          }
+                        >
+                          {item.error.toLowerCase().includes('insufficient disk space') ||
+                          item.error.toLowerCase().includes('no space left')
+                            ? item.error
+                            : `${item.error.substring(0, 30)}...`}
                         </Text>
                       )}
                     </>
                   )}
                   {item.status === 'InstallError' && (
                     <>
-                      <Text className={styles.errorText}>Install Error</Text>
+                      <Text className={styles.errorText}>
+                        {item.error?.toLowerCase().includes('insufficient_storage') ||
+                        item.error?.toLowerCase().includes('no space left')
+                          ? '💾 Out of device storage'
+                          : 'Install Error'}
+                      </Text>
                       {item.error && (
                         <Text size={200} className={styles.errorText} title={item.error}>
-                          {item.error.substring(0, 30)}...
+                          {item.error.substring(0, 50)}...
                         </Text>
                       )}
                     </>

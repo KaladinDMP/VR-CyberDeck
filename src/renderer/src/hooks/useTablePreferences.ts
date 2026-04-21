@@ -5,6 +5,7 @@ export interface TablePreferences {
   alternatingRows: boolean
   evenRowColor: string    // any CSS color string
   oddRowColor: string
+  viewMode: 'table' | 'cards'
 }
 
 const STORAGE_KEY = 'avr-table-prefs-v1'
@@ -13,7 +14,8 @@ const DEFAULTS: TablePreferences = {
   rowDensity: 50,
   alternatingRows: false,
   evenRowColor: 'rgba(0, 212, 255, 0.06)',
-  oddRowColor: 'rgba(176, 64, 255, 0.06)'
+  oddRowColor: 'rgba(176, 64, 255, 0.06)',
+  viewMode: 'table'
 }
 
 function load(): TablePreferences {

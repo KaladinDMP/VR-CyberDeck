@@ -62,7 +62,9 @@ import {
   ChevronDownRegular,
   CopyRegular,
   WindowConsoleRegular,
-  OptionsRegular
+  OptionsRegular,
+  GridRegular,
+  TableRegular
 } from '@fluentui/react-icons'
 import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
@@ -1394,6 +1396,22 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
         <div className="games-toolbar-right">
           <span className="game-count">{table.getFilteredRowModel().rows.length} {t('displayed')}</span>
 
+          {/* ── Table / Card view toggle ─────────────────────────────────── */}
+          <Button
+            appearance={prefs.viewMode === 'table' ? 'primary' : 'subtle'}
+            icon={<TableRegular />}
+            title="Table view"
+            size="small"
+            onClick={() => setPrefs({ viewMode: 'table' })}
+          />
+          <Button
+            appearance={prefs.viewMode === 'cards' ? 'primary' : 'subtle'}
+            icon={<GridRegular />}
+            title="Card view"
+            size="small"
+            onClick={() => setPrefs({ viewMode: 'cards' })}
+          />
+
           {/* ── View Options popover ────────────────────────────────────── */}
           <Popover
             open={viewOptionsOpen}
@@ -1515,96 +1533,147 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices }) => {
           <div className="no-games-message">{t('noGamesFound')}</div>
         ) : (
           <>
-            <div className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`} ref={tableContainerRef}>
-              <table className="games-table" style={{ width: table.getTotalSize() }}>
-                <thead
-                  style={{
-                    display: 'grid',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1
-                  }}
-                >
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          style={{ width: header.getSize(), position: 'relative' }}
-                        >
-                          {header.isPlaceholder ? null : (
-                            <div
-                              {...{
-                                className: header.column.getCanSort()
-                                  ? 'cursor-pointer select-none'
-                                  : '',
-                                onClick: header.column.getToggleSortingHandler()
-                              }}
-                            >
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                              {{
-                                asc: ' 🔼',
-                                desc: ' 🔽'
-                              }[header.column.getIsSorted() as string] ?? null}
-                            </div>
-                          )}
-                          {header.column.getCanResize() && (
-                            <div
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              className={`${styles.resizer} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
-                            />
-                          )}
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-                <tbody
-                  style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
-                >
-                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                    const row = rows[virtualRow.index] as Row<GameInfo>
-                    const rowClasses = [
-                      row.original.isInstalled ? 'row-installed' : 'row-not-installed',
-                      row.original.hasUpdate ? 'row-update-available' : '',
-                      virtualRow.index % 2 === 0 ? 'row-even' : 'row-odd'
-                    ]
-                      .filter(Boolean)
-                      .join(' ')
-
-                    return (
-                      <tr
-                        key={row.id}
-                        className={rowClasses}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: `${virtualRow.size}px`,
-                          transform: `translateY(${virtualRow.start}px)`
-                        }}
-                        onClick={(e) => handleRowClick(e, row)}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            style={{
-                              width: cell.column.getSize(),
-                              maxWidth: cell.column.getSize()
-                            }}
+            {prefs.viewMode === 'cards' ? (
+              <div className="games-card-grid">
+                {rows.map((row) => {
+                  const game = row.original
+                  const ds = downloadStatusMap[game.releaseName]
+                  return (
+                    <div
+                      key={row.id}
+                      className="game-card"
+                      onClick={() => {
+                        setDialogGame(game)
+                        setIsDialogOpen(true)
+                      }}
+                    >
+                      <div className="game-card-thumbnail-wrap">
+                        <img
+                          src={
+                            game.thumbnailPath ? `file://${game.thumbnailPath}` : placeholderImage
+                          }
+                          alt={game.name}
+                        />
+                        {game.isInstalled && (
+                          <span
+                            className={`game-card-badge ${game.hasUpdate ? 'update' : 'installed'}`}
                           >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </td>
+                            {game.hasUpdate ? 'Update' : 'Installed'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="game-card-body">
+                        <div className="game-card-title">{game.name}</div>
+                        <div className="game-card-meta">
+                          v{game.version}
+                          {game.size ? ` · ${game.size}` : ''}
+                        </div>
+                        {ds && ds.status !== 'Completed' && (
+                          <div className="game-card-status-text">
+                            {ds.status}
+                            {ds.progress ? ` ${ds.progress}%` : ''}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div
+                className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`}
+                ref={tableContainerRef}
+              >
+                <table className="games-table" style={{ width: table.getTotalSize() }}>
+                  <thead
+                    style={{
+                      display: 'grid',
+                      position: 'sticky',
+                      top: 0,
+                      zIndex: 1
+                    }}
+                  >
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <tr key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <th
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            style={{ width: header.getSize(), position: 'relative' }}
+                          >
+                            {header.isPlaceholder ? null : (
+                              <div
+                                {...{
+                                  className: header.column.getCanSort()
+                                    ? 'cursor-pointer select-none'
+                                    : '',
+                                  onClick: header.column.getToggleSortingHandler()
+                                }}
+                              >
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                {{
+                                  asc: ' 🔼',
+                                  desc: ' 🔽'
+                                }[header.column.getIsSorted() as string] ?? null}
+                              </div>
+                            )}
+                            {header.column.getCanResize() && (
+                              <div
+                                onMouseDown={header.getResizeHandler()}
+                                onTouchStart={header.getResizeHandler()}
+                                className={`${styles.resizer} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
+                              />
+                            )}
+                          </th>
                         ))}
                       </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </thead>
+                  <tbody
+                    style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
+                  >
+                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                      const row = rows[virtualRow.index] as Row<GameInfo>
+                      const rowClasses = [
+                        row.original.isInstalled ? 'row-installed' : 'row-not-installed',
+                        row.original.hasUpdate ? 'row-update-available' : '',
+                        virtualRow.index % 2 === 0 ? 'row-even' : 'row-odd'
+                      ]
+                        .filter(Boolean)
+                        .join(' ')
+
+                      return (
+                        <tr
+                          key={row.id}
+                          className={rowClasses}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`
+                          }}
+                          onClick={(e) => handleRowClick(e, row)}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              key={cell.id}
+                              style={{
+                                width: cell.column.getSize(),
+                                maxWidth: cell.column.getSize()
+                              }}
+                            >
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          ))}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {dialogGame && (
               <GameDetailsDialog
