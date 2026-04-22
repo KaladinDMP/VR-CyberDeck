@@ -16,7 +16,6 @@ import {
   Text,
   teamsDarkTheme,
   teamsLightTheme,
-  Switch,
   Button,
   Drawer,
   DrawerHeader,
@@ -47,7 +46,6 @@ import { GameDialogProvider } from '@renderer/context/GameDialogProvider'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { LanguageProvider } from '@renderer/context/LanguageProvider'
 import { useLanguage } from '@renderer/hooks/useLanguage'
-import LocalUploadDialog from './LocalUploadDialog'
 import CreditsDialog from './CreditsDialog'
 import '../assets/credits-dialog.css'
 
@@ -68,61 +66,66 @@ const useStyles = makeStyles({
   },
   header: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    padding: `${tokens.spacingVerticalNone} ${tokens.spacingHorizontalL}`,
+    justifyContent: 'center',
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
     borderBottom: '1px solid rgba(0, 212, 255, 0.35)',
     backgroundColor: '#050514',
     backgroundImage:
       'linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px)',
     backgroundSize: '40px 40px',
     boxShadow: '0 1px 24px 0 rgba(0, 212, 255, 0.08), inset 0 -1px 0 rgba(176, 64, 255, 0.15)',
-    gap: tokens.spacingHorizontalM,
-    justifyContent: 'space-between',
-    height: '90px',
+    gap: '4px',
+    height: '110px',
     flexShrink: 0
   },
   logo: {
-    height: '52px',
+    height: '64px',
     filter:
-      'drop-shadow(0 0 6px #00d4ff) drop-shadow(0 0 14px rgba(176, 64, 255, 0.7))'
+      'drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 18px rgba(168, 85, 247, 0.8))'
   },
   headerContent: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: tokens.spacingHorizontalM
   },
   titleSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1px'
+    alignItems: 'flex-start',
+    gap: '2px'
   },
   titleMain: {
-    fontSize: '22px',
-    fontWeight: '700',
-    letterSpacing: '0.04em',
-    background: 'linear-gradient(100deg, #00d4ff 0%, #c060ff 100%)',
+    fontSize: '32px',
+    fontWeight: '800',
+    letterSpacing: '0.06em',
+    background: 'linear-gradient(100deg, #39ff14 0%, #a855f7 100%)',
     backgroundClip: 'text',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     color: 'transparent',
-    lineHeight: '1.2',
+    lineHeight: '1.1',
     textShadow: 'none'
   },
   titleSub: {
-    fontSize: '10px',
-    letterSpacing: '0.18em',
+    fontSize: '11px',
+    letterSpacing: '0.22em',
     fontFamily: 'monospace',
-    color: 'rgba(0, 212, 255, 0.55)',
+    color: 'rgba(57, 255, 20, 0.7)',
     lineHeight: '1.2'
   },
   titleCredit: {
-    fontSize: '9px',
-    letterSpacing: '0.14em',
-    fontFamily: 'monospace',
-    color: 'rgba(176, 64, 255, 0.5)',
+    fontSize: '12px',
+    letterSpacing: '0.04em',
+    color: 'rgba(200, 200, 220, 0.7)',
     lineHeight: '1.2',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    width: '100%'
   },
   mainContent: {
     flexGrow: 1,
@@ -329,11 +332,6 @@ const AppLayout: React.FC = () => {
 
   const currentTheme = colorScheme === 'dark' ? teamsDarkTheme : teamsLightTheme
 
-  const handleThemeChange = (_ev, data: { checked: boolean }): void => {
-    setColorScheme(data.checked ? 'dark' : 'light')
-  }
-
-
   return (
     <FluentProvider theme={currentTheme}>
       <AdbProvider>
@@ -346,26 +344,19 @@ const AppLayout: React.FC = () => {
                   <div className={styles.titleSection}>
                     <span className={styles.titleMain}>VR CYBERDECK</span>
                     <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
-                    <span className={styles.titleCredit}>
-                      BY DMP · DELICIOUSMEATPOP
-                      <button
-                        className="credits-question-btn"
-                        onClick={() => setIsCreditsOpen(true)}
-                        title="Credits"
-                      >
-                        ?
-                      </button>
-                    </span>
                   </div>
                 </div>
-                <div className={styles.headerActions}>
-                  <LocalUploadDialog />
-                  <Switch
-                    label={colorScheme === 'dark' ? t('darkMode') : t('lightMode')}
-                    checked={colorScheme === 'dark'}
-                    onChange={handleThemeChange}
-                  />
-                </div>
+                <span className={styles.titleCredit}>
+                  Made with ♥ by DMP
+                  <button
+                    className="credits-question-btn"
+                    onClick={() => setIsCreditsOpen(true)}
+                    title="Credits"
+                    style={{ marginLeft: '4px' }}
+                  >
+                    ?
+                  </button>
+                </span>
               </div>
 
               <div className={styles.mainContent} id="mainContent">
