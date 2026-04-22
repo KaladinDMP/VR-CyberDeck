@@ -48,6 +48,7 @@ import { useSettings } from '@renderer/hooks/useSettings'
 import { LanguageProvider } from '@renderer/context/LanguageProvider'
 import { useLanguage } from '@renderer/hooks/useLanguage'
 import CreditsDialog from './CreditsDialog'
+import HackerConsole from './HackerConsole'
 import '../assets/credits-dialog.css'
 
 enum AppView {
@@ -67,23 +68,37 @@ const useStyles = makeStyles({
   },
   header: {
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
+    flexDirection: 'row',
+    alignItems: 'stretch',
     borderBottom: '1px solid rgba(57, 255, 20, 0.2)',
     backgroundColor: '#050514',
     backgroundImage:
       'linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px)',
     backgroundSize: '40px 40px',
     boxShadow: '0 1px 24px 0 rgba(57, 255, 20, 0.06), inset 0 -1px 0 rgba(176, 64, 255, 0.12)',
-    gap: '4px',
     height: '110px',
-    flexShrink: 0,
-    position: 'relative'
+    flexShrink: 0
+  },
+  headerCenter: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    padding: `${tokens.spacingVerticalS} 0`
+  },
+  headerRight: {
+    width: '190px',
+    minWidth: '190px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderLeft: '1px solid rgba(57,255,20,0.12)',
+    flexShrink: 0
   },
   logo: {
-    height: '64px',
+    height: '58px',
     filter:
       'drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 18px rgba(168, 85, 247, 0.8))'
   },
@@ -343,34 +358,43 @@ const AppLayout: React.FC = () => {
           <GameDialogProvider>
             <div className={styles.root}>
               <div className={styles.header}>
-                {/* Dark mode toggle — absolute top-right */}
-                <div style={{ position: 'absolute', top: '10px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark</span>
-                  <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
-                    <Switch
-                      checked={colorScheme === 'dark'}
-                      onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
-                    />
+                {/* Left: Hacker Console */}
+                <HackerConsole />
+
+                {/* Center: Logo + title */}
+                <div className={styles.headerCenter}>
+                  <div className={styles.headerContent}>
+                    <img alt="logo" className={styles.logo} src={electronLogo} />
+                    <div className={styles.titleSection}>
+                      <span className={styles.titleMain}>VR CYBERDECK</span>
+                      <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
+                    </div>
+                  </div>
+                  <span className={styles.titleCredit}>
+                    Made with ♥ by DMP
+                    <button
+                      className="credits-question-btn"
+                      onClick={() => setIsCreditsOpen(true)}
+                      title="Credits"
+                      style={{ marginLeft: '4px' }}
+                    >
+                      ?
+                    </button>
+                  </span>
+                </div>
+
+                {/* Right: Dark mode toggle */}
+                <div className={styles.headerRight}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark Mode</span>
+                    <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
+                      <Switch
+                        checked={colorScheme === 'dark'}
+                        onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className={styles.headerContent}>
-                  <img alt="logo" className={styles.logo} src={electronLogo} />
-                  <div className={styles.titleSection}>
-                    <span className={styles.titleMain}>VR CYBERDECK</span>
-                    <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
-                  </div>
-                </div>
-                <span className={styles.titleCredit}>
-                  Made with ♥ by DMP
-                  <button
-                    className="credits-question-btn"
-                    onClick={() => setIsCreditsOpen(true)}
-                    title="Credits"
-                    style={{ marginLeft: '4px' }}
-                  >
-                    ?
-                  </button>
-                </span>
               </div>
 
               <div className={styles.mainContent} id="mainContent">
