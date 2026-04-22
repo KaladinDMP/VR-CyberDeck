@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, protocol, dialog, ipcMain, session } from 'electron'
+import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session } from 'electron'
 import os from 'os'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -55,10 +55,12 @@ function sendDependencyProgress(
 
 function createWindow(): void {
   // Create the browser window.
+  const { height: workH } = screen.getPrimaryDisplay().workAreaSize
   mainWindow = new BrowserWindow({
     width: 1200,
     minWidth: 1000,
-    height: 900,
+    height: Math.min(900, workH),
+    maxHeight: workH,
     show: false,
     autoHideMenuBar: true,
     title: 'VR CyberDeck',
