@@ -1,6 +1,6 @@
 # VR CyberDeck
 
-**by DMP · DROID MASTER PROGRAM**
+**by DMP**
 
 > OPERATE. DEPLOY. CONTROL.
 
