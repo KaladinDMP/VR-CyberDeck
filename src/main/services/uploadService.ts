@@ -870,7 +870,7 @@ class UploadService extends EventEmitter {
     if (!existsSync(this.configFilePath)) {
       console.error(`[UploadService] upload.config not found at: ${this.configFilePath}`)
       throw new Error(
-        'upload.config not found — connect to VRP at least once so the config is downloaded'
+        'upload.config not found — connect to the server at least once so the config is downloaded'
       )
     }
 
