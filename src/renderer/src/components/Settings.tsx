@@ -59,9 +59,7 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground1
   },
   contentContainer: {
-    maxWidth: '1200px',
     width: '100%',
-    margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',
     gap: tokens.spacingVerticalL
@@ -525,6 +523,31 @@ const Settings: React.FC = () => {
   const [editedDownloadPath, setEditedDownloadPath] = useState(downloadPath)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
   const [showBlacklist, setShowBlacklist] = useState(false)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    intro: true,
+    username: true,
+    logs: false,
+    download: true,
+    blacklist: false
+  })
+  const toggleSection = (key: string): void =>
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
+
+  const SectionHeader = ({ label, sectionKey }: { label: string; sectionKey: string }): React.JSX.Element => (
+    <button
+      onClick={() => toggleSection(sectionKey)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'transparent', border: 'none', borderBottom: '1px solid rgba(57,255,20,0.15)',
+        padding: '8px 4px', cursor: 'pointer', color: 'rgba(57,255,20,0.8)',
+        fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase',
+        marginBottom: openSections[sectionKey] ? '8px' : '0'
+      }}
+    >
+      <span>{label}</span>
+      {openSections[sectionKey] ? <ChevronUpRegular style={{ fontSize: '14px' }} /> : <ChevronDownRegular style={{ fontSize: '14px' }} />}
+    </button>
+  )
 
   // New state for speed input values
   const [downloadSpeedInput, setDownloadSpeedInput] = useState(
@@ -546,15 +569,9 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     let mounted = true
-    window.api.app
-      ?.getVersion?.()
-      .then((v) => {
-        if (mounted) setAppVersion(v)
-      })
-      .catch((err) => console.error('Failed to fetch app version:', err))
-    return () => {
-      mounted = false
-    }
+    const p = window.api.app?.getVersion?.()
+    if (p) p.then((v) => { if (mounted) setAppVersion(v) }).catch(() => {})
+    return () => { mounted = false }
   }, [])
 
   // Update local state when the context values change
@@ -834,13 +851,23 @@ const Settings: React.FC = () => {
           {appVersion && ` • Version ${appVersion}`}
         </Text>
 
-        <IntroSettings />
+        <div>
+          <SectionHeader label="// INTRO VIDEO" sectionKey="intro" />
+          {openSections.intro && <IntroSettings />}
+        </div>
 
-        <MpUsernameSettings />
+        <div>
+          <SectionHeader label="// MP USERNAME" sectionKey="username" />
+          {openSections.username && <MpUsernameSettings />}
+        </div>
 
-        <LogUploadSettings />
+        <div>
+          <SectionHeader label="// LOG UPLOAD" sectionKey="logs" />
+          {openSections.logs && <LogUploadSettings />}
+        </div>
 
-        <Card className={styles.card}>
+        <SectionHeader label="// DOWNLOAD + SPEED" sectionKey="download" />
+        {openSections.download && <Card className={styles.card}>
           <CardHeader description={<Subtitle1 weight="semibold">{t('downloadSettings')}</Subtitle1>} />
           <div className={styles.cardContent}>
             <Text>{t('downloadSettingsDesc')}</Text>
@@ -956,20 +983,11 @@ const Settings: React.FC = () => {
               </Text>
             )}
           </div>
-        </Card>
+        </Card>}
 
-        {/* Blacklist hidden behind toggle */}
         <div>
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={showBlacklist ? <ChevronUpRegular /> : <ChevronDownRegular />}
-            onClick={() => setShowBlacklist((v) => !v)}
-            style={{ marginBottom: tokens.spacingVerticalS }}
-          >
-            {showBlacklist ? 'Hide Blacklisted Games' : 'Manage Blacklisted Games'}
-          </Button>
-          {showBlacklist && <BlacklistSettings />}
+          <SectionHeader label="// BLACKLIST" sectionKey="blacklist" />
+          {openSections.blacklist && <BlacklistSettings />}
         </div>
 
         {/* Credits footer */}

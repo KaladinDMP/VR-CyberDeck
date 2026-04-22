@@ -155,6 +155,19 @@ const DeviceList: React.FC<DeviceListProps> = ({ onSkip, onConnected }) => {
   const [lastFailedDeviceId, setLastFailedDeviceId] = React.useState<string | null>(null)
   const [shellDialogDeviceId, setShellDialogDeviceId] = React.useState<string | null>(null)
 
+  // Auto-connect: when a Quest headset appears and nothing is connected yet, select it
+  const hasAutoConnected = React.useRef(false)
+  React.useEffect(() => {
+    if (isConnected || isLoading || hasAutoConnected.current) return
+    const questDevice = devices.find(
+      (d) => d.isQuestDevice && (d.type === 'device' || d.type === 'emulator')
+    )
+    if (!questDevice) return
+    hasAutoConnected.current = true
+    handleConnect(questDevice.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devices, isConnected, isLoading])
+
   // Get all bookmarked IP addresses to check for duplicates
   const bookmarkedIpAddresses = React.useMemo(() => {
     return devices

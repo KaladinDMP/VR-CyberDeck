@@ -116,6 +116,7 @@ const MirrorManagement: React.FC = () => {
     addMirror,
     removeMirror,
     setActiveMirror,
+    clearActiveMirror,
     testMirror,
     testAllMirrors,
     importMirrorFromFile,
@@ -270,17 +271,31 @@ const MirrorManagement: React.FC = () => {
               padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'space-between',
               gap: tokens.spacingHorizontalS
             }}
           >
-            {activeMirror || hasPublicConfig ? (
-              <CheckmarkCircleRegular style={{ color: getServerStatusColor(), flexShrink: 0 }} />
-            ) : (
-              <DismissCircleRegular
-                style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}
-              />
+            <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
+              {activeMirror || hasPublicConfig ? (
+                <CheckmarkCircleRegular style={{ color: getServerStatusColor(), flexShrink: 0 }} />
+              ) : (
+                <DismissCircleRegular
+                  style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}
+                />
+              )}
+              <Text style={{ color: getServerStatusColor() }}>{getServerStatusText()}</Text>
+            </div>
+            {activeMirror && hasPublicConfig && (
+              <Button
+                appearance="subtle"
+                size="small"
+                icon={<RadioButtonRegular />}
+                onClick={() => clearActiveMirror()}
+                title="Switch back to public mirror"
+              >
+                Use Public Mirror
+              </Button>
             )}
-            <Text style={{ color: getServerStatusColor() }}>{getServerStatusText()}</Text>
           </div>
         </CardPreview>
       </Card>
