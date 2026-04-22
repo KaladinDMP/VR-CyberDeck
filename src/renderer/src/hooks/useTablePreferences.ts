@@ -8,7 +8,8 @@ export interface TablePreferences {
   viewMode: 'table' | 'cards'
 }
 
-const STORAGE_KEY = 'avr-table-prefs-v1'
+const STORAGE_KEY = 'avr-table-prefs-v2'
+const OLD_KEY = 'avr-table-prefs-v1'
 
 const DEFAULTS: TablePreferences = {
   rowDensity: 50,
@@ -19,10 +20,19 @@ const DEFAULTS: TablePreferences = {
 }
 
 function load(): TablePreferences {
+  // Wipe stale v1 data so it can't cause issues
+  try { localStorage.removeItem(OLD_KEY) } catch { /* ignore */ }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) }
-  } catch { /* corrupt storage */ }
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<TablePreferences>
+      // Guard: ensure viewMode is a valid value
+      if (parsed.viewMode !== 'table' && parsed.viewMode !== 'cards') {
+        parsed.viewMode = 'table'
+      }
+      return { ...DEFAULTS, ...parsed }
+    }
+  } catch { /* corrupt storage — start fresh */ }
   return { ...DEFAULTS }
 }
 
@@ -32,6 +42,10 @@ export function useTablePreferences() {
   const setPrefs = useCallback((update: Partial<TablePreferences>) => {
     setState((prev) => {
       const next = { ...prev, ...update }
+      // Guard viewMode before saving
+      if (next.viewMode !== 'table' && next.viewMode !== 'cards') {
+        next.viewMode = 'table'
+      }
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch { /* ignore */ }
       return next
     })
