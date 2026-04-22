@@ -141,11 +141,12 @@
 .games-container-table {
   border-radius: 4px;
   padding: 16px;
-  flex-grow: 1; /* Allow container to grow */
-  overflow: hidden; /* Hide overflow to allow inner scrolling */
+  flex-grow: 1;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--colorNeutralForeground2);
+  border: 1px solid rgba(57,255,20,0.2);
+  background-color: #050514;
 }
 
 .games-toolbar-right {
@@ -157,12 +158,13 @@
 }
 
 .table-wrapper {
-  overflow-y: auto; /* Make table body scrollable */
+  overflow-y: auto;
   flex-grow: 1;
   margin-top: 8px;
-  border: 1px solid var(--colorNeutralForeground2);
+  border: 1px solid rgba(57,255,20,0.2);
   border-radius: 4px;
-  position: relative; /* Added: Needed for absolute positioning of children like popover */
+  position: relative;
+  background-color: #050514;
 }
 
 .games-table {
@@ -196,10 +198,10 @@
 }
 
 .games-table th {
-  /* background-color: #f8f9fa; */
-  font-weight: 500;
-  color: var(--colorNeutralForeground1);
-  border-bottom: 1px solid var(--colorNeutralForeground2);
+  font-weight: 600;
+  color: #39ff14;
+  border-bottom: 1px solid rgba(57,255,20,0.3);
+  background-color: #050514;
 }
 
 /* Cell Styling for Name/Package */
@@ -216,19 +218,17 @@
 
 .game-name-main {
   font-weight: 500;
-  color: var(--colorNeutralForeground1);
-  /* Ensure truncation if name alone is too long */
+  color: #39ff14;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .game-package-sub {
-  font-size: 11px; /* Smaller font size */
-  color: var(--colorNeutralForeground3); /* Grey color */
+  font-size: 11px;
+  color: rgba(168,85,247,0.85);
   font-family: monospace;
-  margin-top: 2px; /* Small space between name and package */
-  /* Ensure truncation */
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -323,10 +323,10 @@
   background-color: var(--colorPaletteGreenBackground2);
 } */
 
-.row-not-installed:hover,
-.row-installed:hover,
-.row-update-available:hover {
-  background-color: var(--colorNeutralBackground2);
+.row-not-installed:hover td,
+.row-installed:hover td,
+.row-update-available:hover td {
+  background-color: rgba(57,255,20,0.12) !important;
   cursor: pointer;
 }
 
@@ -352,7 +352,6 @@
 }
 
 .games-table th {
-  background-color: var(--colorNeutralBackground1);
   z-index: 0;
 }
 
@@ -386,15 +385,15 @@
 
 /* Alternating row colours */
 .table-wrapper.alternating-rows tr.row-even td {
-  background-color: var(--row-even-color, transparent);
+  background-color: var(--row-even-color, #050514);
 }
 .table-wrapper.alternating-rows tr.row-odd td {
-  background-color: var(--row-odd-color, rgba(255, 255, 255, 0.04));
+  background-color: var(--row-odd-color, rgba(57,255,20,0.06));
 }
 /* Hover always wins over stripe colour */
 .table-wrapper.alternating-rows tr.row-even:hover td,
 .table-wrapper.alternating-rows tr.row-odd:hover td {
-  background-color: var(--colorNeutralBackground2);
+  background-color: rgba(57,255,20,0.12);
 }
 
 /* ── Card grid view ────────────────────────────────────────────── */

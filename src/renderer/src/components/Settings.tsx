@@ -75,10 +75,12 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: tokens.spacingVerticalL,
     position: 'relative',
+    width: '100%',
     height: 'calc(92vh - 48px)',
     overflowY: 'auto',
     padding: '24px 32px',
-    backgroundColor: '#050514'
+    backgroundColor: '#050514',
+    boxSizing: 'border-box'
   },
   contentContainer: {
     width: '100%',
@@ -116,7 +118,7 @@ const useStyles = makeStyles({
     marginTop: tokens.spacingVerticalM,
     gap: tokens.spacingHorizontalM,
     width: '100%',
-    maxWidth: '800px'
+    maxWidth: '900px'
   },
   input: {
     flexGrow: 1
@@ -148,7 +150,7 @@ const useStyles = makeStyles({
     gap: tokens.spacingHorizontalM,
     marginTop: tokens.spacingVerticalM,
     width: '100%',
-    maxWidth: '800px'
+    maxWidth: '900px'
   },
   speedControl: {
     display: 'flex',
@@ -171,7 +173,7 @@ const useStyles = makeStyles({
   blacklistTable: {
     marginTop: tokens.spacingVerticalM,
     width: '100%',
-    maxWidth: '800px'
+    maxWidth: '900px'
   },
   emptyState: {
     marginTop: tokens.spacingVerticalL,
@@ -873,7 +875,28 @@ const Settings: React.FC = () => {
   const { t } = useLanguage()
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} style={{
+      '--colorNeutralForeground1': '#39ff14',
+      '--colorNeutralForeground2': 'rgba(57,255,20,0.7)',
+      '--colorNeutralForeground3': 'rgba(57,255,20,0.45)',
+      '--colorNeutralForeground4': 'rgba(57,255,20,0.3)',
+      '--colorNeutralBackground1': '#050514',
+      '--colorNeutralBackground1Hover': 'rgba(57,255,20,0.06)',
+      '--colorNeutralBackground2': 'rgba(57,255,20,0.04)',
+      '--colorNeutralBackground3': 'rgba(57,255,20,0.08)',
+      '--colorNeutralStroke1': 'rgba(57,255,20,0.25)',
+      '--colorNeutralStroke2': 'rgba(57,255,20,0.15)',
+      '--colorNeutralStrokeAccessible': 'rgba(57,255,20,0.5)',
+      '--colorBrandBackground': '#39ff14',
+      '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)',
+      '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)',
+      '--colorCompoundBrandBackground': '#39ff14',
+      '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)',
+      '--colorBrandForeground1': '#39ff14',
+      '--colorBrandStroke1': '#39ff14',
+      '--colorBrandStroke2': 'rgba(57,255,20,0.5)',
+      '--colorNeutralForegroundOnBrand': '#050514',
+    } as React.CSSProperties}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
           <span style={{ fontSize: '28px', fontWeight: 800, color: '#39ff14', fontFamily: '"Courier New", monospace', letterSpacing: '0.04em', textShadow: '0 0 12px rgba(57,255,20,0.4)' }}>VR CyberDeck Hacks</span>

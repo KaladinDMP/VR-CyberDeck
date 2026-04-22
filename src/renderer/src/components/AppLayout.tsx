@@ -395,17 +395,69 @@ const AppLayout: React.FC = () => {
 
                 {/* Dark mode joke dialog */}
                 <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
-                  <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.4)', maxWidth: '420px', fontFamily: 'monospace' }}>
+                  <DialogSurface style={{ background: '#030310', border: '1px solid rgba(57,255,20,0.35)', maxWidth: '520px', width: '90vw', fontFamily: 'monospace', boxShadow: '0 0 40px rgba(57,255,20,0.07)' }}>
                     <DialogBody>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0', textAlign: 'center' }}>
-                        <div style={{ fontSize: '28px' }}>😂</div>
-                        <div style={{ fontSize: '18px', color: '#39ff14', letterSpacing: '0.08em', fontWeight: 700 }}>LMAO</div>
-                        <div style={{ fontSize: '13px', color: 'rgba(57,255,20,0.85)', lineHeight: 1.6 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '4px 0 8px', textAlign: 'center' }}>
+
+                        {/* Binary smiley face SVG */}
+                        <svg width="240" height="200" viewBox="-20 0 240 200" style={{ overflow: 'visible' }}>
+                          <defs>
+                            <path id="jk-ring" d="M 100,16 A 84,84 0 0,1 184,100 A 84,84 0 0,1 100,184 A 84,84 0 0,1 16,100 A 84,84 0 0,1 100,16"/>
+                            <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur stdDeviation="2.5" result="b"/>
+                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                            <filter id="jk-pg" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur stdDeviation="2" result="b"/>
+                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                          </defs>
+
+                          {/* Circular binary ring */}
+                          <text fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-g)">
+                            <textPath href="#jk-ring">10110100 01001011 10110100 01001011 10110100 01001011 10110100 01001011 10110100 01001011 10110100 01</textPath>
+                          </text>
+
+                          {/* Eyes */}
+                          <text x="72" y="98" fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="18" fontWeight="bold" filter="url(#jk-g)" textAnchor="middle">◉</text>
+                          <text x="128" y="98" fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="18" fontWeight="bold" filter="url(#jk-g)" textAnchor="middle">◉</text>
+
+                          {/* Wide smile arc */}
+                          <path d="M 58,128 Q 100,162 142,128" fill="none" stroke="#39ff14" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-g)"/>
+
+                          {/* Left tear block */}
+                          <text x="-18" y="84" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">85305</text>
+                          <text x="-18" y="95" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">33850</text>
+                          <text x="-18" y="106" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">01101</text>
+                          <text x="-18" y="117" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">10011</text>
+
+                          {/* Right tear block */}
+                          <text x="163" y="84" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">58503</text>
+                          <text x="163" y="95" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">05833</text>
+                          <text x="163" y="106" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">11010</text>
+                          <text x="163" y="117" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">11001</text>
+                        </svg>
+
+                        {/* LMAO */}
+                        <div style={{ fontSize: '44px', color: '#39ff14', letterSpacing: '0.18em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 8px #39ff14, 0 0 20px rgba(57,255,20,0.5), 0 0 50px rgba(57,255,20,0.2)', marginTop: '-6px' }}>LMAO</div>
+
+                        {/* Purple circuit divider */}
+                        <div style={{ display: 'flex', alignItems: 'center', width: '88%' }}>
+                          <span style={{ color: 'rgba(176,64,255,0.8)', fontFamily: 'monospace', fontSize: '13px', flexShrink: 0 }}>⊣─</span>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(176,64,255,0.55)', boxShadow: '0 0 5px rgba(176,64,255,0.4)' }}/>
+                          <span style={{ color: 'rgba(176,64,255,0.95)', fontSize: '14px', textShadow: '0 0 7px rgba(176,64,255,0.8)', margin: '0 6px', flexShrink: 0 }}>◆</span>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(176,64,255,0.55)', boxShadow: '0 0 5px rgba(176,64,255,0.4)' }}/>
+                          <span style={{ color: 'rgba(176,64,255,0.8)', fontFamily: 'monospace', fontSize: '13px', flexShrink: 0 }}>─⊢</span>
+                        </div>
+
+                        {/* Body text */}
+                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 1.9, fontFamily: '"Courier New", monospace', textShadow: '0 0 5px rgba(57,255,20,0.3)', marginTop: '2px' }}>
                           This is just for looks.<br />
                           Do people actually USE light mode?
                         </div>
-                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '8px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 20px', borderRadius: '4px', cursor: 'pointer' }}>
-                          [ OK ]
+
+                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '4px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '12px', letterSpacing: '0.1em', padding: '8px 24px', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic', boxShadow: '0 0 8px rgba(57,255,20,0.1)' }}>
+                          [ *Cries in binary* ]
                         </button>
                       </div>
                     </DialogBody>
