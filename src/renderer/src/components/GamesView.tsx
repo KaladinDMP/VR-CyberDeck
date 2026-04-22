@@ -1655,7 +1655,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   <div className="games-card-grid">
                     {rows.map((row) => {
                       const game = row.original
-                      const ds = downloadStatusMap[game.releaseName]
+                      const ds = game.releaseName ? downloadStatusMap.get(game.releaseName) : undefined
                       return (
                         <div
                           key={row.id}

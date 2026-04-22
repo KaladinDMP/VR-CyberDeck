@@ -272,8 +272,6 @@ const MainContent: React.FC<MainContentProps> = ({
       )
     }
     let progressText = 'Checking requirements...'
-    console.log('dependencyStatus', dependencyStatus)
-    console.log('dependencyProgress', dependencyProgress)
 
     if (dependencyProgress?.name === 'connectivity-check') {
       progressText = `Checking network connectivity... ${dependencyProgress.percentage}%`
