@@ -1386,7 +1386,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   {/* Disconnect centered below name */}
                   {isConnected && (
                     <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />} onClick={disconnectDevice}
-                      title={t('disconnectFromDevice')} style={CBR}>
+                      title={t('disconnectFromDevice')} style={CB}>
                       Disconnect
                     </Button>
                   )}
@@ -1444,16 +1444,12 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               )}
             </section>
 
-            {/* ── MANAGE MIRRORS ── */}
-            <section className={styles.sidebarSection}>
-              <Button appearance="subtle" size="small" onClick={() => setShowMirrorMgmt(true)} style={CB}>
-                Manage Mirrors
-              </Button>
-            </section>
-
             {/* ── ACTIONS ── */}
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Actions</div>
+              <Button appearance="subtle" size="small" onClick={() => setShowMirrorMgmt(true)} style={CB}>
+                Manage Mirrors
+              </Button>
               <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
                 style={CB}>
                 {isBusy ? t('working') : t('refreshGames')}
@@ -1462,10 +1458,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                 disabled={!isConnected} style={isConnected ? CB : { ...CB, opacity: 0.4 }}>
                 ADB Shell
               </Button>
-            </section>
-
-            {/* ── SETTINGS ── */}
-            <section className={styles.sidebarSection}>
               <Button appearance="subtle" size="small" icon={<SettingsRegular />} onClick={onSettings} style={CB}>
                 Other Settings
               </Button>

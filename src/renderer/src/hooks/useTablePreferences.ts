@@ -13,9 +13,9 @@ const OLD_KEY = 'avr-table-prefs-v1'
 
 const DEFAULTS: TablePreferences = {
   rowDensity: 50,
-  alternatingRows: false,
-  evenRowColor: 'rgba(0, 212, 255, 0.06)',
-  oddRowColor: 'rgba(176, 64, 255, 0.06)',
+  alternatingRows: true,
+  evenRowColor: '#050514',
+  oddRowColor: 'rgba(57,255,20,0.06)',
   viewMode: 'table'
 }
 

@@ -154,7 +154,8 @@ const LocalUploadDialog: React.FC = () => {
           fontSize: '11px',
           color: '#39ff14',
           justifyContent: 'flex-start',
-          width: '100%'
+          width: '100%',
+          border: '1px solid rgba(57,255,20,0.45)'
         }}
       >
         {t('uploadLocalFiles')}

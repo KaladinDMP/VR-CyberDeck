@@ -397,15 +397,15 @@ const AppLayout: React.FC = () => {
                 <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
                   <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.4)', maxWidth: '420px', fontFamily: 'monospace' }}>
                     <DialogBody>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0', textAlign: 'center' }}>
-                        <div style={{ fontSize: '28px' }}>😂</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '8px 0', textAlign: 'center' }}>
+                        <pre style={{ color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '13px', lineHeight: 1.7, margin: 0, letterSpacing: '0.04em' }}>{`╔══════════╗\n║  (T_T)   ║\n╚══════════╝`}</pre>
                         <div style={{ fontSize: '18px', color: '#39ff14', letterSpacing: '0.08em', fontWeight: 700 }}>LMAO</div>
                         <div style={{ fontSize: '13px', color: 'rgba(57,255,20,0.85)', lineHeight: 1.6 }}>
                           This is just for looks.<br />
                           Do people actually USE light mode?
                         </div>
-                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '8px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 20px', borderRadius: '4px', cursor: 'pointer' }}>
-                          [ OK ]
+                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '8px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.1em', padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic' }}>
+                          [ *Cries in binary* ]
                         </button>
                       </div>
                     </DialogBody>
