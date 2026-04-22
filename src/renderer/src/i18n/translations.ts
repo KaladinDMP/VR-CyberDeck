@@ -3,7 +3,7 @@ export type Language = 'en' | 'es'
 const translations = {
   en: {
     // App header
-    appName: 'Apprentice VR',
+    appName: 'VR CyberDeck',
     downloads: 'Downloads',
     uploads: 'Uploads',
     games: 'Games',
@@ -222,7 +222,7 @@ const translations = {
 
   es: {
     // Cabecera de la app
-    appName: 'Apprentice VR',
+    appName: 'VR CyberDeck',
     downloads: 'Descargas',
     uploads: 'Subidas',
     games: 'Juegos',

@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, protocol, dialog, ipcMain, session } from 'electron'
+import os from 'os'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -60,7 +61,7 @@ function createWindow(): void {
     height: 900,
     show: false,
     autoHideMenuBar: true,
-    title: 'ApprenticeVR: VRSrc Edition',
+    title: 'VR CyberDeck',
     icon: icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -216,7 +217,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.apprenticevr')
+  electronApp.setAppUserModelId('com.vrcyberdeck')
 
   // Setup file protocol handler for local resources
   protocol.registerFileProtocol('file', (request, callback) => {
@@ -236,6 +237,7 @@ app.whenReady().then(async () => {
   // --- App Info Handlers ---
   typedIpcMain.handle('app:get-version', () => app.getVersion())
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
+  typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
 
   // --- Dependency Handlers ---
   typedIpcMain.handle('dependency:get-status', async () => dependencyService.getStatus())

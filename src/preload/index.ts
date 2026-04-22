@@ -31,7 +31,8 @@ import { typedIpcRenderer } from '@shared/ipc-utils'
 const api = {
   app: {
     getVersion: (): Promise<string> => typedIpcRenderer.invoke('app:get-version'),
-    getLocale: (): Promise<string> => typedIpcRenderer.invoke('app:get-locale')
+    getLocale: (): Promise<string> => typedIpcRenderer.invoke('app:get-locale'),
+    getSystemUsername: (): Promise<string> => typedIpcRenderer.invoke('app:get-system-username')
   },
   dependency: {
     getStatus: (): Promise<DependencyStatus> => typedIpcRenderer.invoke('dependency:get-status')

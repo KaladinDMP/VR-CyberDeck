@@ -8,7 +8,7 @@ import { UpdateInfo, UpdateProgressInfo } from '@shared/types'
 import { compareVersions } from 'compare-versions'
 
 const RELEASE_REPO_OWNER = 'KaladinDMP'
-const RELEASE_REPO_NAME = 'apprenticeVrSrc'
+const RELEASE_REPO_NAME = 'vr-cyberdeck'
 
 const REPO_URL = `https://github.com/${RELEASE_REPO_OWNER}/${RELEASE_REPO_NAME}`
 const RELEASES_LATEST_URL = `${REPO_URL}/releases/latest`
@@ -205,7 +205,7 @@ class UpdateService extends EventEmitter {
   private async downloadAsset(url: string): Promise<void> {
     this.isDownloading = true
 
-    const filename = url.split('/').pop()?.split('?')[0] || 'apprenticevr-update'
+    const filename = url.split('/').pop()?.split('?')[0] || 'vr-cyberdeck-update'
     const destPath = path.join(app.getPath('temp'), filename)
 
     console.log(`[UpdateService] Downloading ${url}\n  → ${destPath}`)
@@ -216,7 +216,7 @@ class UpdateService extends EventEmitter {
         maxRedirects: 10,
         timeout: 60_000,
         headers: {
-          'User-Agent': `ApprenticeVR-Updater/${this.currentVersion}`
+          'User-Agent': `VRCyberDeck-Updater/${this.currentVersion}`
         }
       })
 
