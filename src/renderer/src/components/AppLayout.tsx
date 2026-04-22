@@ -344,10 +344,10 @@ const AppLayout: React.FC = () => {
                 <div className={styles.headerContent}>
                   <img alt="logo" className={styles.logo} src={electronLogo} />
                   <div className={styles.titleSection}>
-                    <span className={styles.titleMain}>Apprentice VR</span>
-                    <span className={styles.titleSub}>アプレンティスVR · VR SRC EDITION</span>
+                    <span className={styles.titleMain}>VR CYBERDECK</span>
+                    <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
                     <span className={styles.titleCredit}>
-                      MADE WITH ♥ BY DMP OF ARMGDDN GAMES
+                      BY DMP · DROID MASTER PROGRAM
                       <button
                         className="credits-question-btn"
                         onClick={() => setIsCreditsOpen(true)}

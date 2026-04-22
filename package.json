@@ -1,6 +1,6 @@
 {
-  "name": "apprenticevr",
-  "version": "2.3.6",
+  "name": "vr-cyberdeck",
+  "version": "0.0.1",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",

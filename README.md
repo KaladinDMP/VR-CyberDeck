@@ -1,245 +1,160 @@
-<p align="center">
-  <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/446f9bc8-fe7a-4817-a063-09a6186addcf" />
-</p>
+# VR CyberDeck
 
-<p align="center">
-  🌐 &nbsp;<strong>Language / Idioma:</strong>&nbsp;
-  <a href="README.md"><strong>🇺🇸 English</strong></a> &nbsp;|&nbsp;
-  <a href="README.es.md">🇪🇸 Español</a>
-</p>
+**by DMP · DROID MASTER PROGRAM**
+
+> OPERATE. DEPLOY. CONTROL.
+
+VR CyberDeck is a cross-platform desktop app built with Electron, React, and TypeScript for managing and sideloading content onto Meta Quest devices. Connect to a community game library, download and install automatically, and contribute games back.
 
 ---
 
-# ApprenticeVR: VRSrc Edition
+## Download
 
-**ApprenticeVR: VRSrc Edition** is a modern, cross-platform desktop app built with Electron, React, and TypeScript for managing and sideloading content onto Meta Quest devices. It connects to a community game library, handles downloads and installs automatically, and lets you contribute games back to the library.
+| File | Platform |
+|------|----------|
+| `vr-cyberdeck-x.x.x-x64.dmg` | macOS (Intel / Rosetta 2) |
+| `vr-cyberdeck-x.x.x-setup-x64.exe` | Windows — Installer |
+| `vr-cyberdeck-x.x.x-portable-x64.exe` | Windows — Portable |
+| `vr-cyberdeck-x.x.x-x86_64.AppImage` | Linux x64 |
+| `vr-cyberdeck-x.x.x-arm64.AppImage` | Linux ARM64 |
+| `vr-cyberdeck-x.x.x-amd64.deb` | Debian/Ubuntu x64 |
+| `vr-cyberdeck-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 |
 
-> **Fork note:** This fork includes bug fixes, performance improvements, and new features. See the section below for details.
+Always use the latest release.
 
----
-
-## Step 1: Download the Right File for Your OS
-
-| File | Platform | Notes |
-|------|----------|-------|
-| `apprenticevr-x.x.x-x64.dmg` | macOS | Intel native; Apple Silicon (M1–M5): install Rosetta 2 first — `softwareupdate --install-rosetta` |
-| `apprenticevr-x.x.x-setup-x64.exe` | Windows Installer | Recommended for most users |
-| `apprenticevr-x.x.x-portable-x64.exe` | Windows Portable | No install required |
-| `apprenticevr-x.x.x-x86_64.AppImage` | Linux x64 | Works on most distros |
-| `apprenticevr-x.x.x-arm64.AppImage` | Linux ARM64 | For ARM-based systems (fixed in v2.2.8) |
-| `apprenticevr-x.x.x-amd64.deb` | Debian/Ubuntu x64 | Install with dpkg |
-| `apprenticevr-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 | ARM version (fixed in v2.2.8) |
-
-> Downloads are on the Releases page. Always use the latest version.
-
-> **macOS note:** Only an x64 DMG is provided. Apple Silicon (M1–M5) users should install Rosetta 2 (`softwareupdate --install-rosetta`) and run the x64 build — it works fine.
-
-### macOS Fix: "App is damaged"
-
+**macOS — Apple Silicon (M1–M5):** Install Rosetta 2 first, then run the x64 build.
 ```
-xattr -c /Applications/ApprenticeVR\ VRSrc\ Edition.app
+softwareupdate --install-rosetta
 ```
 
-### Linux AppImage
-
+**macOS — "App is damaged" error:**
 ```
-chmod +x apprenticevr-x.x.x-x86_64.AppImage
-./apprenticevr-x.x.x-x86_64.AppImage
+xattr -c /Applications/VR\ CyberDeck.app
 ```
 
-### Building from Source
-
-**macOS:**
+**Linux AppImage:**
 ```
-npm install --legacy-peer-deps
-npx electron-vite build && npx electron-builder --mac --x64
-```
-
-**Linux:**
-```
-npm install --legacy-peer-deps
-npx electron-vite build && npx electron-builder --linux --x64
-```
-
-**Windows:**
-```
-npm install --legacy-peer-deps
-npx electron-vite build && npx electron-builder --win --x64
+chmod +x vr-cyberdeck-x.x.x-x86_64.AppImage
+./vr-cyberdeck-x.x.x-x86_64.AppImage
 ```
 
 ---
 
-## Step 2: Get Your Server Credentials
+## Build from Source
 
-ApprenticeVR requires:
+```
+npm install --legacy-peer-deps
+```
 
-- `baseUri` (URL ending in `/`)
-- `password` (base64 encoded)
+| Platform | Command |
+|----------|---------|
+| Windows | `npx electron-vite build && npx electron-builder --win --x64` |
+| macOS | `npx electron-vite build && npx electron-builder --mac --x64` |
+| Linux | `npx electron-vite build && npx electron-builder --linux --x64` |
 
-Where to find them:
+---
 
+## Setup
+
+### Step 1 — Get Server Credentials
+
+VR CyberDeck requires a `baseUri` and `password` (base64 encoded) to connect to the game library.
+
+Find them here:
 - Telegram: https://t.me/the_vrSrc
 - Web preview: https://t.me/s/the_vrSrc
 - Public JSON: https://qpmegathread.top/pages/public-json.html
 
-Keep credentials private. Do not share them.
+Keep credentials private.
 
----
+### Step 2 — Enter Credentials
 
-## Step 3: Enter Credentials
-
-### Option A: In-App (Recommended)
-
+**Option A — In-App (recommended):**
 1. Open Settings
 2. Click **Set Public Server JSON**
-3. Paste JSON or enter values manually
+3. Paste your JSON or enter values manually
 4. Click **Save**
 
-### Option B: ServerInfo.json
+**Option B — ServerInfo.json file:**
 
 | Platform | Path |
 |----------|------|
-| Windows | `%APPDATA%\apprenticevr\ServerInfo.json` |
-| macOS | `~/Library/Application Support/apprenticevr/ServerInfo.json` |
-| Linux | `~/.config/apprenticevr/ServerInfo.json` |
+| Windows | `%APPDATA%\vr-cyberdeck\ServerInfo.json` |
+| macOS | `~/Library/Application Support/vr-cyberdeck/ServerInfo.json` |
+| Linux | `~/.config/vr-cyberdeck/ServerInfo.json` |
 
-```
+```json
 {"baseUri":"https://your-url-here/","password":"your-password-here"}
 ```
 
 Restart required when using this method.
 
----
+### Step 3 — Connect Your Quest
 
-## Step 4: Connect Quest and Sideload
-
-1. Plug in headset via USB
-2. Allow USB Debugging
-3. Device appears in app
-4. Download games
+1. Plug in via USB
+2. Allow USB Debugging on the headset
+3. Device appears in the app
+4. Browse the library and download
 
 Up to 5 downloads run in parallel.
 
 ---
 
-## What's New in VRSrc Edition
-
-### v2.2.8
-
-- **install.txt support** — games that ship with an `install.txt` now have their ADB commands read and executed line-by-line instead of the standard APK+OBB flow
-- **ZIP direct install** — drop a ZIP into the manual install picker; the app extracts it, processes `install.txt` if present, installs APK and OBB, then cleans up automatically
-- **Local upload fix** — the upload service now reads `upload.config` from your local VRP data folder instead of fetching from a remote URL
-- **ARM64 Linux binaries fixed** — x86_64 binaries were being bundled in ARM64 AppImages; a real ARM64 static 7zip binary is now included, and adb falls back to the system-installed `adb` (Google does not ship ARM64 Linux platform-tools)
-- **Translation improvements** — additional UI components now respect the selected language
-
-### Key Improvements (all versions)
-
-- **Local file upload** — upload game folders or ZIP files directly from your PC without a connected Quest
-- **Spanish (Castellano) language** — auto-detected from your OS; switch anytime in Settings
-- Fixed YouTube embeds using Electron webview
-- 5 parallel downloads instead of 1
-- Switched from `rclone mount` to `rclone copy`
-- Added pause and resume support
-- Prevented ADB install conflicts with queue system
-- Major UI and performance optimizations
-- Fixed download progress and ETA display
-- Improved handling of large game libraries (2600+ titles)
-- Fixed resume pipeline logic
-- Fixed download path duplication bug
-- Improved resume progress tracking
-- Reduced build size from 478MB to 110MB
-- Dynamic game list file detection
-- Redesigned mirror management UI
-- Simplified update notification system
-- Removed 0KB placeholder file issues
-- Version now visible in Settings
-- Upload pipeline fixed and working
-
----
-
 ## Uploading Games
 
-### From a Connected Quest (automatic)
+### From a Connected Quest
 
-The app detects games on your device that are missing from or newer than the library and prompts you to upload them.
+The app detects games on your device that are missing from or newer than the library and prompts you to upload them. The pipeline:
 
-1. Create staging folder
-2. Pull APK via ADB
-3. Check for OBB files
-4. Pull OBB if present
-5. Generate metadata
-6. Compress into ZIP
-7. Upload via rclone
-8. Add to blacklist
+1. Creates a staging folder
+2. Pulls the APK via ADB
+3. Checks for OBB files and pulls them
+4. Generates metadata
+5. Compresses into a ZIP
+6. Uploads via rclone
+7. Adds the entry to your blacklist
 
-### From Local Files (manual)
+### From Local Files
 
-Use **Uploads → Upload Local Files** to send game folders or ZIP archives directly from your PC.
+Use **Transfers → Upload Local Files** to send game folders or ZIP archives directly from your PC without a connected headset.
 
-- Each folder must contain **exactly one APK** file — OBB folders, instruction files, and other content are included automatically
-- If you already have a ZIP, it is sent as-is
-- Multiple folders/ZIPs can be queued at once and upload one at a time with live progress
+- Each folder must contain exactly one APK — OBB folders and instruction files are included automatically
+- Pre-made ZIPs are sent as-is
+- Multiple items can be queued and upload one at a time with live progress
 
 > Requires at least one successful VRP connection so that `upload.config` is written locally.
 
-Uploads do not guarantee inclusion.
-
----
-
-## Planned Feature
-
-Scanning headset for:
-
-- Newer versions than library
-- Missing games
-
-Uses ADB version comparison and game list indexing.
+Uploads do not guarantee library inclusion.
 
 ---
 
 ## Logs
 
-| Platform | Location |
-|----------|----------|
-| Windows | `%USERPROFILE%\AppData\Roaming\apprenticevr\logs\main.log` |
-| macOS | `~/Library/Logs/apprenticevr/main.log` |
-| Linux | `~/.config/apprenticevr/logs/main.log` |
+| Platform | Path |
+|----------|------|
+| Windows | `%APPDATA%\vr-cyberdeck\logs\main.log` |
+| macOS | `~/Library/Logs/vr-cyberdeck/main.log` |
+| Linux | `~/.config/vr-cyberdeck/logs/main.log` |
+
+Logs can also be uploaded and shared directly from **Settings → Log Upload**.
 
 ---
 
 ## Troubleshooting
 
-### Connection Issues
+**Server connection issues**
+- Verify `baseUri` ends with `/`
+- Check password encoding
+- Try a different DNS (Cloudflare `1.1.1.1` or Google `8.8.8.8`)
+- Use a VPN if your region blocks the server
 
-- Check baseUri format
-- Verify password
-- Ensure correct line endings
-- Try different DNS
-- Use VPN if needed
+**Quest not detected**
+- Use a data-capable USB cable (not charge-only)
+- Accept USB Debugging on the headset when prompted
+- Check antivirus isn't blocking ADB
+- Try a different USB port
 
-### Quest Not Detected
-
-- Use data cable
-- Allow USB debugging
-- Check antivirus interference
-- Try different ports
-
-### macOS Fix
-
-```
-xattr -c /Applications/ApprenticeVR\ VRSrc\ Edition.app
-```
-
-### Linux Fix
-
-```
-chmod +x apprenticevr-*.AppImage && ./apprenticevr-*.AppImage
-```
-
-### ARM64 Linux: adb not found
-
-Install adb from your package manager:
-
+**ARM64 Linux — adb not found**
 ```
 sudo apt install adb           # Debian/Ubuntu
 sudo pacman -S android-tools   # Arch
@@ -247,9 +162,9 @@ sudo pacman -S android-tools   # Arch
 
 ---
 
-## Inspiration
+## Credits
 
-Based on Rookie Sideloader.
+VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core architecture — ADB management, download/upload pipeline, rclone integration, and the VRP game library connection — comes from their work. Without it this project wouldn't exist.
 
 ---
 
@@ -259,12 +174,7 @@ GNU Affero GPL v3
 
 ---
 
-![Visitors](https://komarev.com/ghpvc/?username=KaladinDMP&label=Visitors&color=blue)
-![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/apprenticeVrSrc?label=Last%20Updated)
-![Created](https://img.shields.io/github/created-at/KaladinDMP/apprenticeVrSrc?label=Created)
-![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/apprenticeVrSrc?label=Monthly%20Commits)
-![Stars](https://img.shields.io/github/stars/KaladinDMP)
+![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/VR-CyberDeck?label=Last%20Updated)
+![Stars](https://img.shields.io/github/stars/KaladinDMP/VR-CyberDeck)
 
-Contributors on this Repo
-
-[![Contributors](https://contrib.rocks/image?repo=KaladinDMP/apprenticeVrSrc)](https://github.com/KaladinDMP/apprenticeVrSrc/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=KaladinDMP/VR-CyberDeck)](https://github.com/KaladinDMP/VR-CyberDeck/graphs/contributors)

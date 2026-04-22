@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import CreditsDialog from './CreditsDialog'
 import '../assets/credits-dialog.css'
 import {
@@ -10,6 +10,7 @@ import {
   makeStyles,
   tokens,
   Spinner,
+  Switch,
   Title2,
   Subtitle1,
   Dropdown,
@@ -474,6 +475,50 @@ const LanguageSettings: React.FC = () => {
   )
 }
 
+const INTRO_STORAGE_KEY = 'vrcyberdeck:showIntro'
+
+const IntroSettings: React.FC = () => {
+  const styles = useStyles()
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem(INTRO_STORAGE_KEY)
+      return stored === null || stored === 'true'
+    } catch {
+      return true
+    }
+  })
+
+  const handleToggle = useCallback((_ev: unknown, data: { checked: boolean }): void => {
+    setShowIntro(data.checked)
+    try {
+      localStorage.setItem(INTRO_STORAGE_KEY, String(data.checked))
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  return (
+    <Card className={styles.card}>
+      <CardHeader description={<Subtitle1 weight="semibold">Interface</Subtitle1>} />
+      <div className={styles.cardContent}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
+          <Switch
+            checked={showIntro}
+            onChange={handleToggle}
+            label="Show intro animation on launch"
+          />
+        </div>
+        <Text
+          size={200}
+          style={{ color: tokens.colorNeutralForeground3, display: 'block', marginTop: tokens.spacingVerticalXS }}
+        >
+          Hacker-console boot sequence shown each time the app opens. Takes ~10 seconds.
+        </Text>
+      </div>
+    </Card>
+  )
+}
+
 const Settings: React.FC = () => {
   const styles = useStyles()
   const {
@@ -798,6 +843,8 @@ const Settings: React.FC = () => {
         </Text>
 
         <LanguageSettings />
+
+        <IntroSettings />
 
         <MirrorManagementLink />
 

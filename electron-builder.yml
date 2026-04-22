@@ -1,5 +1,5 @@
-appId: com.apprenticevr
-productName: ApprenticeVR VRSrc Edition
+appId: com.vrcyberdeck
+productName: VR CyberDeck
 directories:
   buildResources: build
 icon: build/icon
@@ -40,7 +40,7 @@ win:
       arch:
         - x64
         - ia32
-  executableName: apprenticevr
+  executableName: vr-cyberdeck
 nsis:
   artifactName: ${name}-${version}-setup-${arch}.${ext}
   shortcutName: ${productName}
@@ -57,8 +57,8 @@ mac:
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-    - CFBundleName: ApprenticeVR VRSrc Edition
-    - CFBundleDisplayName: ApprenticeVR VRSrc Edition
+    - CFBundleName: VR CyberDeck
+    - CFBundleDisplayName: VR CyberDeck
   minimumSystemVersion: 10.15
   notarize: false
   icon: build/icon.icns
@@ -79,5 +79,5 @@ npmRebuild: false
 publish:
   provider: github
   owner: jimzrt
-  repo: apprenticevr
+  repo: vr-cyberdeck
 electronDownload: {}
