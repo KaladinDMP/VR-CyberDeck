@@ -486,10 +486,10 @@ const AppLayout: React.FC = () => {
                 open={isTransfersOpen}
                 onOpenChange={(_, { open }) => setIsTransfersOpen(open)}
                 position="end"
-                style={{ width: '700px' }}
+                style={{ width: '700px', background: '#050514', borderLeft: '1px solid rgba(57,255,20,0.25)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.2)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' } as React.CSSProperties}
                 mountNode={mountNodeRef.current}
               >
-                <DrawerHeader>
+                <DrawerHeader style={{ background: '#050514', borderBottom: '1px solid rgba(57,255,20,0.15)', padding: '12px 20px' }}>
                   <DrawerHeaderTitle
                     action={
                       <Button
@@ -497,17 +497,19 @@ const AppLayout: React.FC = () => {
                         aria-label={t('close')}
                         icon={<CloseIcon />}
                         onClick={() => setIsTransfersOpen(false)}
+                        style={{ color: '#39ff14' }}
                       />
                     }
+                    style={{ color: '#39ff14', fontFamily: 'monospace', letterSpacing: '0.08em' }}
                   >
                     Transfers
                   </DrawerHeaderTitle>
                 </DrawerHeader>
-                <DrawerBody style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
+                <DrawerBody style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0, background: '#050514' }}>
                   <TabList
                     selectedValue={transfersTab}
                     onTabSelect={(_, d) => setTransfersTab(d.value as 'downloads' | 'uploads')}
-                    style={{ padding: '0 16px', borderBottom: `1px solid ${tokens.colorNeutralStroke1}`, flexShrink: 0 }}
+                    style={{ padding: '0 16px', borderBottom: '1px solid rgba(57,255,20,0.15)', flexShrink: 0 }}
                   >
                     <Tab value="downloads" icon={<DownloadIcon />}>{t('downloads')}</Tab>
                     <Tab value="uploads" icon={<UploadIcon />}>{t('uploads')}</Tab>
@@ -522,33 +524,49 @@ const AppLayout: React.FC = () => {
                 </DrawerBody>
               </Drawer>
 
-              {/* Settings modal */}
-              <Dialog open={isSettingsOpen} onOpenChange={(_, d) => setIsSettingsOpen(d.open)}>
-                <DialogSurface
+              {/* Settings modal — custom overlay bypasses Fluent Dialog width constraints */}
+              {isSettingsOpen && (
+                <div
                   style={{
-                    maxWidth: '1400px',
-                    width: '96vw',
-                    maxHeight: '92vh',
-                    padding: 0,
-                    overflow: 'hidden',
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1000,
                     display: 'flex',
-                    flexDirection: 'column',
-                    background: '#050514',
-                    border: '1px solid rgba(57,255,20,0.25)'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setIsSettingsOpen(false)
                   }}
                 >
-                  <DialogBody style={{ padding: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
+                  <div
+                    style={{
+                      width: '96vw',
+                      maxWidth: '1400px',
+                      maxHeight: '92vh',
+                      background: '#050514',
+                      border: '1px solid rgba(57,255,20,0.25)',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 0 40px rgba(57,255,20,0.06)'
+                    }}
+                  >
                     <Button
                       appearance="subtle"
                       icon={<CloseIcon />}
                       aria-label={t('close')}
                       onClick={() => setIsSettingsOpen(false)}
-                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, color: '#39ff14' }}
                     />
                     <Settings />
-                  </DialogBody>
-                </DialogSurface>
-              </Dialog>
+                  </div>
+                </div>
+              )}
             </div>
             <div
               id="portal-parent"

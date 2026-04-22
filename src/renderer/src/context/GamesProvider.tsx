@@ -35,6 +35,8 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   // addGameToBlacklist filters the list).  The dialog watches this to avoid re-opening
   // after the user has already dismissed or acted on a prompt.
   const [uploadCandidatesVersion, setUploadCandidatesVersion] = useState(0)
+  // Allow the upload check on: first launch of day, first launch after update, manual reconnect
+  const [forceUploadCheck, setForceUploadCheck] = useState(false)
   const [missingGames] = useState<GameInfo[]>([])
   const [outdatedGames] = useState<GameInfo[]>([])
 
@@ -45,6 +47,21 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
     selectedDeviceDetails
   } = useAdb()
   const { isReady } = useDependency()
+
+  // Detect version change on startup — triggers upload check on first launch post-update
+  useEffect(() => {
+    window.api.app?.getVersion?.()?.then((v) => {
+      const storedVersion = localStorage.getItem('vr-upload-check-version') ?? ''
+      if (storedVersion !== v) {
+        setForceUploadCheck(true)
+        localStorage.setItem('vr-upload-check-version', v)
+      }
+    }).catch(() => {})
+  }, [])
+
+  const requestUploadCheck = useCallback(() => {
+    setForceUploadCheck(true)
+  }, [])
 
   const addGameToBlacklist = useCallback(
     async (packageName: string, version?: number | 'any'): Promise<void> => {
@@ -64,9 +81,17 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
     await window.api.games.removeFromBlacklist(packageName)
   }, [])
 
-  // Check for installed games that are missing from the database or newer than store versions
+  // Check for installed games that are missing from the database or newer than store versions.
+  // Only runs on: first launch of day, first launch after update, or explicit requestUploadCheck().
   const checkForUploadCandidates = useCallback(() => {
     if (!isDeviceConnected || installedPackages.length === 0 || rawGames.length === 0) {
+      return
+    }
+
+    // Date gate — skip if we already ran today (unless force-flagged)
+    const today = new Date().toDateString()
+    const lastCheckDate = localStorage.getItem('vr-upload-check-date') ?? ''
+    if (!forceUploadCheck && lastCheckDate === today) {
       return
     }
 
@@ -154,8 +179,12 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       }
     }
 
+    // Mark that we ran today so subsequent launches/installs/refreshes are skipped
+    localStorage.setItem('vr-upload-check-date', today)
+    if (forceUploadCheck) setForceUploadCheck(false)
+
     processInstalledPackages()
-  }, [isDeviceConnected, installedPackages, rawGames, selectedDeviceDetails, selectedDevice])
+  }, [isDeviceConnected, installedPackages, rawGames, selectedDeviceDetails, selectedDevice, forceUploadCheck])
 
   // Check for upload candidates whenever device versions or game data changes (deferred)
   useEffect(() => {
@@ -320,7 +349,8 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       getTrailerVideoId,
       addGameToBlacklist,
       getBlacklistGames,
-      removeGameFromBlacklist
+      removeGameFromBlacklist,
+      requestUploadCheck
     }),
     [
       games,
@@ -341,7 +371,8 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
       getTrailerVideoId,
       addGameToBlacklist,
       getBlacklistGames,
-      removeGameFromBlacklist
+      removeGameFromBlacklist,
+      requestUploadCheck
     ]
   )
 

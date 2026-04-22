@@ -332,7 +332,7 @@ const MirrorManagement: React.FC = () => {
                   {t('addMirror')}
                 </Button>
               </DialogTrigger>
-              <DialogSurface>
+              <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
                 <DialogTitle>{t('addNewMirror')}</DialogTitle>
                 <DialogContent className={styles.dialogContent}>
                   <DialogBody>
