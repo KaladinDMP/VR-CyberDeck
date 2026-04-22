@@ -162,6 +162,12 @@ sudo pacman -S android-tools   # Arch
 
 ---
 
+## Credits
+
+VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core architecture — ADB management, download/upload pipeline, rclone integration, and the VRP game library connection — comes from their work. Without it this project wouldn't exist.
+
+---
+
 ## License
 
 GNU Affero GPL v3
