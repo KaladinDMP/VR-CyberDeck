@@ -43,7 +43,8 @@ import {
   Popover,
   PopoverTrigger,
   PopoverSurface,
-  Slider
+  Slider,
+  Switch
 } from '@fluentui/react-components'
 import {
   ArrowClockwiseRegular,
