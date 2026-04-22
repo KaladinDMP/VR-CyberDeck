@@ -22,8 +22,8 @@
   <text x="50" y="62" text-anchor="middle" fill="#39ff14"
         font-family="Courier New,monospace" font-size="36" font-weight="900">VR</text>
   <!-- Purple divider bar -->
-  <rect x="22" y="66" width="56" height="1.5" fill="#a855f7" rx="0.75"/>
-  <!-- DECK subtext -->
+  <rect x="14" y="66" width="72" height="1.5" fill="#a855f7" rx="0.75"/>
+  <!-- CYBERDECK subtext -->
   <text x="50" y="79" text-anchor="middle" fill="rgba(168,85,247,0.9)"
-        font-family="Courier New,monospace" font-size="9">DECK</text>
+        font-family="Courier New,monospace" font-size="8.5">CYBERDECK</text>
 </svg>
