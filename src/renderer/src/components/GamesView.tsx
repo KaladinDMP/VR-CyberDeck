@@ -1298,7 +1298,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
   useEffect(() => {
     let mounted = true
-    window.api.app?.getVersion?.().then((v) => { if (mounted) setAppVersion(v) }).catch(() => {})
+    const p = window.api.app?.getVersion?.()
+    if (p) p.then((v) => { if (mounted) setAppVersion(v) }).catch(() => {})
     return () => { mounted = false }
   }, [])
 
@@ -1505,11 +1506,11 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               )}
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                 <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>GITHUB</a>
+                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>G|THU|3</a>
                 <a href="https://t.me/s/the_vrSrc/2" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>TELEGRAM</a>
+                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>T3/_3GR4M</a>
                 <a href="https://qpmegathread.top" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>QP</a>
+                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>|V|3G4THR34D</a>
               </div>
               <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace' }}>
                 {t('lastSynced')} {formatDate(lastSyncTime)}
@@ -1716,7 +1717,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                       </thead>
                       <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
                         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                          const row = rows[virtualRow.index] as Row<GameInfo>
+                          const row = rows[virtualRow.index]
+                          if (!row) return null
                           const rowClasses = [
                             row.original.isInstalled ? 'row-installed' : 'row-not-installed',
                             row.original.hasUpdate ? 'row-update-available' : '',

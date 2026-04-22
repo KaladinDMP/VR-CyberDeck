@@ -119,15 +119,17 @@ const useStyles = makeStyles({
     lineHeight: '1.2'
   },
   titleCredit: {
-    fontSize: '12px',
-    letterSpacing: '0.04em',
-    color: 'rgba(200, 200, 220, 0.7)',
+    fontSize: '10px',
+    letterSpacing: '0.14em',
+    fontFamily: 'monospace',
+    color: 'rgba(57, 255, 20, 0.45)',
     lineHeight: '1.2',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    width: '100%'
+    width: '100%',
+    textTransform: 'uppercase'
   },
   mainContent: {
     flexGrow: 1,
@@ -344,10 +346,12 @@ const AppLayout: React.FC = () => {
                 {/* Dark mode toggle — absolute top-right */}
                 <div style={{ position: 'absolute', top: '10px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark</span>
-                  <Switch
-                    checked={colorScheme === 'dark'}
-                    onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
-                  />
+                  <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
+                    <Switch
+                      checked={colorScheme === 'dark'}
+                      onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
+                    />
+                  </div>
                 </div>
                 <div className={styles.headerContent}>
                   <img alt="logo" className={styles.logo} src={electronLogo} />
