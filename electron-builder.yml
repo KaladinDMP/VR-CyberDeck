@@ -78,6 +78,6 @@ deb:
 npmRebuild: false
 publish:
   provider: github
-  owner: jimzrt
+  owner: KaladinDMP
   repo: vr-cyberdeck
 electronDownload: {}
