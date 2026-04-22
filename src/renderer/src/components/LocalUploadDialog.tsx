@@ -144,8 +144,18 @@ const LocalUploadDialog: React.FC = () => {
     <>
       <Button
         icon={<ArrowUploadRegular />}
-        appearance="secondary"
+        appearance="subtle"
+        size="small"
         onClick={() => setIsOpen(true)}
+        style={{
+          fontFamily: '"Courier New", monospace',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          color: '#39ff14',
+          justifyContent: 'flex-start',
+          width: '100%'
+        }}
       >
         {t('uploadLocalFiles')}
       </Button>

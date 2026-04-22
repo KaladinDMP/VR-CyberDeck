@@ -317,6 +317,7 @@ const AppLayout: React.FC = () => {
   const [transfersTab, setTransfersTab] = useState<'downloads' | 'uploads'>('downloads')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
+  const [isDarkModeJokeOpen, setIsDarkModeJokeOpen] = useState(false)
   const mountNodeRef = useRef<HTMLDivElement>(null)
   const styles = useStyles()
   const { queue: downloadQueue } = useDownload()
@@ -382,18 +383,34 @@ const AppLayout: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Right: Dark mode toggle */}
+                {/* Right: Dark mode toggle (decorative joke) */}
                 <div className={styles.headerRight}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }} onClick={() => setIsDarkModeJokeOpen(true)}>
                     <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark Mode</span>
-                    <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
-                      <Switch
-                        checked={colorScheme === 'dark'}
-                        onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
-                      />
+                    <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)', pointerEvents: 'none' } as React.CSSProperties}>
+                      <Switch checked={true} readOnly />
                     </div>
                   </div>
                 </div>
+
+                {/* Dark mode joke dialog */}
+                <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
+                  <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.4)', maxWidth: '420px', fontFamily: 'monospace' }}>
+                    <DialogBody>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0', textAlign: 'center' }}>
+                        <div style={{ fontSize: '28px' }}>😂</div>
+                        <div style={{ fontSize: '18px', color: '#39ff14', letterSpacing: '0.08em', fontWeight: 700 }}>LMAO</div>
+                        <div style={{ fontSize: '13px', color: 'rgba(57,255,20,0.85)', lineHeight: 1.6 }}>
+                          This is just for looks.<br />
+                          Do people actually USE light mode?
+                        </div>
+                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '8px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', padding: '8px 20px', borderRadius: '4px', cursor: 'pointer' }}>
+                          [ OK ]
+                        </button>
+                      </div>
+                    </DialogBody>
+                  </DialogSurface>
+                </Dialog>
               </div>
 
               <div className={styles.mainContent} id="mainContent">
@@ -457,13 +474,15 @@ const AppLayout: React.FC = () => {
               <Dialog open={isSettingsOpen} onOpenChange={(_, d) => setIsSettingsOpen(d.open)}>
                 <DialogSurface
                   style={{
-                    maxWidth: '960px',
-                    width: '92vw',
+                    maxWidth: '1400px',
+                    width: '96vw',
                     maxHeight: '92vh',
                     padding: 0,
                     overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    background: '#050514',
+                    border: '1px solid rgba(57,255,20,0.25)'
                   }}
                 >
                   <DialogBody style={{ padding: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>

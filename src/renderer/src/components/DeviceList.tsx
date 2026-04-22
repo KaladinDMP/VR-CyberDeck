@@ -579,8 +579,10 @@ const DeviceList: React.FC<DeviceListProps> = ({ onSkip, onConnected }) => {
                           const [ip, port] = device.id.split(':')
                           await disconnectTcpDevice(ip, parseInt(port) || 5555)
                         }}
-                        appearance="outline"
+                        appearance="subtle"
+                        size="small"
                         aria-label="Disconnect TCP device"
+                        style={{ fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '11px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.4)', width: '100%', justifyContent: 'center' }}
                       >
                         Disconnect
                       </Button>
@@ -588,8 +590,10 @@ const DeviceList: React.FC<DeviceListProps> = ({ onSkip, onConnected }) => {
                       <Button
                         icon={<DismissCircleRegular />}
                         onClick={disconnectDevice}
-                        appearance="outline"
+                        appearance="subtle"
+                        size="small"
                         aria-label="Disconnect device"
+                        style={{ fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '11px', color: '#39ff14', border: '1px solid rgba(57,255,20,0.4)', width: '100%', justifyContent: 'center' }}
                       >
                         Disconnect
                       </Button>

@@ -414,23 +414,23 @@
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  background-color: var(--colorNeutralBackground2);
-  border: 1px solid var(--colorNeutralStroke2);
+  background-color: #050514;
+  border: 1px solid rgba(57, 255, 20, 0.3);
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   min-height: 220px;
 }
 
 .game-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.15);
-  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 14px rgba(57, 255, 20, 0.25), 0 0 4px rgba(176, 64, 255, 0.2);
+  border-color: rgba(57, 255, 20, 0.65);
 }
 
 .game-card-thumbnail-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background-color: var(--colorNeutralBackground3);
+  background-color: #02020e;
   overflow: hidden;
 }
 
@@ -454,13 +454,15 @@
 }
 
 .game-card-badge.installed {
-  background: rgba(0, 200, 120, 0.85);
-  color: #fff;
+  background: rgba(57, 255, 20, 0.85);
+  color: #050514;
+  font-family: monospace;
 }
 
 .game-card-badge.update {
-  background: rgba(0, 180, 255, 0.9);
+  background: rgba(176, 64, 255, 0.9);
   color: #fff;
+  font-family: monospace;
 }
 
 .game-card-body {
@@ -474,7 +476,7 @@
 .game-card-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--colorNeutralForeground1);
+  color: #39ff14;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -484,7 +486,8 @@
 
 .game-card-meta {
   font-size: 11px;
-  color: var(--colorNeutralForeground3);
+  color: rgba(176, 64, 255, 0.85);
+  font-family: monospace;
 }
 
 .game-card-progress {
@@ -494,6 +497,7 @@
 .game-card-status-text {
   font-size: 11px;
   font-weight: 500;
-  color: rgba(0, 212, 255, 0.9);
+  color: #39ff14;
   margin-top: 2px;
+  font-family: monospace;
 }

@@ -47,16 +47,38 @@ const SPEED_UNITS = [
   { label: 'MB/s', value: 'mbps', factor: 1024 }
 ]
 
+const neonBtn = {
+  background: 'transparent',
+  border: '1px solid rgba(57,255,20,0.5)',
+  color: '#39ff14',
+  fontFamily: '"Courier New", monospace',
+  fontSize: '11px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  padding: '8px 20px',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  boxShadow: '0 0 8px rgba(57,255,20,0.12)'
+}
+
+const neonInput = {
+  background: 'rgba(57,255,20,0.04)',
+  border: '1px solid rgba(57,255,20,0.3)',
+  color: '#39ff14',
+  fontFamily: '"Courier New", monospace',
+  fontSize: '12px'
+}
+
 const useStyles = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
     gap: tokens.spacingVerticalL,
     position: 'relative',
-    height: 'calc(100vh - 110px)',
+    height: 'calc(92vh - 48px)',
     overflowY: 'auto',
-    padding: tokens.spacingVerticalXL,
-    backgroundColor: tokens.colorNeutralBackground1
+    padding: '24px 32px',
+    backgroundColor: '#050514'
   },
   contentContainer: {
     width: '100%',
@@ -65,17 +87,24 @@ const useStyles = makeStyles({
     gap: tokens.spacingVerticalL
   },
   headerTitle: {
-    marginBottom: tokens.spacingVerticalXS
+    marginBottom: tokens.spacingVerticalXS,
+    color: '#39ff14',
+    fontFamily: '"Courier New", monospace',
+    letterSpacing: '0.04em'
   },
   headerSubtitle: {
-    color: tokens.colorNeutralForeground2,
+    color: 'rgba(57,255,20,0.55)',
     display: 'block',
-    marginBottom: tokens.spacingVerticalL
+    marginBottom: tokens.spacingVerticalL,
+    fontFamily: 'monospace',
+    fontSize: '12px'
   },
   card: {
     width: '100%',
-    boxShadow: tokens.shadow4,
-    borderRadius: tokens.borderRadiusMedium
+    background: 'rgba(57,255,20,0.03)',
+    border: '1px solid rgba(57,255,20,0.18)',
+    borderRadius: '6px',
+    boxShadow: 'none'
   },
   cardContent: {
     padding: tokens.spacingHorizontalL,
@@ -417,24 +446,17 @@ const IntroSettings: React.FC = () => {
   }, [])
 
   return (
-    <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">Interface</Subtitle1>} />
-      <div className={styles.cardContent}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
-          <Switch
-            checked={showIntro}
-            onChange={handleToggle}
-            label="Show intro animation on launch"
-          />
+    <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
+          <Switch checked={showIntro} onChange={handleToggle} />
         </div>
-        <Text
-          size={200}
-          style={{ color: tokens.colorNeutralForeground3, display: 'block', marginTop: tokens.spacingVerticalXS }}
-        >
-          Hacker-console boot sequence shown each time the app opens. Takes ~10 seconds.
-        </Text>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px' }}>Show intro animation on launch</span>
       </div>
-    </Card>
+      <span style={{ color: 'rgba(57,255,20,0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
+        Hacker-console boot sequence shown each time the app opens. Takes ~10 seconds.
+      </span>
+    </div>
   )
 }
 
@@ -545,12 +567,16 @@ const Settings: React.FC = () => {
   } = useSettings()
   const [editedDownloadPath, setEditedDownloadPath] = useState(downloadPath)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
+  const [hideAdultContent, setHideAdultContentLocal] = useState<boolean>(() => {
+    try { return localStorage.getItem('vrcyberdeck:hideAdult') !== 'false' } catch { return true }
+  })
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     intro: true,
-    username: true,
+    username: false,
     logs: false,
-    download: true,
-    blacklist: false
+    download: false,
+    blacklist: false,
+    content: false
   })
   const toggleSection = useCallback((key: string): void =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -850,13 +876,13 @@ const Settings: React.FC = () => {
     <div className={styles.root}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
-          <Title2 className={styles.headerTitle}>VR CyberDeck Hacks</Title2>
+          <span style={{ fontSize: '28px', fontWeight: 800, color: '#39ff14', fontFamily: '"Courier New", monospace', letterSpacing: '0.04em', textShadow: '0 0 12px rgba(57,255,20,0.4)' }}>VR CyberDeck Hacks</span>
           {isLoading && <Spinner size="large" label={t('loadingSettings')} />}
         </div>
-        <Text as="p" className={styles.headerSubtitle}>
+        <span style={{ color: 'rgba(57,255,20,0.55)', fontFamily: 'monospace', fontSize: '12px', marginBottom: '8px', display: 'block' }}>
           {t('configurePreferences')}
           {appVersion && ` • Version ${appVersion}`}
-        </Text>
+        </span>
 
         <div>
           <SectionHeader label="// INTRO VIDEO" sectionKey="intro" openSections={openSections} onToggle={toggleSection} />
@@ -894,9 +920,7 @@ const Settings: React.FC = () => {
                 }
                 size="large"
               />
-              <Button onClick={handleSaveDownloadPath} appearance="primary" size="large">
-                {t('savePath')}
-              </Button>
+              <button onClick={handleSaveDownloadPath} style={neonBtn}>{t('savePath')}</button>
             </div>
 
             <div className={styles.speedLimitSection}>
@@ -975,9 +999,7 @@ const Settings: React.FC = () => {
                 className={styles.formRow}
                 style={{ justifyContent: 'flex-end', marginTop: tokens.spacingVerticalM }}
               >
-                <Button onClick={handleSaveSpeedLimits} appearance="primary" size="large">
-                  {t('saveSpeedLimits')}
-                </Button>
+                <button onClick={handleSaveSpeedLimits} style={neonBtn}>{t('saveSpeedLimits')}</button>
               </div>
             </div>
 
@@ -995,6 +1017,29 @@ const Settings: React.FC = () => {
         <div>
           <SectionHeader label="// BLACKLIST" sectionKey="blacklist" openSections={openSections} onToggle={toggleSection} />
           {openSections.blacklist && <BlacklistSettings />}
+        </div>
+
+        <div>
+          <SectionHeader label="// CONTENT FILTER" sectionKey="content" openSections={openSections} onToggle={toggleSection} />
+          {openSections.content && (
+            <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
+                  <Switch
+                    checked={hideAdultContent}
+                    onChange={(_, d) => {
+                      setHideAdultContentLocal(d.checked)
+                      try { localStorage.setItem('vrcyberdeck:hideAdult', String(d.checked)) } catch { }
+                    }}
+                  />
+                </div>
+                <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px' }}>Hide adult / explicit content</span>
+              </div>
+              <span style={{ color: 'rgba(57,255,20,0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
+                Filters explicit-tagged titles from the library. Requires a game refresh to take effect.
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Credits footer */}
