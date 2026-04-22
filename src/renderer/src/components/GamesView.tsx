@@ -17,7 +17,6 @@ import { useAdb } from '../hooks/useAdb'
 import { useGames } from '../hooks/useGames'
 import { useDownload } from '../hooks/useDownload'
 import { useLanguage } from '../hooks/useLanguage'
-import { useSettings } from '../hooks/useSettings'
 import { GameInfo } from '@shared/types'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import {
@@ -30,7 +29,6 @@ import {
   Badge,
   ProgressBar,
   Spinner,
-  Title3,
   Menu,
   MenuTrigger,
   MenuList,
@@ -45,8 +43,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverSurface,
-  Slider,
-  Switch
+  Slider
 } from '@fluentui/react-components'
 import {
   ArrowClockwiseRegular,
@@ -55,7 +52,6 @@ import {
   CheckmarkCircleRegular,
   DesktopRegular,
   BatteryChargeRegular,
-  StorageRegular,
   FolderAddRegular,
   DocumentRegular,
   ChevronDownRegular,
@@ -70,7 +66,7 @@ import {
 import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
-import MirrorSelector from './MirrorSelector'
+import MirrorManagement from './MirrorManagement'
 import LocalUploadDialog from './LocalUploadDialog'
 import { AdbShellDialog } from './AdbShellDialog'
 import { useTablePreferences } from '@renderer/hooks/useTablePreferences'
@@ -436,7 +432,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
   const styles = useStyles()
   const { t } = useLanguage()
-  const { colorScheme, setColorScheme } = useSettings()
 
   const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
@@ -471,6 +466,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   const [installSuccess, setInstallSuccess] = useState<boolean | null>(null)
   const [showObbConfirmDialog, setShowObbConfirmDialog] = useState<boolean>(false)
   const [obbFolderToConfirm, setObbFolderToConfirm] = useState<string | null>(null)
+  const [showMirrorMgmt, setShowMirrorMgmt] = useState(false)
+  const [appVersion, setAppVersion] = useState('')
 
   const counts = useMemo(() => {
     const total = games.length
@@ -1299,6 +1296,12 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     setInstallStatusMessage('')
   }, [])
 
+  useEffect(() => {
+    let mounted = true
+    window.api.app?.getVersion?.().then((v) => { if (mounted) setAppVersion(v) }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
+
   const isBusy = adbLoading || loadingGames || isLoading || isManualInstalling
 
   const storageFreeGB = parseStorageGB(selectedDeviceDetails?.storageFree)
@@ -1310,7 +1313,32 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       ? tokens.colorPaletteRedForeground1
       : storageUsedPct > 65
         ? '#ffaa00'
-        : tokens.colorBrandBackground
+        : '#39ff14'
+
+  const CB: React.CSSProperties = {
+    background: 'transparent',
+    border: '1px solid rgba(57,255,20,0.45)',
+    color: '#39ff14',
+    width: '100%',
+    justifyContent: 'center',
+    fontFamily: '"Courier New", Courier, monospace',
+    fontSize: '11px',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    boxShadow: '0 0 6px rgba(57,255,20,0.12)'
+  }
+  const CBP: React.CSSProperties = {
+    ...CB,
+    border: '1px solid rgba(176,64,255,0.5)',
+    color: '#b040ff',
+    boxShadow: '0 0 6px rgba(176,64,255,0.18)'
+  }
+  const CBR: React.CSSProperties = {
+    ...CB,
+    border: '1px solid rgba(255,50,50,0.5)',
+    color: '#ff5555',
+    boxShadow: '0 0 6px rgba(255,50,50,0.12)'
+  }
 
   return (
     <div className={styles.root}>
@@ -1344,36 +1372,37 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Device</div>
               {selectedDeviceDetails ? (
-                <>
-                  {/* Name + disconnect icon + battery — all inline */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}>
+                <div style={{ border: '1px solid rgba(57,255,20,0.4)', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'rgba(57,255,20,0.03)' }}>
+                  {/* Device name with green dot */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#39ff14', boxShadow: '0 0 6px #39ff14', flexShrink: 0 }} />
-                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selectedDeviceDetails.friendlyModelName || 'Connected Device'}
                     </Text>
-                    {isConnected && (
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<PlugDisconnectedRegular />}
-                        onClick={disconnectDevice}
-                        title={t('disconnectFromDevice')}
-                        style={{ minWidth: 0, padding: '2px 4px', color: tokens.colorPaletteRedForeground1, flexShrink: 0 }}
-                      />
-                    )}
-                    {selectedDeviceDetails.batteryLevel !== null && (
-                      <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />} style={{ flexShrink: 0 }}>
-                        {selectedDeviceDetails.batteryLevel}%
-                      </Badge>
-                    )}
                   </div>
 
-                  {/* Storage bar */}
+                  {/* Disconnect centered below name */}
+                  {isConnected && (
+                    <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />} onClick={disconnectDevice}
+                      title={t('disconnectFromDevice')} style={CBR}>
+                      Disconnect
+                    </Button>
+                  )}
+
+                  {/* Battery badge centered */}
+                  {selectedDeviceDetails.batteryLevel !== null && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />}>
+                        {selectedDeviceDetails.batteryLevel}%
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Storage bar + centered text */}
                   {selectedDeviceDetails.storageFree && selectedDeviceDetails.storageTotal && (
                     <>
-                      <Text size={200} style={{ color: tokens.colorNeutralForeground2, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <StorageRegular style={{ fontSize: '13px' }} />
-                        {selectedDeviceDetails.storageFree} free / {selectedDeviceDetails.storageTotal}
+                      <Text size={100} style={{ color: tokens.colorNeutralForeground3, textAlign: 'center', fontFamily: 'monospace' }}>
+                        {selectedDeviceDetails.storageFree} Free ({100 - storageUsedPct}%) / {selectedDeviceDetails.storageTotal}
                       </Text>
                       <div className={styles.storageBarTrack}>
                         <div className={styles.storageBarFill} style={{ width: `${storageUsedPct}%`, backgroundColor: storageBarColor }} />
@@ -1381,25 +1410,23 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                     </>
                   )}
 
-                  {/* Device ID — centered, clickable to reveal */}
-                  <div
-                    style={{ textAlign: 'center', cursor: 'pointer', padding: '2px 0' }}
+                  {/* Device ID centered, clickable */}
+                  <div style={{ textAlign: 'center', cursor: 'pointer', padding: '2px 0' }}
                     onClick={() => setShowDeviceId((v) => !v)}
-                    title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}
-                  >
+                    title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}>
                     <Text size={100} style={{ fontFamily: 'monospace', color: tokens.colorNeutralForeground3, letterSpacing: showDeviceId ? 'normal' : '0.15em', userSelect: showDeviceId ? 'text' : 'none' }}>
                       ID: {showDeviceId ? selectedDevice : '••••••••••'}
                     </Text>
                   </div>
 
-                  {/* Refresh Quest lives at the bottom of device section */}
+                  {/* Refresh Quest */}
                   {isConnected && (
                     <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={() => loadPackages()} disabled={isBusy}
-                      style={{ justifyContent: 'flex-start', width: '100%' }}>
+                      style={CB}>
                       {isBusy ? t('working') : t('refreshQuest')}
                     </Button>
                   )}
-                </>
+                </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ff4444', boxShadow: '0 0 6px #ff4444', flexShrink: 0 }} />
@@ -1415,52 +1442,29 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               )}
             </section>
 
-            {/* ── OPTIONS ── */}
+            {/* ── MANAGE MIRRORS ── */}
             <section className={styles.sidebarSection}>
-              <div className={styles.sidebarLabel}>Options</div>
-              <MirrorSelector />
+              <Button appearance="subtle" size="small" onClick={() => setShowMirrorMgmt(true)} style={CB}>
+                Manage Mirrors
+              </Button>
             </section>
 
-            {/* ── ACTIONS (Refresh / Manual Install / ADB Shell) ── */}
+            {/* ── ACTIONS ── */}
             <section className={styles.sidebarSection}>
+              <div className={styles.sidebarLabel}>Actions</div>
               <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
-                style={{ justifyContent: 'flex-start', width: '100%' }}>
+                style={CB}>
                 {isBusy ? t('working') : t('refreshGames')}
               </Button>
-              <Menu>
-                <MenuTrigger disableButtonEnhancement>
-                  <Button appearance="subtle" size="small" icon={<FolderAddRegular />} disabled={isBusy || !isConnected}
-                    style={{ justifyContent: 'flex-start', width: '100%' }}>
-                    {isManualInstalling ? t('manualInstalling') : 'Manual Install (APK/OBB)'}
-                  </Button>
-                </MenuTrigger>
-                <MenuPopover>
-                  <MenuList>
-                    <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>{t('installApkFile')}</MenuItem>
-                    <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>{t('installFolder')}</MenuItem>
-                    <MenuItem icon={<CopyRegular />} onClick={handleCopyObbFolder} disabled={isManualInstalling}>{t('copyObbFolder')}</MenuItem>
-                  </MenuList>
-                </MenuPopover>
-              </Menu>
               <Button appearance="subtle" size="small" icon={<WindowConsoleRegular />} onClick={() => setShellDialogOpen(true)}
-                disabled={!isConnected}
-                style={{ justifyContent: 'flex-start', width: '100%', border: isConnected ? '1px solid rgba(57,255,20,0.25)' : undefined, color: isConnected ? '#39ff14' : undefined }}>
+                disabled={!isConnected} style={isConnected ? CB : { ...CB, opacity: 0.4 }}>
                 ADB Shell
               </Button>
             </section>
 
             {/* ── SETTINGS ── */}
             <section className={styles.sidebarSection}>
-              <div className={styles.sidebarLabel}>Settings</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: tokens.spacingVerticalXXS }}>
-                <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>Dark Mode</Text>
-                <Switch
-                  checked={colorScheme === 'dark'}
-                  onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
-                />
-              </div>
-              <Button appearance="subtle" size="small" icon={<SettingsRegular />} onClick={onSettings}
-                style={{ justifyContent: 'flex-start', width: '100%' }}>
+              <Button appearance="subtle" size="small" icon={<SettingsRegular />} onClick={onSettings} style={CB}>
                 Other Settings
               </Button>
             </section>
@@ -1468,13 +1472,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             {/* ── TRANSFERS ── */}
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Transfers</div>
-              <Button
-                appearance={activeTransferCount > 0 ? 'primary' : 'subtle'}
-                size="small"
-                icon={<ArrowSyncRegular />}
-                onClick={onTransfers}
-                style={{ justifyContent: 'flex-start', width: '100%' }}
-              >
+              <Button appearance="subtle" size="small" icon={<ArrowSyncRegular />} onClick={onTransfers} style={CBP}>
                 Transfers
                 {activeTransferCount > 0 && (
                   <Badge appearance="filled" color="brand" size="small" style={{ marginLeft: 'auto' }}>{activeTransferCount}</Badge>
@@ -1484,8 +1482,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               <Menu>
                 <MenuTrigger disableButtonEnhancement>
                   <Button appearance="subtle" size="small" icon={<FolderAddRegular />} disabled={isBusy || !isConnected}
-                    style={{ justifyContent: 'flex-start', width: '100%' }}>
-                    {isManualInstalling ? t('manualInstalling') : 'Manual Install (APK/OBB)'}
+                    style={CB}>
+                    {isManualInstalling ? t('manualInstalling') : 'Manual Install'}
                   </Button>
                 </MenuTrigger>
                 <MenuPopover>
@@ -1498,8 +1496,22 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               </Menu>
             </section>
 
-            <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL }}>
-              <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
+            {/* ── FOOTER ── */}
+            <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL, display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+              {appVersion && (
+                <Text size={100} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
+                  v{appVersion}
+                </Text>
+              )}
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>GITHUB</a>
+                <a href="#" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>TELEGRAM</a>
+                <a href="#" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>QP</a>
+              </div>
+              <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace' }}>
                 {t('lastSynced')} {formatDate(lastSyncTime)}
               </Text>
             </div>
@@ -1616,7 +1628,26 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             ) : gamesError ? (
               <div className="error-message">{gamesError}</div>
             ) : games.length === 0 && !loadingGames ? (
-              <div className="no-games-message">{t('noGamesFound')}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', flex: 1, padding: '40px 20px' }}>
+                <svg width="72" height="72" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="8" y="20" width="48" height="28" rx="14" stroke="rgba(57,255,20,0.45)" strokeWidth="2" fill="rgba(57,255,20,0.04)"/>
+                  <path d="M20 32h-6M17 29v6" stroke="rgba(57,255,20,0.7)" strokeWidth="2.5" strokeLinecap="round"/>
+                  <circle cx="44" cy="29" r="2.5" fill="rgba(176,64,255,0.7)"/>
+                  <circle cx="50" cy="32" r="2.5" fill="rgba(57,255,20,0.7)"/>
+                  <circle cx="44" cy="35" r="2.5" fill="rgba(57,255,20,0.5)"/>
+                  <circle cx="38" cy="32" r="2.5" fill="rgba(255,100,0,0.6)"/>
+                  <path d="M14 44 Q10 54 15 58" stroke="rgba(57,255,20,0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M50 44 Q54 54 49 58" stroke="rgba(57,255,20,0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                </svg>
+                <div style={{ textAlign: 'center' }}>
+                  <Text size={500} weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>No games found</Text>
+                  <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>Click Refresh Games to sync the game library</Text>
+                </div>
+                <Button appearance="subtle" size="medium" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
+                  style={{ background: 'transparent', border: '1px solid rgba(57,255,20,0.45)', color: '#39ff14', letterSpacing: '0.1em', boxShadow: '0 0 6px rgba(57,255,20,0.12)' }}>
+                  {isBusy ? t('working') : t('refreshGames')}
+                </Button>
+              </div>
             ) : (
               <>
                 {prefs.viewMode === 'cards' ? (
@@ -1792,6 +1823,20 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
           onDismiss={() => setShellDialogOpen(false)}
         />
       )}
+
+      <Dialog open={showMirrorMgmt} onOpenChange={(_, data) => setShowMirrorMgmt(data.open)}>
+        <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+          <DialogBody style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: 0 }}>
+            <DialogTitle style={{ padding: '16px 24px', borderBottom: '1px solid rgba(57,255,20,0.15)' }}>Mirror Management</DialogTitle>
+            <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 24px' }}>
+              <MirrorManagement />
+            </DialogContent>
+            <DialogActions style={{ padding: '12px 24px', borderTop: '1px solid rgba(57,255,20,0.15)' }}>
+              <Button appearance="secondary" onClick={() => setShowMirrorMgmt(false)}>Close</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       <Dialog open={showObbConfirmDialog} onOpenChange={(_, data) => !data.open && handleObbCancelCopy()}>
         <DialogSurface>

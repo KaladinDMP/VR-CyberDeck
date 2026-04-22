@@ -826,7 +826,7 @@ const Settings: React.FC = () => {
     <div className={styles.root}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
-          <Title2 className={styles.headerTitle}>{t('applicationSettings')}</Title2>
+          <Title2 className={styles.headerTitle}>VR CyberDeck Hacks</Title2>
           {isLoading && <Spinner size="large" label={t('loadingSettings')} />}
         </div>
         <Text as="p" className={styles.headerSubtitle}>
