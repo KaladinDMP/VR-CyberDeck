@@ -522,33 +522,49 @@ const AppLayout: React.FC = () => {
                 </DrawerBody>
               </Drawer>
 
-              {/* Settings modal */}
-              <Dialog open={isSettingsOpen} onOpenChange={(_, d) => setIsSettingsOpen(d.open)}>
-                <DialogSurface
+              {/* Settings modal — custom overlay bypasses Fluent Dialog width constraints */}
+              {isSettingsOpen && (
+                <div
                   style={{
-                    maxWidth: '1400px',
-                    width: '96vw',
-                    maxHeight: '92vh',
-                    padding: 0,
-                    overflow: 'hidden',
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1000,
                     display: 'flex',
-                    flexDirection: 'column',
-                    background: '#050514',
-                    border: '1px solid rgba(57,255,20,0.25)'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setIsSettingsOpen(false)
                   }}
                 >
-                  <DialogBody style={{ padding: 0, flex: 1, overflow: 'hidden', position: 'relative' }}>
+                  <div
+                    style={{
+                      width: '96vw',
+                      maxWidth: '1400px',
+                      maxHeight: '92vh',
+                      background: '#050514',
+                      border: '1px solid rgba(57,255,20,0.25)',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 0 40px rgba(57,255,20,0.06)'
+                    }}
+                  >
                     <Button
                       appearance="subtle"
                       icon={<CloseIcon />}
                       aria-label={t('close')}
                       onClick={() => setIsSettingsOpen(false)}
-                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, color: '#39ff14' }}
                     />
                     <Settings />
-                  </DialogBody>
-                </DialogSurface>
-              </Dialog>
+                  </div>
+                </div>
+              )}
             </div>
             <div
               id="portal-parent"

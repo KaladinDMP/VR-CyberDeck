@@ -19,6 +19,7 @@ export interface GamesContextType {
   addGameToBlacklist: (packageName: string, version?: number | 'any') => Promise<void>
   getBlacklistGames: () => Promise<BlacklistEntry[]>
   removeGameFromBlacklist: (packageName: string) => Promise<void>
+  requestUploadCheck: () => void
 }
 
 export const GamesContext = createContext<GamesContextType | undefined>(undefined)

@@ -421,7 +421,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     downloadProgress,
     extractProgress,
     refreshGames,
-    getNote
+    getNote,
+    requestUploadCheck
   } = useGames()
   const {
     addToQueue: addDownloadToQueue,
@@ -437,7 +438,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [showDeviceId, setShowDeviceId] = useState(false)
   const { prefs, setPrefs } = useTablePreferences()
   const [globalFilter, setGlobalFilter] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -1385,7 +1385,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
                   {/* Disconnect centered below name */}
                   {isConnected && (
-                    <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />} onClick={disconnectDevice}
+                    <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />}
+                      onClick={() => { requestUploadCheck(); disconnectDevice() }}
                       title={t('disconnectFromDevice')} style={CB}>
                       Disconnect
                     </Button>
@@ -1411,15 +1412,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                       </div>
                     </>
                   )}
-
-                  {/* Device ID centered, clickable */}
-                  <div style={{ textAlign: 'center', cursor: 'pointer', padding: '2px 0' }}
-                    onClick={() => setShowDeviceId((v) => !v)}
-                    title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}>
-                    <Text size={100} style={{ fontFamily: 'monospace', color: tokens.colorNeutralForeground3, letterSpacing: showDeviceId ? 'normal' : '0.15em', userSelect: showDeviceId ? 'text' : 'none' }}>
-                      ID: {showDeviceId ? selectedDevice : '••••••••••'}
-                    </Text>
-                  </div>
 
                   {/* Refresh Quest */}
                   {isConnected && (
@@ -1543,13 +1535,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               icon={prefs.viewMode === 'table' ? <GridRegular /> : <TableRegular />}
               onClick={() => setPrefs({ viewMode: prefs.viewMode === 'table' ? 'cards' : 'table' })}
               title={prefs.viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
+              style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }}
             />
             {prefs.viewMode !== 'cards' && (
             <Popover open={viewOptionsOpen} onOpenChange={(_, d) => setViewOptionsOpen(d.open)} positioning="below-end">
               <PopoverTrigger>
-                <Button appearance="subtle" icon={<OptionsRegular />} title="Display options" size="small" />
+                <Button appearance="subtle" icon={<OptionsRegular />} title="Display options" size="small"
+                  style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }} />
               </PopoverTrigger>
-              <PopoverSurface style={{ minWidth: '280px' }}>
+              <PopoverSurface style={{ minWidth: '280px', background: '#050514', border: '1px solid rgba(57,255,20,0.3)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalM }}>
                   <Text weight="semibold">Display Options</Text>
                   <div>
@@ -1768,7 +1762,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       )}
 
       <Dialog open={showInstallDialog} onOpenChange={(_, data) => !data.open && closeInstallDialog()}>
-        <DialogSurface>
+        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
           <DialogBody>
             <DialogTitle>{t('manualOperation')}</DialogTitle>
             <DialogContent>
@@ -1820,7 +1814,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       )}
 
       <Dialog open={showMirrorMgmt} onOpenChange={(_, data) => setShowMirrorMgmt(data.open)}>
-        <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+        <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
           <DialogBody style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: 0 }}>
             <DialogTitle style={{ padding: '16px 24px', borderBottom: '1px solid rgba(57,255,20,0.15)' }}>Mirror Management</DialogTitle>
             <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 24px' }}>
@@ -1834,7 +1828,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       </Dialog>
 
       <Dialog open={showObbConfirmDialog} onOpenChange={(_, data) => !data.open && handleObbCancelCopy()}>
-        <DialogSurface>
+        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
           <DialogBody>
             <DialogTitle>{t('confirmObbCopy')}</DialogTitle>
             <DialogContent>

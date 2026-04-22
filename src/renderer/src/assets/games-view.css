@@ -195,6 +195,8 @@
 .games-table td {
   white-space: nowrap;
   text-overflow: ellipsis;
+  color: rgba(57, 255, 20, 0.88);
+  background-color: #050514;
 }
 
 .games-table th {
@@ -365,19 +367,19 @@
 }
 
 .list-version-main {
-  font-weight: normal; /* Or match game-name-main if needed */
+  font-weight: normal;
   font-size: 1em;
-  /* Ensure truncation if needed */
+  color: rgba(57, 255, 20, 0.88);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .installed-version-info {
-  font-size: 11px; /* Match game-package-sub */
-  color: var(--colorNeutralForeground3); /* Match game-package-sub */
-  font-family: monospace; /* Match game-package-sub */
-  margin-top: 2px; /* Match game-package-sub */
+  font-size: 11px;
+  color: rgba(168, 85, 247, 0.85);
+  font-family: monospace;
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

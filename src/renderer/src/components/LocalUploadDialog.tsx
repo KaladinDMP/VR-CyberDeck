@@ -164,7 +164,7 @@ const LocalUploadDialog: React.FC = () => {
       <Dialog open={isOpen} onOpenChange={(_, data) => { if (!data.open) handleClose() }}>
         <DialogSurface
           mountNode={document.getElementById('portal')}
-          style={{ maxWidth: '680px', width: '90vw' }}
+          style={{ maxWidth: '680px', width: '90vw', background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}
         >
           <DialogBody>
             <DialogTitle>{t('localUploadTitle')}</DialogTitle>

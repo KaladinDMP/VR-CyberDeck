@@ -8,8 +8,8 @@ export interface TablePreferences {
   viewMode: 'table' | 'cards'
 }
 
-const STORAGE_KEY = 'avr-table-prefs-v2'
-const OLD_KEY = 'avr-table-prefs-v1'
+const STORAGE_KEY = 'avr-table-prefs-v3'
+const OLD_KEYS = ['avr-table-prefs-v1', 'avr-table-prefs-v2']
 
 const DEFAULTS: TablePreferences = {
   rowDensity: 50,
@@ -20,8 +20,10 @@ const DEFAULTS: TablePreferences = {
 }
 
 function load(): TablePreferences {
-  // Wipe stale v1 data so it can't cause issues
-  try { localStorage.removeItem(OLD_KEY) } catch { /* ignore */ }
+  // Wipe stale old keys so they can't cause issues
+  for (const key of OLD_KEYS) {
+    try { localStorage.removeItem(key) } catch { /* ignore */ }
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {

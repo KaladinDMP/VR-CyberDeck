@@ -1,23 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Button,
   Dialog,
-  DialogActions,
   DialogBody,
   DialogContent,
   DialogSurface,
   DialogTitle,
-  Input,
-  Text,
-  makeStyles,
-  tokens
+  DialogActions
 } from '@fluentui/react-components'
-import { SendRegular } from '@fluentui/react-icons'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HistoryEntry {
   command: string
   output: string | null
   error?: boolean
+  /** rendered output (grows char-by-char via typing animation) */
+  rendered?: string
+  /** typing animation complete */
+  typingDone?: boolean
 }
 
 interface AdbShellDialogProps {
@@ -26,76 +27,613 @@ interface AdbShellDialogProps {
   onDismiss: () => void
 }
 
-const useStyles = makeStyles({
-  terminal: {
-    backgroundColor: '#1e1e1e',
-    color: '#d4d4d4',
-    fontFamily: "'Consolas', 'Courier New', monospace",
-    fontSize: '13px',
-    padding: tokens.spacingVerticalM,
-    borderRadius: tokens.borderRadiusMedium,
-    overflowY: 'auto',
-    height: '380px',
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const NEON = '#39ff14'
+const NEON_DIM = 'rgba(57,255,20,0.35)'
+const NEON_DIM2 = 'rgba(57,255,20,0.18)'
+const BG_SURFACE = '#030310'
+const BG_TERMINAL = '#000008'
+const CHAR_POOL = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF'
+
+const PHASE_1_END = 1500  // ms — rain + "INITIALIZING..."
+const PHASE_2_END = 2500  // ms — "FOLLOW THE WHITE RABBIT..."
+// Phase 3 starts at 2500ms — terminal revealed
+
+// ─── Matrix Canvas Animation ─────────────────────────────────────────────────
+
+interface Column {
+  x: number
+  y: number
+  speed: number
+  chars: string[]
+  head: number
+}
+
+function useMatrixCanvas(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  active: boolean
+): void {
+  useEffect(() => {
+    if (!active) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const W = canvas.width
+    const H = canvas.height
+    const fontSize = 14
+    const colCount = Math.floor(W / fontSize)
+
+    const columns: Column[] = Array.from({ length: colCount }, (_, i) => ({
+      x: i * fontSize,
+      y: Math.random() * -H,
+      speed: 1 + Math.random() * 2,
+      chars: Array.from({ length: 30 }, () => CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)]),
+      head: 0
+    }))
+
+    let rafId = 0
+    let running = true
+
+    const draw = (): void => {
+      if (!running) return
+
+      // semi-transparent black overlay for trail effect
+      ctx.fillStyle = 'rgba(0,0,8,0.18)'
+      ctx.fillRect(0, 0, W, H)
+
+      ctx.font = `${fontSize}px 'Courier New', monospace`
+
+      for (const col of columns) {
+        // bright head char
+        ctx.fillStyle = '#ccffcc'
+        ctx.shadowColor = NEON
+        ctx.shadowBlur = 8
+        ctx.fillText(col.chars[col.head % col.chars.length], col.x, col.y)
+
+        // trailing chars
+        for (let j = 1; j < 20; j++) {
+          const alpha = 1 - j / 20
+          ctx.fillStyle = `rgba(57,255,20,${alpha * 0.85})`
+          ctx.shadowBlur = 4
+          ctx.fillText(
+            col.chars[(col.head - j + col.chars.length) % col.chars.length],
+            col.x,
+            col.y - j * fontSize
+          )
+        }
+
+        col.y += col.speed * fontSize * 0.35
+        col.head = (col.head + 1) % col.chars.length
+
+        // randomise char occasionally
+        if (Math.random() < 0.08) {
+          const idx = Math.floor(Math.random() * col.chars.length)
+          col.chars[idx] = CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)]
+        }
+
+        if (col.y > H + fontSize * 20) {
+          col.y = Math.random() * -H * 0.5
+          col.speed = 1 + Math.random() * 2
+        }
+      }
+
+      ctx.shadowBlur = 0
+      rafId = requestAnimationFrame(draw)
+    }
+
+    rafId = requestAnimationFrame(draw)
+
+    return () => {
+      running = false
+      cancelAnimationFrame(rafId)
+    }
+  }, [active, canvasRef])
+}
+
+// ─── Typing animation hook ────────────────────────────────────────────────────
+
+const INSTANT_THRESHOLD = 200
+
+function useTypingAnimation(
+  history: HistoryEntry[],
+  setHistory: React.Dispatch<React.SetStateAction<HistoryEntry[]>>
+): void {
+  // Watch for new entries that haven't been typed yet
+  useEffect(() => {
+    const lastIdx = history.length - 1
+    if (lastIdx < 0) return
+    const last = history[lastIdx]
+    if (last.typingDone || last.rendered !== undefined) return
+    if (last.output === null) {
+      setHistory((prev) =>
+        prev.map((e, i) => (i === lastIdx ? { ...e, rendered: '', typingDone: true } : e))
+      )
+      return
+    }
+
+    const full = last.output
+    if (full.length > INSTANT_THRESHOLD) {
+      // Show instantly
+      setHistory((prev) =>
+        prev.map((e, i) => (i === lastIdx ? { ...e, rendered: full, typingDone: true } : e))
+      )
+      return
+    }
+
+    // Type char by char
+    let charIdx = 0
+    let cancelled = false
+
+    const step = (): void => {
+      if (cancelled) return
+      charIdx++
+      const slice = full.slice(0, charIdx)
+      setHistory((prev) =>
+        prev.map((e, i) =>
+          i === lastIdx
+            ? { ...e, rendered: slice, typingDone: charIdx >= full.length }
+            : e
+        )
+      )
+      if (charIdx < full.length) {
+        const delay = 8 + Math.random() * 4  // 8-12 ms
+        setTimeout(step, delay)
+      }
+    }
+
+    const delay = 8 + Math.random() * 4
+    const t = setTimeout(step, delay)
+
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history.length])
+}
+
+// ─── Styles (inline, no makeStyles needed) ───────────────────────────────────
+
+const S = {
+  surface: {
+    background: BG_SURFACE,
+    border: `1px solid rgba(57,255,20,0.4)`,
+    minWidth: '700px',
+    maxWidth: '1000px',
+    padding: '0',
+    boxShadow: '0 0 40px rgba(57,255,20,0.08), 0 0 80px rgba(57,255,20,0.04)',
+    borderRadius: '6px',
+    overflow: 'hidden'
+  } as React.CSSProperties,
+
+  body: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px'
-  },
-  prompt: {
-    color: '#4ec9b0',
-    userSelect: 'none'
-  },
-  commandText: {
-    color: '#9cdcfe'
-  },
+    gap: 0,
+    padding: 0
+  } as React.CSSProperties,
+
+  titleBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 20px 10px',
+    borderBottom: `1px solid ${NEON_DIM}`,
+    background: 'rgba(0,0,16,0.8)'
+  } as React.CSSProperties,
+
+  titleText: {
+    fontFamily: "'Courier New', monospace",
+    fontSize: '13px',
+    color: NEON,
+    letterSpacing: '0.08em',
+    textShadow: `0 0 10px ${NEON}`,
+    userSelect: 'none' as const
+  } as React.CSSProperties,
+
+  content: {
+    padding: '16px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px'
+  } as React.CSSProperties,
+
+  terminal: {
+    background: BG_TERMINAL,
+    border: `1px solid ${NEON_DIM}`,
+    borderRadius: '4px',
+    fontFamily: "'Courier New', monospace",
+    fontSize: '13px',
+    color: NEON,
+    padding: '12px 14px',
+    height: '360px',
+    overflowY: 'auto' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '6px',
+    cursor: 'text'
+  } as React.CSSProperties,
+
   outputText: {
-    color: '#d4d4d4',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-all'
-  },
+    color: NEON,
+    whiteSpace: 'pre-wrap' as const,
+    wordBreak: 'break-all' as const,
+    textShadow: `0 0 6px rgba(57,255,20,0.5)`
+  } as React.CSSProperties,
+
   errorText: {
-    color: '#f48771',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-all'
-  },
+    color: '#ff4444',
+    whiteSpace: 'pre-wrap' as const,
+    wordBreak: 'break-all' as const,
+    textShadow: '0 0 6px rgba(255,60,60,0.5)'
+  } as React.CSSProperties,
+
   emptyHint: {
-    color: '#6a9955',
-    fontStyle: 'italic'
-  },
+    color: 'rgba(57,255,20,0.4)',
+    fontStyle: 'italic' as const,
+    fontFamily: "'Courier New', monospace"
+  } as React.CSSProperties,
+
+  prompt: {
+    color: NEON,
+    textShadow: `0 0 8px ${NEON}`,
+    userSelect: 'none' as const,
+    marginRight: '6px'
+  } as React.CSSProperties,
+
+  commandText: {
+    color: '#a8ffb0',
+    textShadow: '0 0 4px rgba(168,255,176,0.4)'
+  } as React.CSSProperties,
+
   inputRow: {
     display: 'flex',
-    gap: tokens.spacingHorizontalS,
     alignItems: 'center',
-    marginTop: tokens.spacingVerticalS
+    gap: '8px',
+    background: BG_TERMINAL,
+    border: `1px solid ${NEON_DIM}`,
+    borderRadius: '4px',
+    padding: '6px 12px'
+  } as React.CSSProperties,
+
+  actions: {
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'flex-end',
+    padding: '10px 20px 16px',
+    borderTop: `1px solid ${NEON_DIM2}`
+  } as React.CSSProperties,
+
+  neonBtn: {
+    background: 'transparent',
+    border: `1px solid ${NEON_DIM}`,
+    color: NEON,
+    fontFamily: "'Courier New', monospace",
+    fontSize: '12px',
+    letterSpacing: '0.06em',
+    cursor: 'pointer',
+    padding: '5px 16px',
+    borderRadius: '3px',
+    transition: 'border-color 0.15s, box-shadow 0.15s, color 0.15s'
+  } as React.CSSProperties,
+
+  neonBtnHover: {
+    borderColor: NEON,
+    boxShadow: `0 0 8px rgba(57,255,20,0.4)`,
+    color: '#ccffcc'
+  } as React.CSSProperties
+}
+
+// ─── NeonButton ───────────────────────────────────────────────────────────────
+
+function NeonButton({
+  children,
+  onClick,
+  disabled
+}: {
+  children: React.ReactNode
+  onClick: () => void
+  disabled?: boolean
+}): React.ReactElement {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      style={{
+        ...S.neonBtn,
+        ...(hovered && !disabled ? S.neonBtnHover : {}),
+        ...(disabled ? { opacity: 0.35, cursor: 'not-allowed' } : {})
+      }}
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ─── MatrixIntro ──────────────────────────────────────────────────────────────
+
+type AnimPhase = 'rain' | 'rabbit' | 'done'
+
+interface MatrixIntroProps {
+  onComplete: () => void
+  width: number
+  height: number
+}
+
+function MatrixIntro({ onComplete, width, height }: MatrixIntroProps): React.ReactElement {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [animPhase, setAnimPhase] = useState<AnimPhase>('rain')
+  const [initOpacity, setInitOpacity] = useState(0)
+  const [rainOpacity, setRainOpacity] = useState(1)
+  const [cursorOn, setCursorOn] = useState(true)
+
+  useMatrixCanvas(canvasRef, animPhase === 'rain' || animPhase === 'rabbit')
+
+  // Fade in "INITIALIZING..." during phase 1
+  useEffect(() => {
+    const t = setTimeout(() => setInitOpacity(1), 300)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Transition to phase 2 at 1500ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setAnimPhase('rabbit')
+      setRainOpacity(0)
+    }, PHASE_1_END)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Cursor blink during phase 2
+  useEffect(() => {
+    if (animPhase !== 'rabbit') return
+    const t = setInterval(() => setCursorOn((v) => !v), 500)
+    return () => clearInterval(t)
+  }, [animPhase])
+
+  // Complete at 2500ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setAnimPhase('done')
+      onComplete()
+    }, PHASE_2_END)
+    return () => clearTimeout(t)
+  }, [onComplete])
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 10,
+        background: BG_TERMINAL,
+        borderRadius: '4px',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      {/* Canvas for falling chars */}
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: rainOpacity,
+          transition: animPhase === 'rabbit' ? 'opacity 0.6s ease-out' : 'none',
+          display: 'block'
+        }}
+      />
+
+      {/* Phase 1 overlay text: INITIALIZING... */}
+      {animPhase === 'rain' && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontFamily: "'Courier New', monospace",
+            fontSize: '12px',
+            letterSpacing: '0.25em',
+            color: 'rgba(57,255,20,0.7)',
+            textShadow: `0 0 12px ${NEON}`,
+            opacity: initOpacity,
+            transition: 'opacity 0.8s ease-in',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
+            zIndex: 2
+          }}
+        >
+          INITIALIZING...
+        </div>
+      )}
+
+      {/* Phase 2: FOLLOW THE WHITE RABBIT */}
+      {animPhase === 'rabbit' && (
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            textAlign: 'center',
+            fontFamily: "'Courier New', monospace",
+            userSelect: 'none'
+          }}
+        >
+          <div
+            style={{
+              fontSize: '18px',
+              letterSpacing: '0.2em',
+              color: NEON,
+              textShadow: `0 0 16px ${NEON}, 0 0 32px rgba(57,255,20,0.5), 0 0 60px rgba(57,255,20,0.2)`,
+              animation: 'matrixFadeIn 0.4s ease-out forwards'
+            }}
+          >
+            FOLLOW THE WHITE RABBIT
+            <span
+              style={{
+                display: 'inline-block',
+                marginLeft: '4px',
+                opacity: cursorOn ? 1 : 0,
+                color: NEON,
+                textShadow: `0 0 12px ${NEON}`
+              }}
+            >
+              _
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Keyframes injected via a style tag */}
+      <style>{`
+        @keyframes matrixFadeIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ─── FlashInput ───────────────────────────────────────────────────────────────
+// Wraps a plain <input> and flashes the last typed character on each keystroke.
+
+interface FlashInputProps {
+  value: string
+  onChange: (val: string) => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  disabled?: boolean
+  inputRef: React.RefObject<HTMLInputElement | null>
+}
+
+function FlashInput({ value, onChange, onKeyDown, disabled, inputRef }: FlashInputProps): React.ReactElement {
+  const [flash, setFlash] = useState(false)
+  const [flashKey, setFlashKey] = useState(0)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    onChange(e.target.value)
+    // Trigger flash on character addition
+    if (e.target.value.length > value.length) {
+      setFlash(false)
+      requestAnimationFrame(() => {
+        setFlashKey((k) => k + 1)
+        setFlash(true)
+        setTimeout(() => setFlash(false), 150)
+      })
+    }
   }
-})
+
+  return (
+    <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={onKeyDown}
+        disabled={disabled}
+        placeholder="enter shell command..."
+        spellCheck={false}
+        autoComplete="off"
+        style={{
+          flex: 1,
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          fontFamily: "'Courier New', monospace",
+          fontSize: '13px',
+          color: NEON,
+          caretColor: NEON,
+          width: '100%',
+          letterSpacing: '0.02em',
+          opacity: disabled ? 0.45 : 1,
+          // Flash: scale up slightly via filter brightness
+          filter: flash ? 'brightness(1.6)' : 'brightness(1)',
+          transform: flash ? 'scaleX(1.005)' : 'scaleX(1)',
+          transition: flash ? 'none' : 'filter 0.12s ease-out, transform 0.12s ease-out'
+        }}
+        key={flashKey > 0 ? undefined : undefined}
+      />
+      {/* blinking cursor indicator overlay (shown when field active but value empty) */}
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogProps): React.ReactElement {
-  const styles = useStyles()
   const [command, setCommand] = useState('')
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [historyIndex, setHistoryIndex] = useState(-1)
+  const [animDone, setAnimDone] = useState(false)
+  const [dialogSize, setDialogSize] = useState({ w: 700, h: 440 })
+
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
+  // Typing animation for output
+  useTypingAnimation(history, setHistory)
+
+  // Reset state when dialog opens
   useEffect(() => {
     if (isOpen) {
       setHistory([])
       setCommand('')
       setHistoryIndex(-1)
-      setTimeout(() => inputRef.current?.focus(), 50)
+      setAnimDone(false)
     }
   }, [isOpen])
 
+  // Measure container for canvas sizing
+  useEffect(() => {
+    if (!isOpen) return
+    const measure = (): void => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        if (rect.width > 0) {
+          setDialogSize({ w: Math.floor(rect.width), h: Math.floor(rect.height) })
+        }
+      }
+    }
+    // Delay to let dialog render
+    const t = setTimeout(measure, 40)
+    return () => clearTimeout(t)
+  }, [isOpen])
+
+  // Focus input when animation completes
+  useEffect(() => {
+    if (animDone) {
+      setTimeout(() => inputRef.current?.focus(), 80)
+    }
+  }, [animDone])
+
+  // Auto-scroll terminal
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight
     }
   }, [history])
 
+  const handleAnimComplete = useCallback(() => {
+    setAnimDone(true)
+  }, [])
+
   const runCommand = async (): Promise<void> => {
     const cmd = command.trim()
-    if (!cmd || isRunning) return
+    if (!cmd || isRunning || !animDone) return
 
     setIsRunning(true)
     setCommand('')
@@ -114,7 +652,10 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
       isError = true
     }
 
-    setHistory((prev) => [...prev, { command: cmd, output, error: isError }])
+    setHistory((prev) => [
+      ...prev,
+      { command: cmd, output, error: isError }
+    ])
     setIsRunning(false)
     setTimeout(() => inputRef.current?.focus(), 50)
   }
@@ -146,69 +687,133 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
     }
   }
 
+  const promptLabel = `[${deviceId}@cyberdeck]$`
+
   return (
     <Dialog open={isOpen} onOpenChange={(_, { open }) => { if (!open) onDismiss() }}>
-      <DialogSurface style={{ minWidth: '680px', maxWidth: '900px' }}>
-        <DialogBody>
-          <DialogTitle>ADB Shell — {deviceId}</DialogTitle>
+      <DialogSurface style={S.surface}>
+        <DialogBody style={S.body}>
 
-          <DialogContent>
-            <div ref={terminalRef} className={styles.terminal} onClick={() => inputRef.current?.focus()}>
-              {history.length === 0 && (
-                <span className={styles.emptyHint}>Type a shell command and press Enter.</span>
-              )}
-              {history.map((entry, i) => (
-                <div key={i}>
-                  <div>
-                    <span className={styles.prompt}>$ </span>
-                    <span className={styles.commandText}>{entry.command}</span>
-                  </div>
-                  {entry.output !== null && (
-                    <div className={entry.error ? styles.errorText : styles.outputText}>
-                      {entry.output}
-                    </div>
-                  )}
-                </div>
-              ))}
-              {isRunning && (
-                <div>
-                  <span className={styles.prompt}>$ </span>
-                  <span className={styles.commandText}>{command}</span>
-                  <span style={{ color: '#6a9955' }}> ...</span>
-                </div>
-              )}
+          {/* ── Title bar ── */}
+          <DialogTitle style={{ padding: 0, margin: 0 }}>
+            <div style={S.titleBar}>
+              <span style={S.titleText}>[ADB SHELL — {deviceId}]</span>
+              <span style={{
+                fontFamily: "'Courier New', monospace",
+                fontSize: '10px',
+                letterSpacing: '0.15em',
+                color: 'rgba(57,255,20,0.35)',
+                userSelect: 'none'
+              }}>
+                SECURE TERMINAL
+              </span>
             </div>
+          </DialogTitle>
 
-            <div className={styles.inputRow}>
-              <Text style={{ color: tokens.colorBrandForeground1, fontFamily: 'monospace' }}>$</Text>
-              <Input
-                ref={inputRef}
-                value={command}
-                onChange={(_, data) => setCommand(data.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter shell command..."
-                style={{ flex: 1, fontFamily: 'monospace' }}
-                disabled={isRunning}
-              />
-              <Button
-                icon={<SendRegular />}
-                appearance="primary"
-                onClick={runCommand}
-                disabled={!command.trim() || isRunning}
+          {/* ── Content ── */}
+          <DialogContent style={S.content}>
+
+            {/* Terminal area — wraps both the animation overlay and the terminal output */}
+            <div
+              ref={containerRef}
+              style={{ position: 'relative' }}
+            >
+              {/* Matrix intro — shown until animDone */}
+              {!animDone && (
+                <MatrixIntro
+                  onComplete={handleAnimComplete}
+                  width={dialogSize.w}
+                  height={360}
+                />
+              )}
+
+              {/* Terminal output */}
+              <div
+                ref={terminalRef}
+                style={{
+                  ...S.terminal,
+                  // Keep in DOM but invisible while animation plays (so refs work)
+                  visibility: animDone ? 'visible' : 'hidden'
+                }}
+                onClick={() => inputRef.current?.focus()}
               >
-                Run
-              </Button>
+                {history.length === 0 && (
+                  <span style={S.emptyHint}>// type a shell command and press Enter</span>
+                )}
+
+                {history.map((entry, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', gap: '0' }}>
+                      <span style={S.prompt}>{promptLabel}</span>
+                      <span style={S.commandText}>&nbsp;{entry.command}</span>
+                    </div>
+                    {entry.output !== null && (
+                      <div style={entry.error ? S.errorText : S.outputText}>
+                        {entry.typingDone ? entry.output : (entry.rendered ?? '')}
+                        {!entry.typingDone && (
+                          <span style={{ opacity: 0.7 }}>▌</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isRunning && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={S.prompt}>{promptLabel}</span>
+                    <span style={{ color: 'rgba(57,255,20,0.5)', fontFamily: "'Courier New', monospace" }}>
+                      executing...
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Input row — also hidden during animation */}
+              <div
+                style={{
+                  ...S.inputRow,
+                  visibility: animDone ? 'visible' : 'hidden',
+                  marginTop: '8px'
+                }}
+              >
+                <span style={{
+                  ...S.prompt,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  fontSize: '12px'
+                }}>
+                  {promptLabel}
+                </span>
+                <FlashInput
+                  value={command}
+                  onChange={setCommand}
+                  onKeyDown={handleKeyDown}
+                  disabled={isRunning || !animDone}
+                  inputRef={inputRef}
+                />
+                <NeonButton
+                  onClick={runCommand}
+                  disabled={!command.trim() || isRunning || !animDone}
+                >
+                  RUN
+                </NeonButton>
+              </div>
             </div>
+
           </DialogContent>
 
-          <DialogActions>
-            <Button appearance="secondary" onClick={() => setHistory([])}>
-              Clear
-            </Button>
-            <Button appearance="secondary" onClick={onDismiss}>
-              Close
-            </Button>
+          {/* ── Actions ── */}
+          <DialogActions style={{ padding: 0, margin: 0 }}>
+            <div style={S.actions}>
+              <NeonButton onClick={() => setHistory([])}>
+                CLEAR
+              </NeonButton>
+              <NeonButton onClick={onDismiss}>
+                CLOSE
+              </NeonButton>
+            </div>
           </DialogActions>
+
         </DialogBody>
       </DialogSurface>
     </Dialog>
