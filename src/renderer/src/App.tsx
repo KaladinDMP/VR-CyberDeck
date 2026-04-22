@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import AppLayout from './components/AppLayout'
 import IntroAnimation from './components/IntroAnimation'
-import './assets/device-list.css'
 import './assets/games-view.css'
 import './assets/app.css'
 

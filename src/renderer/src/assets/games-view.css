@@ -6,8 +6,7 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e0e0e0;
-  flex-shrink: 0; /* Prevent header from shrinking */
+  border-bottom: 1px solid rgba(57, 255, 20, 0.12);
 }
 
 .games-header-left {
@@ -17,7 +16,7 @@
 
 .games-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--colorNeutralForeground1);
   font-size: 1.5em;
 }
 
@@ -43,7 +42,7 @@
   align-items: center;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.12);
   flex-shrink: 0; /* Prevent toolbar from shrinking */
 }
 
@@ -120,7 +119,7 @@
 
 .progress-bar {
   height: 8px;
-  background-color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -128,7 +127,7 @@
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #1a73e8;
+  background-color: #39ff14;
   transition: width 0.3s ease;
 }
 
@@ -348,8 +347,8 @@
 
 .resizer:hover,
 .resizer.isResizing {
-  opacity: 1; /* Show on hover or when resizing */
-  background: #1a73e8; /* Highlight color */
+  opacity: 1;
+  background: #39ff14;
 }
 
 .games-table th {

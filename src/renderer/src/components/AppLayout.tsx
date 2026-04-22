@@ -49,6 +49,7 @@ import { LanguageProvider } from '@renderer/context/LanguageProvider'
 import { useLanguage } from '@renderer/hooks/useLanguage'
 import CreditsDialog from './CreditsDialog'
 import HackerConsole from './HackerConsole'
+import { ErrorBoundary } from './ErrorBoundary'
 import '../assets/credits-dialog.css'
 
 enum AppView {
@@ -271,8 +272,6 @@ const MainContent: React.FC<MainContentProps> = ({
       )
     }
     let progressText = 'Checking requirements...'
-    console.log('dependencyStatus', dependencyStatus)
-    console.log('dependencyProgress', dependencyProgress)
 
     if (dependencyProgress?.name === 'connectivity-check') {
       progressText = `Checking network connectivity... ${dependencyProgress.percentage}%`
@@ -508,17 +507,19 @@ const AppLayout: React.FC = () => {
 
 const AppLayoutWithProviders: React.FC = () => {
   return (
-    <SettingsProvider>
-      <LanguageProvider>
-        <DependencyProvider>
-          <DownloadProvider>
-            <UploadProvider>
-              <AppLayout />
-            </UploadProvider>
-          </DownloadProvider>
-        </DependencyProvider>
-      </LanguageProvider>
-    </SettingsProvider>
+    <ErrorBoundary>
+      <SettingsProvider>
+        <LanguageProvider>
+          <DependencyProvider>
+            <DownloadProvider>
+              <UploadProvider>
+                <AppLayout />
+              </UploadProvider>
+            </DownloadProvider>
+          </DependencyProvider>
+        </LanguageProvider>
+      </SettingsProvider>
+    </ErrorBoundary>
   )
 }
 
