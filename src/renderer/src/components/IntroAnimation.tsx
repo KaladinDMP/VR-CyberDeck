@@ -14,14 +14,19 @@ interface IntroAnimationProps {
   onComplete: () => void
 }
 
+// 'unauthorized' = red UNAUTHORIZED! holding
+// 'authorized'   = UN+! gone, green AUTHORIZED beat
+type Phase = 'boot' | 'typing' | 'auth' | 'glitch' | 'unauthorized' | 'authorized' | 'fade'
+
 const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
+  const [phase, setPhase] = useState<Phase>('boot')
   const [committedLines, setCommittedLines] = useState<string[]>([])
   const [activeLine, setActiveLine] = useState('')
   const [cursorOn, setCursorOn] = useState(true)
-  const [glitching, setGlitching] = useState(false)
   const [glitchBg, setGlitchBg] = useState('#000000')
   const [glitchShift, setGlitchShift] = useState(0)
-  const [showUnauthorized, setShowUnauthorized] = useState(false)
+  // jitter offset for UNAUTHORIZED! text
+  const [textJitter, setTextJitter] = useState(0)
   const [fading, setFading] = useState(false)
   const dead = useRef(false)
 
@@ -31,148 +36,159 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     return () => clearInterval(t)
   }, [])
 
+  // Subtle jitter on UNAUTHORIZED! — random x/y offset every ~120ms
+  useEffect(() => {
+    if (phase !== 'unauthorized') return
+    const t = setInterval(() => setTextJitter(rand(-3, 3)), 120)
+    return () => clearInterval(t)
+  }, [phase])
+
   useEffect(() => {
     let systemUser = ''
     const run = async (): Promise<void> => {
       try {
         systemUser = await window.api.app.getSystemUsername()
       } catch {
-        // fall through to pool
+        // use pool
       }
 
       const allNames = [...POOL_USERNAMES]
       if (systemUser && !allNames.includes(systemUser)) allNames.push(systemUser)
       const username = allNames[rand(0, allNames.length - 1)]
 
-      // Phase 1 — pure black with blinking cursor for 1200ms
-      await sleep(1200)
+      // ── Phase 1: boot cursor, 1.5s ──────────────────────────────
+      await sleep(1500)
       if (dead.current) return
+      setPhase('typing')
 
-      // Phase 2 — type username (with one random typo ~70% of the time)
+      // ── Phase 2: type username ───────────────────────────────────
       const userPrompt = '$USER: '
       let typed = ''
       setActiveLine(userPrompt)
-      await sleep(rand(120, 200))
+      await sleep(rand(150, 250))
 
       const hasTypo = Math.random() < 0.7
       const typoAt = hasTypo ? rand(1, Math.max(1, username.length - 2)) : -1
 
       for (let i = 0; i < username.length; i++) {
         if (dead.current) return
-        await sleep(rand(55, 170))
+        await sleep(rand(70, 190))
 
         if (i === typoAt) {
           const wrongChar = TYPO_CHARS[rand(0, TYPO_CHARS.length - 1)]
           typed += wrongChar
           setActiveLine(userPrompt + typed)
-          await sleep(rand(180, 380))
+          await sleep(rand(250, 450))
           typed = typed.slice(0, -1)
           setActiveLine(userPrompt + typed)
-          await sleep(rand(80, 160))
+          await sleep(rand(100, 200))
         }
 
         typed += username[i]
         setActiveLine(userPrompt + typed)
       }
 
-      await sleep(rand(250, 400))
+      await sleep(rand(300, 500))
       if (dead.current) return
-
       setCommittedLines((prev) => [...prev, userPrompt + typed])
       setActiveLine('')
 
-      // Phase 3 — type password (asterisks with backspace/retype randomisation)
+      // ── Phase 3: type password ───────────────────────────────────
       const passPrompt = '$PASS: '
       setActiveLine(passPrompt)
-      await sleep(rand(160, 280))
+      await sleep(rand(200, 320))
 
       const targetLen = rand(8, 14)
       let stars = ''
-
-      // type initial burst
       const burstLen = rand(Math.max(3, targetLen - 4), targetLen - 1)
+
       for (let i = 0; i < burstLen; i++) {
         if (dead.current) return
-        await sleep(rand(90, 160))
+        await sleep(rand(100, 180))
         stars += '*'
         setActiveLine(passPrompt + stars)
       }
 
-      // backspace a few
       const backCount = rand(2, Math.min(4, stars.length - 1))
       for (let i = 0; i < backCount; i++) {
         if (dead.current) return
-        await sleep(rand(70, 140))
+        await sleep(rand(80, 160))
         stars = stars.slice(0, -1)
         setActiveLine(passPrompt + stars)
       }
 
-      // retype to reach target
       while (stars.length < targetLen) {
         if (dead.current) return
-        await sleep(rand(90, 160))
+        await sleep(rand(100, 180))
         stars += '*'
         setActiveLine(passPrompt + stars)
       }
 
-      await sleep(rand(300, 500))
+      await sleep(rand(350, 550))
       if (dead.current) return
-
       setCommittedLines((prev) => [...prev, passPrompt + stars])
       setActiveLine('')
 
-      // Phase 4 — authenticating line, cursor hidden
-      await sleep(200)
-      setActiveLine('> AUTHENTICATING...')
-
-      // 2 second pause
-      await sleep(2000)
+      // ── Phase 4: system messages ─────────────────────────────────
+      setPhase('auth')
+      await sleep(300)
+      setActiveLine('> INITIALIZING CONNECTION...')
+      await sleep(1400)
       if (dead.current) return
 
-      // Phase 5 — glitch sequence: colour flashes accelerating to white
-      setGlitching(true)
+      setCommittedLines((prev) => [...prev, '> INITIALIZING CONNECTION...'])
+      setActiveLine('> AUTHENTICATING...')
+      await sleep(2200)
+      if (dead.current) return
+
+      // ── Phase 5: glitch flash ────────────────────────────────────
+      setPhase('glitch')
+      setCommittedLines((prev) => [...prev, '> AUTHENTICATING...'])
+      setActiveLine('')
+
       const flashSequence = [
-        { color: '#00d4ff', delay: 320 },
-        { color: '#ff00ff', delay: 260 },
-        { color: '#ff0000', delay: 200 },
-        { color: '#00d4ff', delay: 160 },
-        { color: '#ff00ff', delay: 120 },
-        { color: '#ff0000', delay: 90 },
-        { color: '#00d4ff', delay: 70 },
-        { color: '#ff00ff', delay: 55 },
-        { color: '#ffffff', delay: 150 }
+        { color: '#00d4ff', delay: 300 },
+        { color: '#ff00ff', delay: 240 },
+        { color: '#ff0000', delay: 190 },
+        { color: '#00d4ff', delay: 150 },
+        { color: '#ff00ff', delay: 110 },
+        { color: '#ff0000', delay: 85 },
+        { color: '#00d4ff', delay: 65 },
+        { color: '#ff00ff', delay: 50 },
+        { color: '#ffffff', delay: 120 }
       ]
 
       for (const { color, delay } of flashSequence) {
         if (dead.current) return
         setGlitchBg(color)
-        setGlitchShift(rand(-6, 6))
+        setGlitchShift(rand(-8, 8))
         await sleep(delay)
       }
 
+      // ── Phase 6: UNAUTHORIZED! — hold red + jitter for ~2.5s ────
+      setPhase('unauthorized')
+      setGlitchBg('#000000')
+      setGlitchShift(0)
+      await sleep(2500)
       if (dead.current) return
 
-      // Phase 6 — UNAUTHORIZED flash
-      setGlitchBg('#000000')
-      setGlitching(false)
-      setGlitchShift(0)
-      setShowUnauthorized(true)
-      await sleep(280)
-      setShowUnauthorized(false)
-      await sleep(80)
+      // ── Phase 7: UN + ! vanish → AUTHORIZED turns green ──────────
+      setPhase('authorized')
+      await sleep(900)
+      if (dead.current) return
 
-      // Phase 7 — fade out over 1.5s then call onComplete
+      // ── Phase 8: fade out ─────────────────────────────────────────
+      setPhase('fade')
       setFading(true)
       await sleep(1500)
       if (!dead.current) onComplete()
     }
 
     run()
-
-    return () => {
-      dead.current = true
-    }
+    return () => { dead.current = true }
   }, [onComplete])
+
+  const isGlitching = phase === 'glitch'
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',
@@ -182,7 +198,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: glitching ? glitchBg : '#000000',
+    backgroundColor: isGlitching ? glitchBg : '#000000',
     opacity: fading ? 0 : 1,
     transition: fading ? 'opacity 1.5s ease-in-out' : 'none',
     fontFamily: '"Courier New", Courier, monospace',
@@ -193,77 +209,78 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   }
 
   const terminalStyle: React.CSSProperties = {
-    width: '420px',
-    transform: glitching ? `translateX(${glitchShift}px)` : 'none'
+    width: '440px',
+    transform: isGlitching ? `translateX(${glitchShift}px)` : 'none'
+  }
+
+  const bigTextStyle: React.CSSProperties = {
+    position: 'absolute',
+    fontSize: '54px',
+    fontWeight: 900,
+    letterSpacing: '0.1em',
+    fontFamily: '"Courier New", Courier, monospace'
+  }
+
+  const unauthorizedStyle: React.CSSProperties = {
+    ...bigTextStyle,
+    color: '#ff2222',
+    textShadow: '0 0 24px #ff0000, 0 0 60px rgba(255,0,0,0.45)',
+    transform: `translate(${textJitter}px, ${rand(-1, 1)}px)`
+  }
+
+  const authorizedStyle: React.CSSProperties = {
+    ...bigTextStyle,
+    color: '#39ff14',
+    textShadow: '0 0 24px #39ff14, 0 0 60px rgba(57,255,20,0.5)',
+    transition: 'color 0.15s, text-shadow 0.15s'
   }
 
   return (
     <div style={containerStyle}>
       {/* top-left boot badge */}
-      {committedLines.length > 0 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 36,
-            left: 40,
-            color: 'rgba(57,255,20,0.4)',
-            fontSize: '11px',
-            lineHeight: '1.6',
-            letterSpacing: '0.08em'
-          }}
-        >
+      {phase !== 'boot' && (
+        <div style={{
+          position: 'absolute', top: 36, left: 40,
+          color: 'rgba(57,255,20,0.4)', fontSize: '11px',
+          lineHeight: '1.6', letterSpacing: '0.08em'
+        }}>
           <div>VR CYBERDECK v0.0.1</div>
           <div>SECURE TERMINAL — DELICIOUSMEATPOP</div>
-          <div>STATUS: CONNECTING...</div>
+          <div>STATUS: {phase === 'authorized' || phase === 'fade' ? 'ACCESS GRANTED' : phase === 'unauthorized' ? 'ACCESS DENIED' : 'CONNECTING...'}</div>
         </div>
       )}
 
-      {/* terminal block */}
-      <div style={terminalStyle}>
-        {committedLines.map((line, i) => (
-          <div key={i} style={{ whiteSpace: 'pre' }}>
-            {line}
+      {/* terminal output — hidden during the big-text phases */}
+      {phase !== 'unauthorized' && phase !== 'authorized' && phase !== 'fade' && (
+        <div style={terminalStyle}>
+          {committedLines.map((line, i) => (
+            <div key={i} style={{ whiteSpace: 'pre', opacity: 0.85 }}>{line}</div>
+          ))}
+          <div style={{ whiteSpace: 'pre' }}>
+            {activeLine}
+            {cursorOn
+              ? <span style={{ color: '#39ff14' }}>█</span>
+              : <span style={{ opacity: 0 }}>█</span>
+            }
           </div>
-        ))}
-
-        <div style={{ whiteSpace: 'pre' }}>
-          {activeLine}
-          {cursorOn ? (
-            <span style={{ color: '#39ff14' }}>█</span>
-          ) : (
-            <span style={{ opacity: 0 }}>█</span>
-          )}
-        </div>
-      </div>
-
-      {/* UNAUTHORIZED flash */}
-      {showUnauthorized && (
-        <div
-          style={{
-            position: 'absolute',
-            fontSize: '52px',
-            fontWeight: 900,
-            letterSpacing: '0.08em',
-            color: '#ff0000',
-            textShadow: '0 0 30px #ff0000, 0 0 60px rgba(255,0,0,0.5)',
-            animation: 'none'
-          }}
-        >
-          UNAUTHORIZED!
         </div>
       )}
 
-      {/* bottom status bar */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 30,
-          right: 40,
-          color: 'rgba(57,255,20,0.3)',
-          fontSize: '10px',
-          letterSpacing: '0.12em'
-        }}
-      >
+      {/* UNAUTHORIZED! — red, holds, jitters */}
+      {phase === 'unauthorized' && (
+        <div style={unauthorizedStyle}>UNAUTHORIZED!</div>
+      )}
+
+      {/* UN + ! stripped away → AUTHORIZED in green */}
+      {(phase === 'authorized' || phase === 'fade') && (
+        <div style={authorizedStyle}>AUTHORIZED</div>
+      )}
+
+      {/* bottom tagline */}
+      <div style={{
+        position: 'absolute', bottom: 30, right: 40,
+        color: 'rgba(57,255,20,0.3)', fontSize: '10px', letterSpacing: '0.12em'
+      }}>
         OPERATE. DEPLOY. CONTROL.
       </div>
     </div>

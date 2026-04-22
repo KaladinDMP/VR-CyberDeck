@@ -17,6 +17,7 @@ import { useAdb } from '../hooks/useAdb'
 import { useGames } from '../hooks/useGames'
 import { useDownload } from '../hooks/useDownload'
 import { useLanguage } from '../hooks/useLanguage'
+import { useSettings } from '../hooks/useSettings'
 import { GameInfo } from '@shared/types'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import {
@@ -72,6 +73,7 @@ import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
 import MirrorSelector from './MirrorSelector'
+import LocalUploadDialog from './LocalUploadDialog'
 import { AdbShellDialog } from './AdbShellDialog'
 import { useTablePreferences } from '@renderer/hooks/useTablePreferences'
 
@@ -246,19 +248,62 @@ const useStyles = makeStyles({
     overflow: 'hidden'
   },
   sidebar: {
-    width: '256px',
-    minWidth: '256px',
+    width: '240px',
+    minWidth: '240px',
     display: 'flex',
     flexDirection: 'column',
-    borderRight: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`,
-    backgroundColor: tokens.colorNeutralBackground2,
+    borderRight: '1px solid rgba(57,255,20,0.18)',
+    backgroundColor: '#07070f',
     overflow: 'hidden',
-    transition: 'width 0.18s ease, min-width 0.18s ease',
-    flexShrink: 0
+    transition: 'width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease',
+    flexShrink: 0,
+    position: 'relative'
   },
   sidebarCollapsed: {
-    width: '44px',
-    minWidth: '44px'
+    width: '0px',
+    minWidth: '0px',
+    opacity: 0,
+    borderRight: 'none'
+  },
+  sidebarToggleBtn: {
+    position: 'absolute',
+    top: '8px',
+    right: '-14px',
+    zIndex: 20,
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    backgroundColor: '#07070f',
+    border: '1px solid rgba(57,255,20,0.4)',
+    color: '#39ff14',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 700,
+    boxShadow: '0 0 8px rgba(57,255,20,0.3)',
+    transition: 'all 0.15s ease',
+    flexShrink: 0
+  },
+  sidebarToggleFloating: {
+    position: 'fixed',
+    top: '120px',
+    left: '6px',
+    zIndex: 20,
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    backgroundColor: '#07070f',
+    border: '1px solid rgba(57,255,20,0.4)',
+    color: '#39ff14',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: 700,
+    boxShadow: '0 0 8px rgba(57,255,20,0.3)'
   },
   sidebarToggleRow: {
     display: 'flex',
@@ -266,7 +311,7 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}`,
     flexShrink: 0,
-    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`
+    borderBottom: '1px solid rgba(57,255,20,0.12)'
   },
   sidebarScroll: {
     flex: 1,
@@ -282,14 +327,15 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: tokens.spacingVerticalXS,
     paddingBottom: tokens.spacingVerticalM,
-    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`
+    borderBottom: '1px solid rgba(57,255,20,0.10)'
   },
   sidebarLabel: {
     fontSize: '10px',
-    fontWeight: '600',
-    letterSpacing: '0.14em',
+    fontWeight: '700',
+    letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: tokens.colorNeutralForeground3,
+    color: '#39ff14',
+    opacity: 0.7,
     paddingBottom: tokens.spacingVerticalXXS
   },
   storageBarTrack: {
@@ -395,6 +441,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
   const styles = useStyles()
   const { t } = useLanguage()
+  const { colorScheme, setColorScheme } = useSettings()
 
   const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
@@ -1299,245 +1346,188 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       <div className={styles.layout}>
 
         {/* ════════════ SIDEBAR ════════════ */}
+        {/* Floating open button shown only when sidebar is collapsed */}
+        {!sidebarOpen && (
+          <button
+            className={styles.sidebarToggleFloating}
+            onClick={() => setSidebarOpen(true)}
+            title="Expand sidebar"
+          >
+            »
+          </button>
+        )}
+
         <div className={`${styles.sidebar} ${!sidebarOpen ? styles.sidebarCollapsed : ''}`}>
-          <div className={styles.sidebarToggleRow}>
-            {sidebarOpen && <span className={styles.sidebarLabel} style={{ margin: 0 }}>MENU</span>}
-            <Button
-              appearance="subtle"
-              size="small"
-              onClick={() => setSidebarOpen((v) => !v)}
-              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-              style={{ marginLeft: sidebarOpen ? 'auto' : 0, minWidth: 0, fontWeight: 600, fontSize: '14px' }}
-            >
-              {sidebarOpen ? '«' : '»'}
-            </Button>
-          </div>
+          {/* Collapse toggle — sits on the right edge of the sidebar */}
+          <button
+            className={styles.sidebarToggleBtn}
+            onClick={() => setSidebarOpen(false)}
+            title="Collapse sidebar"
+          >
+            «
+          </button>
 
-          {sidebarOpen && (
-            <div className={styles.sidebarScroll}>
+          <div className={styles.sidebarScroll}>
 
-              {/* ── DEVICE ── */}
-              <section className={styles.sidebarSection}>
-                <div className={styles.sidebarLabel}>Device</div>
-                <Button
-                  appearance="subtle"
-                  size="small"
-                  icon={<ArrowLeftRegular />}
-                  onClick={onBackToDevices}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}
-                >
-                  {t('devicesSelection')}
-                </Button>
-                {selectedDeviceDetails ? (
-                  <>
-                    <Text weight="semibold" style={{ fontSize: '14px', marginTop: tokens.spacingVerticalXS }}>
-                      {selectedDeviceDetails.friendlyModelName || t('games')}
+            {/* ── DEVICE ── */}
+            <section className={styles.sidebarSection}>
+              <div className={styles.sidebarLabel}>Device</div>
+              {selectedDeviceDetails ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#39ff14', boxShadow: '0 0 6px #39ff14', flexShrink: 0 }} />
+                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0' }}>
+                      {selectedDeviceDetails.friendlyModelName || 'Connected Device'}
                     </Text>
-                    <div style={{ display: 'flex', gap: tokens.spacingHorizontalS, flexWrap: 'wrap', marginTop: tokens.spacingVerticalXXS }}>
-                      {selectedDeviceDetails.batteryLevel !== null && (
-                        <Badge
-                          appearance="outline"
-                          color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'}
-                          icon={<BatteryChargeRegular />}
-                        >
-                          {selectedDeviceDetails.batteryLevel}%
-                        </Badge>
-                      )}
-                    </div>
-                    {selectedDeviceDetails.storageFree && selectedDeviceDetails.storageTotal && (
-                      <>
-                        <Text size={200} style={{ color: tokens.colorNeutralForeground2, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <StorageRegular style={{ fontSize: '13px' }} />
-                          {selectedDeviceDetails.storageFree} free / {selectedDeviceDetails.storageTotal}
-                        </Text>
-                        <div className={styles.storageBarTrack}>
-                          <div className={styles.storageBarFill} style={{ width: `${storageUsedPct}%`, backgroundColor: storageBarColor }} />
-                        </div>
-                        <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{storageUsedPct}% used</Text>
-                      </>
-                    )}
-                    <div
-                      className={styles.deviceIdRow}
-                      onClick={() => setShowDeviceId((v) => !v)}
-                      title={showDeviceId ? 'Click to hide device ID' : 'Click to reveal device ID'}
-                    >
-                      <Text size={100} style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}>ID:</Text>
-                      <Text
-                        size={100}
-                        style={{
-                          fontFamily: 'monospace',
-                          letterSpacing: showDeviceId ? 'normal' : '0.15em',
-                          userSelect: showDeviceId ? 'text' : 'none',
-                          color: showDeviceId ? tokens.colorNeutralForeground1 : tokens.colorNeutralForeground3,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          flex: 1
-                        }}
-                      >
-                        {showDeviceId ? selectedDevice : '••••••••••'}
-                      </Text>
-                    </div>
-                    {isConnected && (
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<PlugDisconnectedRegular />}
-                        onClick={disconnectDevice}
-                        style={{ justifyContent: 'flex-start', width: '100%', color: tokens.colorPaletteRedForeground1 }}
-                      >
-                        {t('disconnectFromDevice')}
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <Text size={200} style={{ color: tokens.colorPaletteRedForeground1, display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}>
-                    <DismissRegular />
-                    {t('notConnectedToDevice')}
-                  </Text>
-                )}
-              </section>
-
-              {/* ── OPTIONS ── */}
-              <section className={styles.sidebarSection}>
-                <div className={styles.sidebarLabel}>Options</div>
-                {isConnected && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
-                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{t('usernameInGames')}</Text>
-                    {isEditingUserName ? (
-                      <>
-                        <Input
-                          value={editUserNameValue}
-                          onChange={(e) => setEditUserNameValue(e.target.value)}
-                          placeholder={t('enterVrName')}
-                          size="small"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveUserName()
-                            else if (e.key === 'Escape') handleCancelEditUserName()
-                          }}
-                          autoFocus
-                        />
-                        <div style={{ display: 'flex', gap: tokens.spacingHorizontalXS }}>
-                          <Button appearance="primary" size="small" onClick={handleSaveUserName} disabled={loadingUserName || !editUserNameValue.trim()}>
-                            {loadingUserName ? <Spinner size="tiny" /> : t('save')}
-                          </Button>
-                          <Button appearance="subtle" size="small" onClick={handleCancelEditUserName} disabled={loadingUserName}>
-                            {t('cancel')}
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<PersonRegular />}
-                        onClick={handleEditUserName}
-                        style={{ justifyContent: 'flex-start', width: '100%', border: `1px solid ${tokens.colorNeutralStroke2}` }}
-                      >
-                        {userName || t('clickToSet')}
-                        <EditRegular style={{ marginLeft: 'auto', fontSize: '12px' }} />
-                      </Button>
-                    )}
                   </div>
-                )}
-                <div style={{ marginTop: tokens.spacingVerticalXXS }}>
-                  <MirrorSelector />
-                </div>
-                <Button
-                  appearance="subtle"
-                  size="small"
-                  icon={<ArrowClockwiseRegular />}
-                  onClick={refreshGames}
-                  disabled={isBusy}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}
-                >
-                  {isBusy ? t('working') : t('refreshGames')}
-                </Button>
-                <Button
-                  appearance="subtle"
-                  size="small"
-                  icon={<ArrowClockwiseRegular />}
-                  onClick={() => loadPackages()}
-                  disabled={isBusy || !isConnected}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}
-                  title={!isConnected ? t('connectDeviceToRefresh') : t('refreshInstalledPackages')}
-                >
-                  {isBusy ? t('working') : t('refreshQuest')}
-                </Button>
-                <Menu>
-                  <MenuTrigger disableButtonEnhancement>
-                    <Button
-                      appearance="subtle"
-                      size="small"
-                      icon={<FolderAddRegular />}
-                      disabled={isBusy || !isConnected}
-                      style={{ justifyContent: 'flex-start', width: '100%' }}
-                    >
-                      {isManualInstalling ? t('manualInstalling') : t('manualInstall')}
-                    </Button>
-                  </MenuTrigger>
-                  <MenuPopover>
-                    <MenuList>
-                      <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>
-                        {t('installApkFile')}
-                      </MenuItem>
-                      <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>
-                        {t('installFolder')}
-                      </MenuItem>
-                      <MenuItem icon={<CopyRegular />} onClick={handleCopyObbFolder} disabled={isManualInstalling}>
-                        {t('copyObbFolder')}
-                      </MenuItem>
-                    </MenuList>
-                  </MenuPopover>
-                </Menu>
-                {isConnected && (
-                  <Button
-                    appearance="subtle"
-                    size="small"
-                    icon={<WindowConsoleRegular />}
-                    onClick={() => setShellDialogOpen(true)}
-                    style={{ justifyContent: 'flex-start', width: '100%' }}
-                  >
-                    ADB Shell
-                  </Button>
-                )}
-                <Button
-                  appearance="subtle"
-                  size="small"
-                  icon={<SettingsRegular />}
-                  onClick={onSettings}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}
-                >
-                  {t('settings')}
-                </Button>
-              </section>
-
-              {/* ── TRANSFERS ── */}
-              <section className={styles.sidebarSection}>
-                <div className={styles.sidebarLabel}>Transfers</div>
-                <Button
-                  appearance={activeTransferCount > 0 ? 'primary' : 'subtle'}
-                  size="small"
-                  icon={<ArrowSyncRegular />}
-                  onClick={onTransfers}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}
-                >
-                  Transfers
-                  {activeTransferCount > 0 && (
-                    <Badge appearance="filled" color="brand" size="small" style={{ marginLeft: 'auto' }}>
-                      {activeTransferCount}
+                  {selectedDeviceDetails.batteryLevel !== null && (
+                    <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />}>
+                      {selectedDeviceDetails.batteryLevel}%
                     </Badge>
                   )}
+                  {selectedDeviceDetails.storageFree && selectedDeviceDetails.storageTotal && (
+                    <>
+                      <Text size={200} style={{ color: tokens.colorNeutralForeground2, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <StorageRegular style={{ fontSize: '13px' }} />
+                        {selectedDeviceDetails.storageFree} free / {selectedDeviceDetails.storageTotal}
+                      </Text>
+                      <div className={styles.storageBarTrack}>
+                        <div className={styles.storageBarFill} style={{ width: `${storageUsedPct}%`, backgroundColor: storageBarColor }} />
+                      </div>
+                    </>
+                  )}
+                  <div className={styles.deviceIdRow} onClick={() => setShowDeviceId((v) => !v)} title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}>
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}>ID:</Text>
+                    <Text size={100} style={{ fontFamily: 'monospace', letterSpacing: showDeviceId ? 'normal' : '0.15em', userSelect: showDeviceId ? 'text' : 'none', color: showDeviceId ? tokens.colorNeutralForeground1 : tokens.colorNeutralForeground3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                      {showDeviceId ? selectedDevice : '••••••••••'}
+                    </Text>
+                  </div>
+                  {isConnected && (
+                    <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />} onClick={disconnectDevice}
+                      style={{ justifyContent: 'flex-start', width: '100%', color: tokens.colorPaletteRedForeground1 }}>
+                      {t('disconnectFromDevice')}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ff4444', boxShadow: '0 0 6px #ff4444', flexShrink: 0 }} />
+                  <div>
+                    <Text size={200} style={{ color: '#ff6666', display: 'block' }}>No device connected</Text>
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
+                      <button onClick={onBackToDevices} style={{ background: 'none', border: 'none', color: 'rgba(57,255,20,0.7)', cursor: 'pointer', fontSize: '11px', padding: 0, textDecoration: 'underline' }}>
+                        Click to connect a headset
+                      </button>
+                    </Text>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* ── ADB COMMANDS ── */}
+            {isConnected && (
+              <section className={styles.sidebarSection}>
+                <div className={styles.sidebarLabel}>ADB Commands</div>
+                <Button appearance="subtle" size="small" icon={<WindowConsoleRegular />} onClick={() => setShellDialogOpen(true)}
+                  style={{ justifyContent: 'flex-start', width: '100%', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>
+                  ADB Shell
+                </Button>
+                <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={() => loadPackages()} disabled={isBusy}
+                  style={{ justifyContent: 'flex-start', width: '100%' }}>
+                  {isBusy ? t('working') : t('refreshQuest')}
                 </Button>
               </section>
+            )}
 
-              <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL }}>
-                <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
-                  {t('lastSynced')} {formatDate(lastSyncTime)}
-                </Text>
+            {/* ── OPTIONS ── */}
+            <section className={styles.sidebarSection}>
+              <div className={styles.sidebarLabel}>Options</div>
+              <MirrorSelector />
+            </section>
+
+            {/* ── SETTINGS ── */}
+            <section className={styles.sidebarSection}>
+              <div className={styles.sidebarLabel}>Settings</div>
+              {isConnected && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
+                  <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{t('usernameInGames')}</Text>
+                  {isEditingUserName ? (
+                    <>
+                      <Input value={editUserNameValue} onChange={(e) => setEditUserNameValue(e.target.value)} placeholder={t('enterVrName')} size="small"
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveUserName(); else if (e.key === 'Escape') handleCancelEditUserName() }} autoFocus />
+                      <div style={{ display: 'flex', gap: tokens.spacingHorizontalXS }}>
+                        <Button appearance="primary" size="small" onClick={handleSaveUserName} disabled={loadingUserName || !editUserNameValue.trim()}>
+                          {loadingUserName ? <Spinner size="tiny" /> : t('save')}
+                        </Button>
+                        <Button appearance="subtle" size="small" onClick={handleCancelEditUserName} disabled={loadingUserName}>{t('cancel')}</Button>
+                      </div>
+                    </>
+                  ) : (
+                    <Button appearance="subtle" size="small" icon={<PersonRegular />} onClick={handleEditUserName}
+                      style={{ justifyContent: 'flex-start', width: '100%', border: `1px solid ${tokens.colorNeutralStroke2}` }}>
+                      {userName || t('clickToSet')}
+                      <EditRegular style={{ marginLeft: 'auto', fontSize: '12px' }} />
+                    </Button>
+                  )}
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: tokens.spacingVerticalXXS }}>
+                <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>Dark Mode</Text>
+                <Switch
+                  checked={colorScheme === 'dark'}
+                  onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
+                />
               </div>
+              <Button appearance="subtle" size="small" icon={<SettingsRegular />} onClick={onSettings}
+                style={{ justifyContent: 'flex-start', width: '100%' }}>
+                Other Settings
+              </Button>
+            </section>
+
+            {/* ── TRANSFERS ── */}
+            <section className={styles.sidebarSection}>
+              <div className={styles.sidebarLabel}>Transfers</div>
+              <Button
+                appearance={activeTransferCount > 0 ? 'primary' : 'subtle'}
+                size="small"
+                icon={<ArrowSyncRegular />}
+                onClick={onTransfers}
+                style={{ justifyContent: 'flex-start', width: '100%' }}
+              >
+                Transfers
+                {activeTransferCount > 0 && (
+                  <Badge appearance="filled" color="brand" size="small" style={{ marginLeft: 'auto' }}>{activeTransferCount}</Badge>
+                )}
+              </Button>
+              <LocalUploadDialog />
+              <Menu>
+                <MenuTrigger disableButtonEnhancement>
+                  <Button appearance="subtle" size="small" icon={<FolderAddRegular />} disabled={isBusy || !isConnected}
+                    style={{ justifyContent: 'flex-start', width: '100%' }}>
+                    {isManualInstalling ? t('manualInstalling') : 'Manual Install (APK/OBB)'}
+                  </Button>
+                </MenuTrigger>
+                <MenuPopover>
+                  <MenuList>
+                    <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>{t('installApkFile')}</MenuItem>
+                    <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>{t('installFolder')}</MenuItem>
+                    <MenuItem icon={<CopyRegular />} onClick={handleCopyObbFolder} disabled={isManualInstalling}>{t('copyObbFolder')}</MenuItem>
+                  </MenuList>
+                </MenuPopover>
+              </Menu>
+              <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
+                style={{ justifyContent: 'flex-start', width: '100%' }}>
+                {isBusy ? t('working') : t('refreshGames')}
+              </Button>
+            </section>
+
+            <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL }}>
+              <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
+                {t('lastSynced')} {formatDate(lastSyncTime)}
+              </Text>
             </div>
-          )}
+
+          </div>
         </div>
 
         {/* ════════════ MAIN ════════════ */}
