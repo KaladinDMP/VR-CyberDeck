@@ -1505,11 +1505,11 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               )}
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                 <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>GITHUB</a>
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>VR CyberDeck GitHub</a>
                 <a href="https://t.me/s/the_vrSrc/2" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>TELEGRAM</a>
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>the_vrSrc Telegram</a>
                 <a href="https://qpmegathread.top" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>QP</a>
+                  style={{ color: 'rgba(57,255,20,0.45)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>QuestPiracy Megathread</a>
               </div>
               <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace' }}>
                 {t('lastSynced')} {formatDate(lastSyncTime)}
