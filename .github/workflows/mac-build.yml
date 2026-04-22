@@ -67,9 +67,9 @@ jobs:
             ditto "$APP_PATH" "$STAGING/$(basename "$APP_PATH")"
             ln -s /Applications "$STAGING/Applications"
 
-            DMG="dist/apprenticevr-${VERSION}-${ARCH}.dmg"
+            DMG="dist/vr-cyberdeck-${VERSION}-${ARCH}.dmg"
             hdiutil create \
-              -volname "ApprenticeVR VRSrc Edition" \
+              -volname "VR CyberDeck" \
               -srcfolder "$STAGING" \
               -ov -format UDZO \
               "$DMG"
@@ -84,11 +84,11 @@ jobs:
         run: |
           TAG="v${VERSION}"
           echo "Verifying release $TAG exists..."
-          gh release view "$TAG" --repo KaladinDMP/apprenticeVrSrc
-          for DMG in dist/apprenticevr-${VERSION}-x64.dmg dist/apprenticevr-${VERSION}-arm64.dmg; do
+          gh release view "$TAG" --repo KaladinDMP/VR-CyberDeck
+          for DMG in dist/vr-cyberdeck-${VERSION}-x64.dmg dist/vr-cyberdeck-${VERSION}-arm64.dmg; do
             echo "Uploading $DMG..."
             gh release upload "$TAG" "$DMG" \
-              --repo KaladinDMP/apprenticeVrSrc \
+              --repo KaladinDMP/VR-CyberDeck \
               --clobber
           done
           echo "Done."
