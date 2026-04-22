@@ -1472,7 +1472,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                     {isManualInstalling ? t('manualInstalling') : 'Manual Install'}
                   </Button>
                 </MenuTrigger>
-                <MenuPopover>
+                <MenuPopover style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.2)' } as React.CSSProperties}>
                   <MenuList>
                     <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>{t('installApkFile')}</MenuItem>
                     <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>{t('installFolder')}</MenuItem>
