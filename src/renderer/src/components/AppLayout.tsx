@@ -17,6 +17,7 @@ import {
   teamsDarkTheme,
   teamsLightTheme,
   Button,
+  Switch,
   Drawer,
   DrawerHeader,
   DrawerHeaderTitle,
@@ -70,15 +71,16 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalL}`,
-    borderBottom: '1px solid rgba(0, 212, 255, 0.35)',
+    borderBottom: '1px solid rgba(57, 255, 20, 0.2)',
     backgroundColor: '#050514',
     backgroundImage:
-      'linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px)',
+      'linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px)',
     backgroundSize: '40px 40px',
-    boxShadow: '0 1px 24px 0 rgba(0, 212, 255, 0.08), inset 0 -1px 0 rgba(176, 64, 255, 0.15)',
+    boxShadow: '0 1px 24px 0 rgba(57, 255, 20, 0.06), inset 0 -1px 0 rgba(176, 64, 255, 0.12)',
     gap: '4px',
     height: '110px',
-    flexShrink: 0
+    flexShrink: 0,
+    position: 'relative'
   },
   logo: {
     height: '64px',
@@ -339,6 +341,14 @@ const AppLayout: React.FC = () => {
           <GameDialogProvider>
             <div className={styles.root}>
               <div className={styles.header}>
+                {/* Dark mode toggle — absolute top-right */}
+                <div style={{ position: 'absolute', top: '10px', right: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark</span>
+                  <Switch
+                    checked={colorScheme === 'dark'}
+                    onChange={(_, d) => setColorScheme(d.checked ? 'dark' : 'light')}
+                  />
+                </div>
                 <div className={styles.headerContent}>
                   <img alt="logo" className={styles.logo} src={electronLogo} />
                   <div className={styles.titleSection}>
