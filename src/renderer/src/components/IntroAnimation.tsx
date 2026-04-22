@@ -14,8 +14,9 @@ interface IntroAnimationProps {
   onComplete: () => void
 }
 
-// Phase enum keeps the render logic clean
-type Phase = 'boot' | 'typing' | 'auth' | 'glitch' | 'authorized' | 'fade'
+// 'unauthorized' = red UNAUTHORIZED! holding
+// 'authorized'   = UN+! gone, green AUTHORIZED beat
+type Phase = 'boot' | 'typing' | 'auth' | 'glitch' | 'unauthorized' | 'authorized' | 'fade'
 
 const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<Phase>('boot')
@@ -24,9 +25,8 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   const [cursorOn, setCursorOn] = useState(true)
   const [glitchBg, setGlitchBg] = useState('#000000')
   const [glitchShift, setGlitchShift] = useState(0)
-  // AUTHORIZED blink state
-  const [authorizedVisible, setAuthorizedVisible] = useState(false)
-  const [authorizedBlink, setAuthorizedBlink] = useState(true)
+  // jitter offset for UNAUTHORIZED! text
+  const [textJitter, setTextJitter] = useState(0)
   const [fading, setFading] = useState(false)
   const dead = useRef(false)
 
@@ -36,19 +36,12 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     return () => clearInterval(t)
   }, [])
 
-  // AUTHORIZED flicker — irregular timing for glitch feel
+  // Subtle jitter on UNAUTHORIZED! — random x/y offset every ~120ms
   useEffect(() => {
-    if (!authorizedVisible) return
-    let cancelled = false
-    const flicker = async (): Promise<void> => {
-      while (!cancelled && !dead.current) {
-        await sleep(rand(80, 280))
-        if (!cancelled) setAuthorizedBlink((v) => !v)
-      }
-    }
-    flicker()
-    return () => { cancelled = true }
-  }, [authorizedVisible])
+    if (phase !== 'unauthorized') return
+    const t = setInterval(() => setTextJitter(rand(-3, 3)), 120)
+    return () => clearInterval(t)
+  }, [phase])
 
   useEffect(() => {
     let systemUser = ''
@@ -172,15 +165,19 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         await sleep(delay)
       }
 
-      // ── Phase 6: AUTHORIZED — blink for 2.5s ────────────────────
-      setPhase('authorized')
+      // ── Phase 6: UNAUTHORIZED! — hold red + jitter for ~2.5s ────
+      setPhase('unauthorized')
       setGlitchBg('#000000')
       setGlitchShift(0)
-      setAuthorizedVisible(true)
-      await sleep(2600)
+      await sleep(2500)
       if (dead.current) return
 
-      // ── Phase 7: fade out ─────────────────────────────────────────
+      // ── Phase 7: UN + ! vanish → AUTHORIZED turns green ──────────
+      setPhase('authorized')
+      await sleep(900)
+      if (dead.current) return
+
+      // ── Phase 8: fade out ─────────────────────────────────────────
       setPhase('fade')
       setFading(true)
       await sleep(1500)
@@ -216,17 +213,26 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     transform: isGlitching ? `translateX(${glitchShift}px)` : 'none'
   }
 
-  const authorizedStyle: React.CSSProperties = {
+  const bigTextStyle: React.CSSProperties = {
     position: 'absolute',
     fontSize: '54px',
     fontWeight: 900,
     letterSpacing: '0.1em',
-    color: authorizedBlink ? '#39ff14' : '#a855f7',
-    textShadow: authorizedBlink
-      ? '0 0 20px #39ff14, 0 0 50px rgba(57,255,20,0.5)'
-      : '0 0 20px #a855f7, 0 0 50px rgba(168,85,247,0.5)',
-    transform: `translateX(${rand(-2, 2)}px)`,
-    transition: 'color 0.05s, text-shadow 0.05s'
+    fontFamily: '"Courier New", Courier, monospace'
+  }
+
+  const unauthorizedStyle: React.CSSProperties = {
+    ...bigTextStyle,
+    color: '#ff2222',
+    textShadow: '0 0 24px #ff0000, 0 0 60px rgba(255,0,0,0.45)',
+    transform: `translate(${textJitter}px, ${rand(-1, 1)}px)`
+  }
+
+  const authorizedStyle: React.CSSProperties = {
+    ...bigTextStyle,
+    color: '#39ff14',
+    textShadow: '0 0 24px #39ff14, 0 0 60px rgba(57,255,20,0.5)',
+    transition: 'color 0.15s, text-shadow 0.15s'
   }
 
   return (
@@ -240,12 +246,12 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         }}>
           <div>VR CYBERDECK v0.0.1</div>
           <div>SECURE TERMINAL — DELICIOUSMEATPOP</div>
-          <div>STATUS: {phase === 'authorized' ? 'ACCESS GRANTED' : 'CONNECTING...'}</div>
+          <div>STATUS: {phase === 'authorized' || phase === 'fade' ? 'ACCESS GRANTED' : phase === 'unauthorized' ? 'ACCESS DENIED' : 'CONNECTING...'}</div>
         </div>
       )}
 
-      {/* terminal output */}
-      {phase !== 'authorized' && (
+      {/* terminal output — hidden during the big-text phases */}
+      {phase !== 'unauthorized' && phase !== 'authorized' && phase !== 'fade' && (
         <div style={terminalStyle}>
           {committedLines.map((line, i) => (
             <div key={i} style={{ whiteSpace: 'pre', opacity: 0.85 }}>{line}</div>
@@ -260,9 +266,14 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         </div>
       )}
 
-      {/* AUTHORIZED flash */}
-      {authorizedVisible && (
-        <div style={authorizedStyle}>ACCESS GRANTED</div>
+      {/* UNAUTHORIZED! — red, holds, jitters */}
+      {phase === 'unauthorized' && (
+        <div style={unauthorizedStyle}>UNAUTHORIZED!</div>
+      )}
+
+      {/* UN + ! stripped away → AUTHORIZED in green */}
+      {(phase === 'authorized' || phase === 'fade') && (
+        <div style={authorizedStyle}>AUTHORIZED</div>
       )}
 
       {/* bottom tagline */}
