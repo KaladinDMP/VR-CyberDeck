@@ -127,7 +127,7 @@ Use **Transfers → Upload Local Files** to send game folders or ZIP archives di
 - Pre-made ZIPs are sent as-is
 - Multiple items can be queued and upload one at a time with live progress
 
-> Requires at least one successful VRP connection so that `upload.config` is written locally.
+> Requires at least one successful server connection so that `upload.config` is written locally.
 
 Uploads do not guarantee library inclusion.
 
@@ -169,7 +169,7 @@ sudo pacman -S android-tools   # Arch
 
 ## Credits
 
-VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core architecture — ADB management, download/upload pipeline, rclone integration, and the VRP game library connection — comes from their work. Without it this project wouldn't exist.
+VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core architecture — ADB management, download/upload pipeline, rclone integration, and the game library connection — comes from their work. Without it this project wouldn't exist.
 
 ---
 

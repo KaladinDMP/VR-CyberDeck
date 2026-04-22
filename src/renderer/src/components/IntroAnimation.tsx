@@ -213,7 +213,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
           }}
         >
           <div>VR CYBERDECK v0.0.1</div>
-          <div>SECURE TERMINAL — DROID MASTER PROGRAM</div>
+          <div>SECURE TERMINAL — DELICIOUSMEATPOP</div>
           <div>STATUS: CONNECTING...</div>
         </div>
       )}

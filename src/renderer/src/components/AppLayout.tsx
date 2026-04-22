@@ -347,7 +347,7 @@ const AppLayout: React.FC = () => {
                     <span className={styles.titleMain}>VR CYBERDECK</span>
                     <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
                     <span className={styles.titleCredit}>
-                      BY DMP · DROID MASTER PROGRAM
+                      BY DMP · DELICIOUSMEATPOP
                       <button
                         className="credits-question-btn"
                         onClick={() => setIsCreditsOpen(true)}
