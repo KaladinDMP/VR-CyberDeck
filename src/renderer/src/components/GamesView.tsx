@@ -56,8 +56,6 @@ import {
   DesktopRegular,
   BatteryChargeRegular,
   StorageRegular,
-  PersonRegular,
-  EditRegular,
   FolderAddRegular,
   DocumentRegular,
   ChevronDownRegular,
@@ -121,7 +119,7 @@ const useStyles = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100vh - 90px)',
+    height: 'calc(100vh - 110px)',
     overflow: 'hidden',
     backgroundColor: tokens.colorNeutralBackground1
   },
@@ -416,10 +414,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     isConnected,
     disconnectDevice,
     isLoading: adbLoading,
-    loadPackages,
-    userName,
-    loadingUserName,
-    setUserName
+    loadPackages
   } = useAdb()
   const {
     games,
@@ -470,8 +465,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   const [tableWidth, setTableWidth] = useState<number>(0)
   const tableContainerRef = useRef<HTMLDivElement>(null)
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
-  const [isEditingUserName, setIsEditingUserName] = useState<boolean>(false)
-  const [editUserNameValue, setEditUserNameValue] = useState<string>('')
   const [isManualInstalling, setIsManualInstalling] = useState<boolean>(false)
   const [installStatusMessage, setInstallStatusMessage] = useState<string>('')
   const [showInstallDialog, setShowInstallDialog] = useState<boolean>(false)
@@ -1143,28 +1136,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     [deleteFiles, handleCloseDialog]
   )
 
-  const handleEditUserName = useCallback(() => {
-    setEditUserNameValue(userName)
-    setIsEditingUserName(true)
-  }, [userName])
-
-  const handleSaveUserName = useCallback(async () => {
-    if (!editUserNameValue.trim()) return
-
-    try {
-      await setUserName(editUserNameValue.trim())
-      setIsEditingUserName(false)
-    } catch (error) {
-      console.error('Error setting user name:', error)
-      window.alert('Failed to set user name. Please try again.')
-    }
-  }, [editUserNameValue, setUserName])
-
-  const handleCancelEditUserName = useCallback(() => {
-    setIsEditingUserName(false)
-    setEditUserNameValue('')
-  }, [])
-
   const handleManualInstall = useCallback(
     async (type: 'apk' | 'folder') => {
       if (!isConnected || !selectedDevice) {
@@ -1374,17 +1345,30 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               <div className={styles.sidebarLabel}>Device</div>
               {selectedDeviceDetails ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalS }}>
+                  {/* Name + disconnect icon + battery — all inline */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#39ff14', boxShadow: '0 0 6px #39ff14', flexShrink: 0 }} />
-                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0' }}>
+                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selectedDeviceDetails.friendlyModelName || 'Connected Device'}
                     </Text>
+                    {isConnected && (
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<PlugDisconnectedRegular />}
+                        onClick={disconnectDevice}
+                        title={t('disconnectFromDevice')}
+                        style={{ minWidth: 0, padding: '2px 4px', color: tokens.colorPaletteRedForeground1, flexShrink: 0 }}
+                      />
+                    )}
+                    {selectedDeviceDetails.batteryLevel !== null && (
+                      <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />} style={{ flexShrink: 0 }}>
+                        {selectedDeviceDetails.batteryLevel}%
+                      </Badge>
+                    )}
                   </div>
-                  {selectedDeviceDetails.batteryLevel !== null && (
-                    <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />}>
-                      {selectedDeviceDetails.batteryLevel}%
-                    </Badge>
-                  )}
+
+                  {/* Storage bar */}
                   {selectedDeviceDetails.storageFree && selectedDeviceDetails.storageTotal && (
                     <>
                       <Text size={200} style={{ color: tokens.colorNeutralForeground2, display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1396,16 +1380,23 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                       </div>
                     </>
                   )}
-                  <div className={styles.deviceIdRow} onClick={() => setShowDeviceId((v) => !v)} title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}>
-                    <Text size={100} style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }}>ID:</Text>
-                    <Text size={100} style={{ fontFamily: 'monospace', letterSpacing: showDeviceId ? 'normal' : '0.15em', userSelect: showDeviceId ? 'text' : 'none', color: showDeviceId ? tokens.colorNeutralForeground1 : tokens.colorNeutralForeground3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                      {showDeviceId ? selectedDevice : '••••••••••'}
+
+                  {/* Device ID — centered, clickable to reveal */}
+                  <div
+                    style={{ textAlign: 'center', cursor: 'pointer', padding: '2px 0' }}
+                    onClick={() => setShowDeviceId((v) => !v)}
+                    title={showDeviceId ? 'Hide device ID' : 'Reveal device ID'}
+                  >
+                    <Text size={100} style={{ fontFamily: 'monospace', color: tokens.colorNeutralForeground3, letterSpacing: showDeviceId ? 'normal' : '0.15em', userSelect: showDeviceId ? 'text' : 'none' }}>
+                      ID: {showDeviceId ? selectedDevice : '••••••••••'}
                     </Text>
                   </div>
+
+                  {/* Refresh Quest lives at the bottom of device section */}
                   {isConnected && (
-                    <Button appearance="subtle" size="small" icon={<PlugDisconnectedRegular />} onClick={disconnectDevice}
-                      style={{ justifyContent: 'flex-start', width: '100%', color: tokens.colorPaletteRedForeground1 }}>
-                      {t('disconnectFromDevice')}
+                    <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={() => loadPackages()} disabled={isBusy}
+                      style={{ justifyContent: 'flex-start', width: '100%' }}>
+                      {isBusy ? t('working') : t('refreshQuest')}
                     </Button>
                   )}
                 </>
@@ -1424,53 +1415,43 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               )}
             </section>
 
-            {/* ── ADB COMMANDS ── */}
-            {isConnected && (
-              <section className={styles.sidebarSection}>
-                <div className={styles.sidebarLabel}>ADB Commands</div>
-                <Button appearance="subtle" size="small" icon={<WindowConsoleRegular />} onClick={() => setShellDialogOpen(true)}
-                  style={{ justifyContent: 'flex-start', width: '100%', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14' }}>
-                  ADB Shell
-                </Button>
-                <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={() => loadPackages()} disabled={isBusy}
-                  style={{ justifyContent: 'flex-start', width: '100%' }}>
-                  {isBusy ? t('working') : t('refreshQuest')}
-                </Button>
-              </section>
-            )}
-
             {/* ── OPTIONS ── */}
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Options</div>
               <MirrorSelector />
             </section>
 
+            {/* ── ACTIONS (Refresh / Manual Install / ADB Shell) ── */}
+            <section className={styles.sidebarSection}>
+              <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
+                style={{ justifyContent: 'flex-start', width: '100%' }}>
+                {isBusy ? t('working') : t('refreshGames')}
+              </Button>
+              <Menu>
+                <MenuTrigger disableButtonEnhancement>
+                  <Button appearance="subtle" size="small" icon={<FolderAddRegular />} disabled={isBusy || !isConnected}
+                    style={{ justifyContent: 'flex-start', width: '100%' }}>
+                    {isManualInstalling ? t('manualInstalling') : 'Manual Install (APK/OBB)'}
+                  </Button>
+                </MenuTrigger>
+                <MenuPopover>
+                  <MenuList>
+                    <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>{t('installApkFile')}</MenuItem>
+                    <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>{t('installFolder')}</MenuItem>
+                    <MenuItem icon={<CopyRegular />} onClick={handleCopyObbFolder} disabled={isManualInstalling}>{t('copyObbFolder')}</MenuItem>
+                  </MenuList>
+                </MenuPopover>
+              </Menu>
+              <Button appearance="subtle" size="small" icon={<WindowConsoleRegular />} onClick={() => setShellDialogOpen(true)}
+                disabled={!isConnected}
+                style={{ justifyContent: 'flex-start', width: '100%', border: isConnected ? '1px solid rgba(57,255,20,0.25)' : undefined, color: isConnected ? '#39ff14' : undefined }}>
+                ADB Shell
+              </Button>
+            </section>
+
             {/* ── SETTINGS ── */}
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Settings</div>
-              {isConnected && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalXS }}>
-                  <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>{t('usernameInGames')}</Text>
-                  {isEditingUserName ? (
-                    <>
-                      <Input value={editUserNameValue} onChange={(e) => setEditUserNameValue(e.target.value)} placeholder={t('enterVrName')} size="small"
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveUserName(); else if (e.key === 'Escape') handleCancelEditUserName() }} autoFocus />
-                      <div style={{ display: 'flex', gap: tokens.spacingHorizontalXS }}>
-                        <Button appearance="primary" size="small" onClick={handleSaveUserName} disabled={loadingUserName || !editUserNameValue.trim()}>
-                          {loadingUserName ? <Spinner size="tiny" /> : t('save')}
-                        </Button>
-                        <Button appearance="subtle" size="small" onClick={handleCancelEditUserName} disabled={loadingUserName}>{t('cancel')}</Button>
-                      </div>
-                    </>
-                  ) : (
-                    <Button appearance="subtle" size="small" icon={<PersonRegular />} onClick={handleEditUserName}
-                      style={{ justifyContent: 'flex-start', width: '100%', border: `1px solid ${tokens.colorNeutralStroke2}` }}>
-                      {userName || t('clickToSet')}
-                      <EditRegular style={{ marginLeft: 'auto', fontSize: '12px' }} />
-                    </Button>
-                  )}
-                </div>
-              )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: tokens.spacingVerticalXXS }}>
                 <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>Dark Mode</Text>
                 <Switch
@@ -1515,10 +1496,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   </MenuList>
                 </MenuPopover>
               </Menu>
-              <Button appearance="subtle" size="small" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
-                style={{ justifyContent: 'flex-start', width: '100%' }}>
-                {isBusy ? t('working') : t('refreshGames')}
-              </Button>
             </section>
 
             <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL }}>
@@ -1561,6 +1538,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               onClick={() => setPrefs({ viewMode: prefs.viewMode === 'table' ? 'cards' : 'table' })}
               title={prefs.viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
             />
+            {prefs.viewMode !== 'cards' && (
             <Popover open={viewOptionsOpen} onOpenChange={(_, d) => setViewOptionsOpen(d.open)} positioning="below-end">
               <PopoverTrigger>
                 <Button appearance="subtle" icon={<OptionsRegular />} title="Display options" size="small" />
@@ -1614,6 +1592,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                 </div>
               </PopoverSurface>
             </Popover>
+            )}
           </div>
 
           {/* Status messages */}

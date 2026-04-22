@@ -14,19 +14,14 @@ interface IntroAnimationProps {
   onComplete: () => void
 }
 
-// 'unauthorized' = red UNAUTHORIZED! holding
-// 'authorized'   = UN+! gone, green AUTHORIZED beat
-type Phase = 'boot' | 'typing' | 'auth' | 'glitch' | 'unauthorized' | 'authorized' | 'fade'
+type Phase = 'boot' | 'typing' | 'auth' | 'unauthorized' | 'authorized' | 'fade'
 
 const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<Phase>('boot')
   const [committedLines, setCommittedLines] = useState<string[]>([])
   const [activeLine, setActiveLine] = useState('')
   const [cursorOn, setCursorOn] = useState(true)
-  const [glitchBg, setGlitchBg] = useState('#000000')
-  const [glitchShift, setGlitchShift] = useState(0)
-  // jitter offset for UNAUTHORIZED! text
-  const [textJitter, setTextJitter] = useState(0)
+  const [textJitter, setTextJitter] = useState({ x: 0, y: 0 })
   const [fading, setFading] = useState(false)
   const dead = useRef(false)
 
@@ -36,10 +31,10 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     return () => clearInterval(t)
   }, [])
 
-  // Subtle jitter on UNAUTHORIZED! — random x/y offset every ~120ms
+  // Aggressive jitter during UNAUTHORIZED — fast, pronounced
   useEffect(() => {
     if (phase !== 'unauthorized') return
-    const t = setInterval(() => setTextJitter(rand(-3, 3)), 120)
+    const t = setInterval(() => setTextJitter({ x: rand(-6, 6), y: rand(-3, 3) }), 80)
     return () => clearInterval(t)
   }, [phase])
 
@@ -141,43 +136,19 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
       await sleep(2200)
       if (dead.current) return
 
-      // ── Phase 5: glitch flash ────────────────────────────────────
-      setPhase('glitch')
+      // ── Phase 5: hard cut → UNAUTHORIZED — hold 4s ───────────────
+      setPhase('unauthorized')
       setCommittedLines((prev) => [...prev, '> AUTHENTICATING...'])
       setActiveLine('')
-
-      const flashSequence = [
-        { color: '#00d4ff', delay: 300 },
-        { color: '#ff00ff', delay: 240 },
-        { color: '#ff0000', delay: 190 },
-        { color: '#00d4ff', delay: 150 },
-        { color: '#ff00ff', delay: 110 },
-        { color: '#ff0000', delay: 85 },
-        { color: '#00d4ff', delay: 65 },
-        { color: '#ff00ff', delay: 50 },
-        { color: '#ffffff', delay: 120 }
-      ]
-
-      for (const { color, delay } of flashSequence) {
-        if (dead.current) return
-        setGlitchBg(color)
-        setGlitchShift(rand(-8, 8))
-        await sleep(delay)
-      }
-
-      // ── Phase 6: UNAUTHORIZED! — hold red + jitter for ~2.5s ────
-      setPhase('unauthorized')
-      setGlitchBg('#000000')
-      setGlitchShift(0)
-      await sleep(2500)
+      await sleep(4000)
       if (dead.current) return
 
-      // ── Phase 7: UN + ! vanish → AUTHORIZED turns green ──────────
+      // ── Phase 6: UN + ! vanish → AUTHORIZED in green, 1.2s ───────
       setPhase('authorized')
-      await sleep(900)
+      await sleep(1200)
       if (dead.current) return
 
-      // ── Phase 8: fade out ─────────────────────────────────────────
+      // ── Phase 7: fade out ─────────────────────────────────────────
       setPhase('fade')
       setFading(true)
       await sleep(1500)
@@ -188,8 +159,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     return () => { dead.current = true }
   }, [onComplete])
 
-  const isGlitching = phase === 'glitch'
-
   const containerStyle: React.CSSProperties = {
     position: 'fixed',
     inset: 0,
@@ -198,9 +167,9 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: isGlitching ? glitchBg : '#000000',
+    backgroundColor: phase === 'unauthorized' ? '#0c0000' : '#000000',
     opacity: fading ? 0 : 1,
-    transition: fading ? 'opacity 1.5s ease-in-out' : 'none',
+    transition: fading ? 'opacity 1.5s ease-in-out' : phase === 'unauthorized' ? 'background-color 0.1s' : 'none',
     fontFamily: '"Courier New", Courier, monospace',
     fontSize: '17px',
     color: '#39ff14',
@@ -208,24 +177,19 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     userSelect: 'none'
   }
 
-  const terminalStyle: React.CSSProperties = {
-    width: '440px',
-    transform: isGlitching ? `translateX(${glitchShift}px)` : 'none'
-  }
-
   const bigTextStyle: React.CSSProperties = {
     position: 'absolute',
-    fontSize: '54px',
+    fontSize: '62px',
     fontWeight: 900,
-    letterSpacing: '0.1em',
+    letterSpacing: '0.08em',
     fontFamily: '"Courier New", Courier, monospace'
   }
 
   const unauthorizedStyle: React.CSSProperties = {
     ...bigTextStyle,
-    color: '#ff2222',
-    textShadow: '0 0 24px #ff0000, 0 0 60px rgba(255,0,0,0.45)',
-    transform: `translate(${textJitter}px, ${rand(-1, 1)}px)`
+    color: '#ff1a1a',
+    textShadow: '0 0 20px #ff0000, 0 0 50px rgba(255,0,0,0.6), 0 0 100px rgba(255,0,0,0.25)',
+    transform: `translate(${textJitter.x}px, ${textJitter.y}px)`
   }
 
   const authorizedStyle: React.CSSProperties = {
@@ -252,7 +216,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
 
       {/* terminal output — hidden during the big-text phases */}
       {phase !== 'unauthorized' && phase !== 'authorized' && phase !== 'fade' && (
-        <div style={terminalStyle}>
+        <div style={{ width: '440px' }}>
           {committedLines.map((line, i) => (
             <div key={i} style={{ whiteSpace: 'pre', opacity: 0.85 }}>{line}</div>
           ))}
@@ -268,7 +232,19 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
 
       {/* UNAUTHORIZED! — red, holds, jitters */}
       {phase === 'unauthorized' && (
-        <div style={unauthorizedStyle}>UNAUTHORIZED!</div>
+        <>
+          <div style={unauthorizedStyle}>UNAUTHORIZED!</div>
+          <div style={{
+            position: 'absolute',
+            bottom: '38%',
+            fontSize: '13px',
+            letterSpacing: '0.3em',
+            color: 'rgba(255,60,60,0.55)',
+            fontFamily: '"Courier New", Courier, monospace'
+          }}>
+            ACCESS DENIED — AUTHENTICATION FAILED
+          </div>
+        </>
       )}
 
       {/* UN + ! stripped away → AUTHORIZED in green */}

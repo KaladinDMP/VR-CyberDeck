@@ -21,14 +21,7 @@ import {
   TableHeaderCell,
   TableBody,
   TableCell,
-  TableCellLayout,
-  Dialog,
-  DialogTrigger,
-  DialogSurface,
-  DialogTitle,
-  DialogContent,
-  DialogBody,
-  DialogActions
+  TableCellLayout
 } from '@fluentui/react-components'
 import {
   FolderOpenRegular,
@@ -36,16 +29,17 @@ import {
   InfoRegular,
   DeleteRegular,
   ShareRegular,
-  ServerRegular,
   DocumentTextRegular,
-  CopyRegular
+  CopyRegular,
+  EditRegular,
+  ChevronDownRegular,
+  ChevronUpRegular
 } from '@fluentui/react-icons'
 import { useSettings } from '../hooks/useSettings'
 import { useGames } from '../hooks/useGames'
 import { useLogs } from '../hooks/useLogs'
 import { useLanguage } from '../hooks/useLanguage'
-import MirrorManagement from './MirrorManagement'
-import type { Language } from '../i18n/translations'
+import { useAdb } from '../hooks/useAdb'
 
 // Supported speed units with conversion factors to KB/s
 const SPEED_UNITS = [
@@ -59,7 +53,7 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: tokens.spacingVerticalL,
     position: 'relative',
-    height: 'calc(100vh - 90px)', // Account for header height
+    height: 'calc(100vh - 110px)',
     overflowY: 'auto',
     padding: tokens.spacingVerticalXL,
     backgroundColor: tokens.colorNeutralBackground1
@@ -273,46 +267,6 @@ const BlacklistSettings: React.FC = () => {
   )
 }
 
-const MirrorManagementLink: React.FC = () => {
-  const styles = useStyles()
-  const { t } = useLanguage()
-  const [open, setOpen] = useState(false)
-
-  return (
-    <Card className={styles.card}>
-      <CardHeader
-        description={<Subtitle1 weight="semibold">{t('mirrorsAndServer')}</Subtitle1>}
-      />
-      <div className={styles.cardContent}>
-        <Text>{t('mirrorsAndServerDesc')}</Text>
-
-        <div className={styles.formRow}>
-          <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>
-            <DialogTrigger disableButtonEnhancement>
-              <Button appearance="primary" size="large" icon={<ServerRegular />}>
-                {t('openMirrorManagement')}
-              </Button>
-            </DialogTrigger>
-            <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column' }}>
-              <DialogTitle>{t('mirrorManagement')}</DialogTitle>
-              <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <DialogBody style={{ flex: 1, overflow: 'hidden' }}>
-                  <MirrorManagement />
-                </DialogBody>
-                <DialogActions>
-                  <Button appearance="secondary" onClick={() => setOpen(false)}>
-                    {t('close')}
-                  </Button>
-                </DialogActions>
-              </DialogContent>
-            </DialogSurface>
-          </Dialog>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
 const LogUploadSettings: React.FC = () => {
   const styles = useStyles()
   const { t } = useLanguage()
@@ -442,39 +396,6 @@ const LogUploadSettings: React.FC = () => {
   )
 }
 
-const LanguageSettings: React.FC = () => {
-  const styles = useStyles()
-  const { language, setLanguage, t } = useLanguage()
-
-  return (
-    <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">{t('language')}</Subtitle1>} />
-      <div className={styles.cardContent}>
-        <Text>{t('languageDesc')}</Text>
-        <div className={styles.formRow}>
-          <Dropdown
-            value={language === 'es' ? t('languageSpanish') : t('languageEnglish')}
-            selectedOptions={[language]}
-            onOptionSelect={(_, data) => {
-              if (data.optionValue === 'en' || data.optionValue === 'es') {
-                setLanguage(data.optionValue as Language)
-              }
-            }}
-            mountNode={document.getElementById('portal')}
-          >
-            <Option value="en" text={t('languageEnglish')}>
-              {t('languageEnglish')}
-            </Option>
-            <Option value="es" text={t('languageSpanish')}>
-              {t('languageSpanish')}
-            </Option>
-          </Dropdown>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
 const INTRO_STORAGE_KEY = 'vrcyberdeck:showIntro'
 
 const IntroSettings: React.FC = () => {
@@ -519,6 +440,76 @@ const IntroSettings: React.FC = () => {
   )
 }
 
+const MpUsernameSettings: React.FC = () => {
+  const styles = useStyles()
+  const { userName, loadingUserName, setUserName, isConnected } = useAdb()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const handleEdit = (): void => {
+    setEditValue(userName)
+    setIsEditing(true)
+  }
+
+  const handleSave = async (): Promise<void> => {
+    if (!editValue.trim()) return
+    try {
+      await setUserName(editValue.trim())
+      setIsEditing(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e) {
+      console.error('Failed to set username:', e)
+    }
+  }
+
+  return (
+    <Card className={styles.card}>
+      <CardHeader description={<Subtitle1 weight="semibold">Multiplayer Username</Subtitle1>} />
+      <div className={styles.cardContent}>
+        <Text>Your display name in VR multiplayer games.</Text>
+        {!isConnected && (
+          <Text size={200} style={{ color: tokens.colorNeutralForeground3, display: 'block', marginTop: tokens.spacingVerticalXS }}>
+            Connect a device to change your username.
+          </Text>
+        )}
+        <div className={styles.formRow}>
+          {isEditing ? (
+            <>
+              <Input
+                className={styles.input}
+                value={editValue}
+                onChange={(_, data) => setEditValue(data.value)}
+                placeholder="Enter VR display name"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSave()
+                  if (e.key === 'Escape') setIsEditing(false)
+                }}
+              />
+              <Button appearance="primary" size="medium" onClick={handleSave} disabled={loadingUserName || !editValue.trim()}>
+                {loadingUserName ? <Spinner size="tiny" /> : 'Save'}
+              </Button>
+              <Button appearance="subtle" size="medium" onClick={() => setIsEditing(false)} disabled={loadingUserName}>Cancel</Button>
+            </>
+          ) : (
+            <Button appearance="outline" size="medium" icon={<EditRegular />} onClick={handleEdit} disabled={!isConnected}>
+              {userName || 'Click to set username'}
+            </Button>
+          )}
+        </div>
+        {saved && (
+          <Text className={styles.success}>
+            <CheckmarkCircleRegular />
+            Username saved!
+          </Text>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 const Settings: React.FC = () => {
   const styles = useStyles()
   const {
@@ -533,6 +524,7 @@ const Settings: React.FC = () => {
   } = useSettings()
   const [editedDownloadPath, setEditedDownloadPath] = useState(downloadPath)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
+  const [showBlacklist, setShowBlacklist] = useState(false)
 
   // New state for speed input values
   const [downloadSpeedInput, setDownloadSpeedInput] = useState(
@@ -842,11 +834,9 @@ const Settings: React.FC = () => {
           {appVersion && ` • Version ${appVersion}`}
         </Text>
 
-        <LanguageSettings />
-
         <IntroSettings />
 
-        <MirrorManagementLink />
+        <MpUsernameSettings />
 
         <LogUploadSettings />
 
@@ -968,7 +958,19 @@ const Settings: React.FC = () => {
           </div>
         </Card>
 
-        <BlacklistSettings />
+        {/* Blacklist hidden behind toggle */}
+        <div>
+          <Button
+            appearance="subtle"
+            size="small"
+            icon={showBlacklist ? <ChevronUpRegular /> : <ChevronDownRegular />}
+            onClick={() => setShowBlacklist((v) => !v)}
+            style={{ marginBottom: tokens.spacingVerticalS }}
+          >
+            {showBlacklist ? 'Hide Blacklisted Games' : 'Manage Blacklisted Games'}
+          </Button>
+          {showBlacklist && <BlacklistSettings />}
+        </div>
 
         {/* Credits footer */}
         <div className="credits-settings-footer">

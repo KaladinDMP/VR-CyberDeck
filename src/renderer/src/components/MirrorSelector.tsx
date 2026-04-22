@@ -30,11 +30,19 @@ import MirrorManagement from './MirrorManagement'
 const useStyles = makeStyles({
   container: {
     display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXS,
+    width: '100%'
+  },
+  dropdownRow: {
+    display: 'flex',
     alignItems: 'center',
-    gap: tokens.spacingHorizontalS
+    gap: tokens.spacingHorizontalXS,
+    width: '100%'
   },
   mirrorSelector: {
-    minWidth: '200px'
+    flex: 1,
+    minWidth: 0
   },
   statusBadge: {
     display: 'flex',
@@ -110,67 +118,74 @@ const MirrorSelector: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {getStatusIcon()}
-      <Dropdown
-        className={styles.mirrorSelector}
-        value={activeMirror?.name || t('publicMirror')}
-        selectedOptions={[activeMirror?.id || 'public']}
-        button={{ children: activeMirror?.name || t('publicMirror') }}
-        onOptionSelect={(_, data) => {
-          if (data.optionValue) {
-            handleMirrorChange(data.optionValue)
-          }
-        }}
-        placeholder={t('selectMirror')}
-      >
-        <Option value="public" text={t('publicMirror')}>
-          {t('publicMirror')}
-        </Option>
-        {mirrors.map((mirror) => (
-          <Option key={mirror.id} value={mirror.id} text={mirror.name}>
-            {mirror.name}
-          </Option>
-        ))}
-      </Dropdown>
-
-      {activeMirror && (
-        <Button
-          appearance="subtle"
-          size="small"
-          icon={<PlayRegular />}
-          onClick={handleTestMirror}
-          disabled={testingMirrors.has(activeMirror.id)}
-          title={t('testMirrorConnectivity')}
+      {/* Row 1: status icon + dropdown */}
+      <div className={styles.dropdownRow}>
+        {getStatusIcon()}
+        <Dropdown
+          className={styles.mirrorSelector}
+          value={activeMirror?.name || t('publicMirror')}
+          selectedOptions={[activeMirror?.id || 'public']}
+          button={{ children: activeMirror?.name || t('publicMirror') }}
+          onOptionSelect={(_, data) => {
+            if (data.optionValue) {
+              handleMirrorChange(data.optionValue)
+            }
+          }}
+          placeholder={t('selectMirror')}
         >
-          {t('test')}
-        </Button>
-      )}
+          <Option value="public" text={t('publicMirror')}>
+            {t('publicMirror')}
+          </Option>
+          {mirrors.map((mirror) => (
+            <Option key={mirror.id} value={mirror.id} text={mirror.name}>
+              {mirror.name}
+            </Option>
+          ))}
+        </Dropdown>
+      </div>
 
-      <Dialog open={showManagement} onOpenChange={(_, data) => setShowManagement(data.open)}>
-        <DialogTrigger disableButtonEnhancement>
+      {/* Row 2: test + manage buttons */}
+      <div style={{ display: 'flex', gap: '4px' }}>
+        {activeMirror && (
           <Button
             appearance="subtle"
             size="small"
-            icon={<SettingsRegular />}
-            title={t('manageMirrors')}
+            icon={<PlayRegular />}
+            onClick={handleTestMirror}
+            disabled={testingMirrors.has(activeMirror.id)}
+            title={t('testMirrorConnectivity')}
           >
-            {t('manage')}
+            {t('test')}
           </Button>
-        </DialogTrigger>
-        <DialogSurface className={styles.managementDialog}>
-          <DialogTitle>{t('mirrorManagement')}</DialogTitle>
-          <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <DialogBody style={{ flex: 1, overflow: 'hidden' }}>
-              <MirrorManagement />
-            </DialogBody>
-            <DialogActions>
-              <Button appearance="secondary" onClick={() => setShowManagement(false)}>
-                {t('close')}
-              </Button>
-            </DialogActions>
-          </DialogContent>
-        </DialogSurface>
-      </Dialog>
+        )}
+
+        <Dialog open={showManagement} onOpenChange={(_, data) => setShowManagement(data.open)}>
+          <DialogTrigger disableButtonEnhancement>
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={<SettingsRegular />}
+              title={t('manageMirrors')}
+              style={{ flex: 1, justifyContent: 'flex-start' }}
+            >
+              {t('manage')} Mirrors
+            </Button>
+          </DialogTrigger>
+          <DialogSurface className={styles.managementDialog}>
+            <DialogTitle>{t('mirrorManagement')}</DialogTitle>
+            <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <DialogBody style={{ flex: 1, overflow: 'hidden' }}>
+                <MirrorManagement />
+              </DialogBody>
+              <DialogActions>
+                <Button appearance="secondary" onClick={() => setShowManagement(false)}>
+                  {t('close')}
+                </Button>
+              </DialogActions>
+            </DialogContent>
+          </DialogSurface>
+        </Dialog>
+      </div>
     </div>
   )
 }
