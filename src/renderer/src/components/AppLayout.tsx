@@ -132,7 +132,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    height: 'calc(100vh - 90px)', // Remaining height after header
+    height: 'calc(100vh - 110px)',
     position: 'relative'
   },
   loadingOrErrorContainer: {
