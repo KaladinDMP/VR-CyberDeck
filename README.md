@@ -1,6 +1,11 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2ace873a-2aef-4959-af2a-beec4b6d2ff5" width="500">
+</p>
+
+
 # VR CyberDeck
 
-**by DMP**
+**With <3, by DMP**
 
 > OPERATE. DEPLOY. CONTROL.
 
@@ -173,8 +178,12 @@ VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprent
 GNU Affero GPL v3
 
 ---
-
+![Visitors](https://komarev.com/ghpvc/?username=KaladinDMP&label=Visitors&color=blue)
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/VR-CyberDeck?label=Last%20Updated)
-![Stars](https://img.shields.io/github/stars/KaladinDMP/VR-CyberDeck)
+![Created](https://img.shields.io/github/created-at/KaladinDMP/VR-CyberDeck?label=Created)
+![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/VR-CyberDeck?label=Monthly%20Commits)
+![Stars](https://img.shields.io/github/stars/KaladinDMP)
+
+Contributors on this Repo
 
 [![Contributors](https://contrib.rocks/image?repo=KaladinDMP/VR-CyberDeck)](https://github.com/KaladinDMP/VR-CyberDeck/graphs/contributors)
