@@ -1398,8 +1398,12 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   {/* Device name with green dot */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#39ff14', boxShadow: '0 0 6px #39ff14', flexShrink: 0 }} />
-                    <Text weight="semibold" style={{ fontSize: '13px', color: '#e0e0f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {selectedDeviceDetails.friendlyModelName || 'Connected Device'}
+                    <Text weight="semibold" style={{ fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {(selectedDeviceDetails.friendlyModelName || 'Connected Device')
+                        .split(' ')
+                        .map((word, i) => (
+                          <span key={i} style={{ color: i % 2 === 0 ? '#39ff14' : '#a855f7' }}>{i > 0 ? ' ' : ''}{word}</span>
+                        ))}
                     </Text>
                   </div>
 

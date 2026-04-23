@@ -406,69 +406,56 @@ const AppLayout: React.FC = () => {
 
                 {/* Dark mode joke dialog */}
                 <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
-                  <DialogSurface style={{ background: '#030310', border: '1px solid rgba(57,255,20,0.35)', maxWidth: '520px', width: '90vw', fontFamily: 'monospace', boxShadow: '0 0 40px rgba(57,255,20,0.07)' }}>
+                  <DialogSurface style={{ background: '#030310', border: '1px solid rgba(57,255,20,0.45)', maxWidth: '480px', width: '90vw', fontFamily: 'monospace', boxShadow: '0 0 50px rgba(57,255,20,0.08), 0 0 80px rgba(168,85,247,0.06)' }}>
                     <DialogBody>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '4px 0 8px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '8px 0 10px', textAlign: 'center' }}>
 
-                        {/* Binary smiley face SVG */}
-                        <svg width="240" height="200" viewBox="-20 0 240 200" style={{ overflow: 'visible' }}>
+                        {/* Neon crying-laughing face SVG */}
+                        <svg width="160" height="160" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 20px rgba(57,255,20,0.3))' }}>
                           <defs>
-                            <path id="jk-ring" d="M 100,16 A 84,84 0 0,1 184,100 A 84,84 0 0,1 100,184 A 84,84 0 0,1 16,100 A 84,84 0 0,1 100,16"/>
-                            <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur stdDeviation="2.5" result="b"/>
+                            <filter id="jk-glow" x="-40%" y="-40%" width="180%" height="180%">
+                              <feGaussianBlur stdDeviation="3" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
-                            <filter id="jk-pg" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur stdDeviation="2" result="b"/>
+                            <filter id="jk-pglow" x="-40%" y="-40%" width="180%" height="180%">
+                              <feGaussianBlur stdDeviation="3" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
                           </defs>
-
-                          {/* Circular binary ring */}
-                          <text fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-g)">
-                            <textPath href="#jk-ring">10110100 01001011 10110100 01001011 10110100 01001011 10110100 01001011 10110100 01001011 10110100 01</textPath>
-                          </text>
-
-                          {/* Eyes */}
-                          <text x="72" y="98" fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="18" fontWeight="bold" filter="url(#jk-g)" textAnchor="middle">◉</text>
-                          <text x="128" y="98" fill="#39ff14" fontFamily="'Courier New',monospace" fontSize="18" fontWeight="bold" filter="url(#jk-g)" textAnchor="middle">◉</text>
-
-                          {/* Wide smile arc */}
-                          <path d="M 58,128 Q 100,162 142,128" fill="none" stroke="#39ff14" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-g)"/>
-
-                          {/* Left tear block */}
-                          <text x="-18" y="84" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">85305</text>
-                          <text x="-18" y="95" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">33850</text>
-                          <text x="-18" y="106" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">01101</text>
-                          <text x="-18" y="117" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">10011</text>
-
-                          {/* Right tear block */}
-                          <text x="163" y="84" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">58503</text>
-                          <text x="163" y="95" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">05833</text>
-                          <text x="163" y="106" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">11010</text>
-                          <text x="163" y="117" fill="rgba(176,64,255,0.9)" fontFamily="'Courier New',monospace" fontSize="8.5" filter="url(#jk-pg)">11001</text>
+                          {/* Face circle */}
+                          <circle cx="100" cy="100" r="80" fill="#030310" stroke="#39ff14" strokeWidth="3.5" filter="url(#jk-glow)"/>
+                          {/* Left squinting eye — arc curving downward (laugh squint) */}
+                          <path d="M 62,82 Q 72,72 82,82" fill="none" stroke="#39ff14" strokeWidth="3" strokeLinecap="round" filter="url(#jk-glow)"/>
+                          {/* Right squinting eye */}
+                          <path d="M 118,82 Q 128,72 138,82" fill="none" stroke="#39ff14" strokeWidth="3" strokeLinecap="round" filter="url(#jk-glow)"/>
+                          {/* Wide open mouth — smile */}
+                          <path d="M 58,122 Q 100,165 142,122" fill="none" stroke="#39ff14" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-glow)"/>
+                          {/* Left tear stream */}
+                          <path d="M 65,88 Q 55,105 60,122" fill="none" stroke="rgba(168,85,247,0.9)" strokeWidth="3" strokeLinecap="round" filter="url(#jk-pglow)"/>
+                          <ellipse cx="60" cy="125" rx="5" ry="7" fill="rgba(168,85,247,0.85)" filter="url(#jk-pglow)"/>
+                          {/* Right tear stream */}
+                          <path d="M 135,88 Q 145,105 140,122" fill="none" stroke="rgba(168,85,247,0.9)" strokeWidth="3" strokeLinecap="round" filter="url(#jk-pglow)"/>
+                          <ellipse cx="140" cy="125" rx="5" ry="7" fill="rgba(168,85,247,0.85)" filter="url(#jk-pglow)"/>
                         </svg>
 
                         {/* LMAO */}
-                        <div style={{ fontSize: '44px', color: '#39ff14', letterSpacing: '0.18em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 8px #39ff14, 0 0 20px rgba(57,255,20,0.5), 0 0 50px rgba(57,255,20,0.2)', marginTop: '-6px' }}>LMAO</div>
+                        <div style={{ fontSize: '44px', color: '#39ff14', letterSpacing: '0.18em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 8px #39ff14, 0 0 24px rgba(57,255,20,0.6), 0 0 50px rgba(57,255,20,0.2)' }}>LMAO</div>
 
                         {/* Purple circuit divider */}
-                        <div style={{ display: 'flex', alignItems: 'center', width: '88%' }}>
-                          <span style={{ color: 'rgba(176,64,255,0.8)', fontFamily: 'monospace', fontSize: '13px', flexShrink: 0 }}>⊣─</span>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(176,64,255,0.55)', boxShadow: '0 0 5px rgba(176,64,255,0.4)' }}/>
-                          <span style={{ color: 'rgba(176,64,255,0.95)', fontSize: '14px', textShadow: '0 0 7px rgba(176,64,255,0.8)', margin: '0 6px', flexShrink: 0 }}>◆</span>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(176,64,255,0.55)', boxShadow: '0 0 5px rgba(176,64,255,0.4)' }}/>
-                          <span style={{ color: 'rgba(176,64,255,0.8)', fontFamily: 'monospace', fontSize: '13px', flexShrink: 0 }}>─⊢</span>
+                        <div style={{ display: 'flex', alignItems: 'center', width: '85%' }}>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.5)', boxShadow: '0 0 5px rgba(168,85,247,0.35)' }}/>
+                          <span style={{ color: 'rgba(168,85,247,0.95)', fontSize: '10px', margin: '0 8px', textShadow: '0 0 7px rgba(168,85,247,0.8)' }}>◆</span>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.5)', boxShadow: '0 0 5px rgba(168,85,247,0.35)' }}/>
                         </div>
 
                         {/* Body text */}
-                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 1.9, fontFamily: '"Courier New", monospace', textShadow: '0 0 5px rgba(57,255,20,0.3)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 1.9, fontFamily: '"Courier New", monospace', textShadow: '0 0 5px rgba(57,255,20,0.3)' }}>
                           This is just for looks.<br />
                           Do people actually USE light mode?
                         </div>
 
-                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '4px', background: 'transparent', border: '1px solid rgba(57,255,20,0.5)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '12px', letterSpacing: '0.1em', padding: '8px 24px', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic', boxShadow: '0 0 8px rgba(57,255,20,0.1)' }}>
-                          [ *Cries in binary* ]
+                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '6px', background: 'transparent', border: '2px solid rgba(57,255,20,0.6)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '13px', letterSpacing: '0.15em', padding: '10px 40px', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 0 12px rgba(57,255,20,0.15), inset 0 0 12px rgba(57,255,20,0.03)', width: '80%' }}>
+                          [ OK ]
                         </button>
                       </div>
                     </DialogBody>
