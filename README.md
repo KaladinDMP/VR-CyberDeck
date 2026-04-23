@@ -5,7 +5,7 @@
 
 # VR CyberDeck
 
-**With <3, by DMP**
+**Made with <3 by DMP**
 
 > OPERATE. DEPLOY. CONTROL.
 
@@ -17,7 +17,8 @@ VR CyberDeck is a cross-platform desktop app built with Electron, React, and Typ
 
 | File | Platform |
 |------|----------|
-| `vr-cyberdeck-x.x.x-x64.dmg` | macOS (Intel / Rosetta 2) |
+| `vr-cyberdeck-x.x.x-x64.dmg` | macOS x64 |
+| `vr-cyberdeck-x.x.x-arm64.dmg` | macOS arm64 |
 | `vr-cyberdeck-x.x.x-setup-x64.exe` | Windows — Installer |
 | `vr-cyberdeck-x.x.x-portable-x64.exe` | Windows — Portable |
 | `vr-cyberdeck-x.x.x-x86_64.AppImage` | Linux x64 |
@@ -25,12 +26,7 @@ VR CyberDeck is a cross-platform desktop app built with Electron, React, and Typ
 | `vr-cyberdeck-x.x.x-amd64.deb` | Debian/Ubuntu x64 |
 | `vr-cyberdeck-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 |
 
-Always use the latest release.
-
-**macOS — Apple Silicon (M1–M5):** Install Rosetta 2 first, then run the x64 build.
-```
-softwareupdate --install-rosetta
-```
+Always use the latest release. If you have it installed already just update in-app =)
 
 **macOS — "App is damaged" error:**
 ```
@@ -61,23 +57,30 @@ npm install --legacy-peer-deps
 
 ## Setup
 
-### Step 1 — Get Server Credentials
+**Step 1:** Install the version for your OS and preference and use it.
 
-VR CyberDeck requires a `baseUri` and `password` (base64 encoded) to connect to the game library.
+**Step 2:** Things required to add a server: None! 
 
-Find them here:
+This version comes with the current server info already, but in the future you may need or want to change this. 
+If that happens, here is the info you would need:
+
+### Part 1 — Get Server Credentials
+
+VR CyberDeck requires a `baseUri` and `password` (base64 encoded) to connect to the game library. 
+
+Find them here if they change:
 - Telegram: https://t.me/the_vrSrc
 - Web preview: https://t.me/s/the_vrSrc
 - Public JSON: https://qpmegathread.top/pages/public-json.html
 
-Keep credentials private.
+You can also use an rclone config if you have one.
 
-### Step 2 — Enter Credentials
+### Part 2 — Enter The Credentials
 
 **Option A — In-App (recommended):**
 1. Open Settings
-2. Click **Set Public Server JSON**
-3. Paste your JSON or enter values manually
+2. Click **Set Public Server JSON** or **"Set Rclone Config"**
+3. Paste your JSON or enter values manually, or point to the rclone.conf
 4. Click **Save**
 
 **Option B — ServerInfo.json file:**
@@ -109,7 +112,9 @@ Up to 5 downloads run in parallel.
 
 ### From a Connected Quest
 
-The app detects games on your device that are missing from or newer than the library and prompts you to upload them. The pipeline:
+The app detects games on your device that are missing from or newer than the library and prompts you to upload them. 
+
+**The pipeline:**
 
 1. Creates a staging folder
 2. Pulls the APK via ADB
@@ -141,7 +146,7 @@ Uploads do not guarantee library inclusion.
 | macOS | `~/Library/Logs/vr-cyberdeck/main.log` |
 | Linux | `~/.config/vr-cyberdeck/logs/main.log` |
 
-Logs can also be uploaded and shared directly from **Settings → Log Upload**.
+Logs can also be uploaded and shared directly from **Settings → Log Upload**. Just share the full link or shortcode either in the message to me or in the 'issues' post you make.
 
 ---
 
@@ -178,12 +183,22 @@ VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprent
 GNU Affero GPL v3
 
 ---
-![Visitors](https://komarev.com/ghpvc/?username=KaladinDMP&label=Visitors&color=blue)
+
+![Visitors](https://api.visitorbadge.io/api/visitors?path=kaladindmp%2Fvr-cyberdeck&label=People%20Who%20Forgot%20To%20Star%20This%20Repo&countColor=%23ba68c8&style=plastic)
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/VR-CyberDeck?label=Last%20Updated)
 ![Created](https://img.shields.io/github/created-at/KaladinDMP/VR-CyberDeck?label=Created)
 ![Monthly Commits](https://img.shields.io/github/commit-activity/m/KaladinDMP/VR-CyberDeck?label=Monthly%20Commits)
-![Stars](https://img.shields.io/github/stars/KaladinDMP)
 
-Contributors on this Repo
+## ⭐ Do the thing
 
-[![Contributors](https://contrib.rocks/image?repo=KaladinDMP/VR-CyberDeck)](https://github.com/KaladinDMP/VR-CyberDeck/graphs/contributors)
+You’re already here. You’ve already scrolled.
+
+Just hit the ⭐ and we both win.
+
+⭐ Star this repo please
+
+---
+
+[![GitHub stars for this repo](https://img.shields.io/github/stars/KaladinDMP/VR-CyberDeck?style=social)](https://github.com/KaladinDMP/VR-CyberDeck) = **GitHub stars for this repo**
+
+[![GitHub stars in total (all repos)](https://img.shields.io/github/stars/KaladinDMP?style=social)](https://github.com/KaladinDMP) = **GitHub stars in total (all repos)**
