@@ -555,6 +555,106 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ label, sectionKey, openSe
   </button>
 )
 
+// ─── Matrix Identity Settings ─────────────────────────────────────────────────
+const USERNAME_PREFS_KEY = 'vr-matrix-usernames'
+interface UsernamePref { mode: 'random+custom' | 'only-custom'; ratio: number; custom: string[] }
+
+const MatrixIdentitySettings: React.FC = () => {
+  const [prefs, setPrefsState] = useState<UsernamePref>(() => {
+    try {
+      const raw = localStorage.getItem(USERNAME_PREFS_KEY)
+      if (raw) return { mode: 'random+custom', ratio: 2, custom: [], ...JSON.parse(raw) }
+    } catch { /* ignore */ }
+    return { mode: 'random+custom', ratio: 2, custom: [] }
+  })
+  const [newEntry, setNewEntry] = useState('')
+
+  const save = (next: UsernamePref): void => {
+    try { localStorage.setItem(USERNAME_PREFS_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+    setPrefsState(next)
+  }
+
+  const addEntry = (): void => {
+    const v = newEntry.trim()
+    if (!v || prefs.custom.includes(v)) return
+    save({ ...prefs, custom: [...prefs.custom, v] })
+    setNewEntry('')
+  }
+
+  const removeEntry = (name: string): void =>
+    save({ ...prefs, custom: prefs.custom.filter((c) => c !== name) })
+
+  const S = { fontFamily: 'monospace', fontSize: '12px' } as const
+  const inputStyle: React.CSSProperties = { background: 'rgba(57,255,20,0.04)', border: '1px solid rgba(57,255,20,0.3)', color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', outline: 'none' }
+
+  const RATIO_OPTIONS = [
+    { label: '1:1 — no preference', value: 1 },
+    { label: '1.1:1 — slight preference', value: 1.1 },
+    { label: '2:1 — default preference (recommended)', value: 2 },
+    { label: '3:1 — strong preference', value: 3 },
+    { label: '5:1 — almost always custom', value: 5 }
+  ]
+
+  return (
+    <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <span style={{ ...S, color: 'rgba(57,255,20,0.5)', lineHeight: 1.6 }}>
+        Controls which username appears in the ADB Shell Matrix intro animation.{'\n'}
+        Edit <span style={{ color: '#39ff14' }}>g33kyu$3rn4m3$.json</span> in the app resources to customise the random pool.
+      </span>
+
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Username source</span>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {(['random+custom', 'only-custom'] as const).map((m) => (
+            <button key={m} onClick={() => save({ ...prefs, mode: m })}
+              style={{ ...inputStyle, cursor: 'pointer', background: prefs.mode === m ? 'rgba(57,255,20,0.12)' : 'transparent', borderColor: prefs.mode === m ? '#39ff14' : 'rgba(57,255,20,0.3)', color: prefs.mode === m ? '#39ff14' : 'rgba(57,255,20,0.5)' }}>
+              {m === 'random+custom' ? 'Random + Custom' : 'Custom Only'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Ratio (only shown in random+custom mode when custom list has entries) */}
+      {prefs.mode === 'random+custom' && prefs.custom.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Custom preference ratio</span>
+          <select value={prefs.ratio} onChange={(e) => save({ ...prefs, ratio: Number(e.target.value) })}
+            style={{ ...inputStyle, cursor: 'pointer' }}>
+            {RATIO_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value} style={{ background: '#050514', color: '#39ff14' }}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Custom entries */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Custom usernames</span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <input value={newEntry} onChange={(e) => setNewEntry(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addEntry()}
+            placeholder="add username..." style={{ ...inputStyle, flex: 1 }} />
+          <button onClick={addEntry} style={{ ...inputStyle, cursor: 'pointer', padding: '4px 12px' }}>+</button>
+        </div>
+        {prefs.custom.length > 0 && (
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+            {prefs.custom.map((name) => (
+              <span key={name} style={{ ...S, background: 'rgba(57,255,20,0.06)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {name}
+                <button onClick={() => removeEntry(name)} style={{ background: 'none', border: 'none', color: 'rgba(168,85,247,0.8)', cursor: 'pointer', fontSize: '11px', padding: 0, lineHeight: 1 }}>✕</button>
+              </span>
+            ))}
+          </div>
+        )}
+        {prefs.custom.length === 0 && (
+          <span style={{ ...S, color: 'rgba(57,255,20,0.3)', fontStyle: 'italic' }}>no custom usernames yet</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const Settings: React.FC = () => {
   const styles = useStyles()
   const {
@@ -578,7 +678,8 @@ const Settings: React.FC = () => {
     logs: false,
     download: false,
     blacklist: false,
-    content: false
+    content: false,
+    matrixId: false
   })
   const toggleSection = useCallback((key: string): void =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -899,7 +1000,13 @@ const Settings: React.FC = () => {
     } as React.CSSProperties}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
-          <span style={{ fontSize: '28px', fontWeight: 800, color: '#39ff14', fontFamily: '"Courier New", monospace', letterSpacing: '0.04em', textShadow: '0 0 12px rgba(57,255,20,0.4)' }}>VR CyberDeck Hacks</span>
+          <span style={{ fontSize: '28px', fontWeight: 800, fontFamily: '"Courier New", monospace', letterSpacing: '0.04em' }}>
+            <span style={{ color: '#a855f7', textShadow: '0 0 12px rgba(168,85,247,0.6)' }}>VR</span>
+            {' '}
+            <span style={{ color: '#39ff14', textShadow: '0 0 12px rgba(57,255,20,0.5)' }}>CyberDeck</span>
+            {' '}
+            <span style={{ color: '#a855f7', textShadow: '0 0 12px rgba(168,85,247,0.6)' }}>Hacks</span>
+          </span>
           {isLoading && <Spinner size="large" label={t('loadingSettings')} />}
         </div>
         <span style={{ color: 'rgba(57,255,20,0.55)', fontFamily: 'monospace', fontSize: '12px', marginBottom: '8px', display: 'block' }}>
@@ -1063,6 +1170,11 @@ const Settings: React.FC = () => {
               </span>
             </div>
           )}
+        </div>
+
+        <div>
+          <SectionHeader label="// MATRIX IDENTITIES" sectionKey="matrixId" openSections={openSections} onToggle={toggleSection} />
+          {openSections.matrixId && <MatrixIdentitySettings />}
         </div>
 
         {/* Credits footer */}

@@ -58,8 +58,9 @@
 }
 
 .game-count {
-  color: var(--colorNeutralForeground2);
+  color: rgba(57, 255, 20, 0.7);
   font-size: 0.9em;
+  font-family: monospace;
 }
 
 .loading-indicator {
