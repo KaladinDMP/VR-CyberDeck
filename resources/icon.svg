@@ -1,91 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#0a0a28"/>
-      <stop offset="100%" stop-color="#020210"/>
-    </radialGradient>
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-    <filter id="purpleGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
+  <!-- Dark background rounded square -->
+  <rect width="512" height="512" rx="80" fill="#020210"/>
 
-  <!-- Background: dark rounded square -->
-  <rect width="512" height="512" rx="96" fill="url(#bgGrad)"/>
+  <!-- Outer ring segments (broken arc, like header) -->
+  <!-- Top-right arc (bright green) -->
+  <path d="M 256,20 A 236,236 0 0 1 492,256" fill="none" stroke="#39ff14" stroke-width="14"/>
+  <!-- Bottom-right arc (dim green) -->
+  <path d="M 492,256 A 236,236 0 0 1 374,456" fill="none" stroke="rgba(57,255,20,0.5)" stroke-width="9"/>
+  <!-- Bottom-left arc (dim green) -->
+  <path d="M 138,456 A 236,236 0 0 1 20,256" fill="none" stroke="rgba(57,255,20,0.5)" stroke-width="9"/>
+  <!-- Top-left arc (purple) -->
+  <path d="M 20,256 A 236,236 0 0 1 256,20" fill="none" stroke="#a855f7" stroke-width="14"/>
 
-  <!-- Subtle grid lines -->
-  <line x1="0" y1="256" x2="512" y2="256" stroke="rgba(57,255,20,0.04)" stroke-width="1"/>
-  <line x1="256" y1="0" x2="256" y2="512" stroke="rgba(57,255,20,0.04)" stroke-width="1"/>
+  <!-- Small tick marks at gaps -->
+  <line x1="358" y1="468" x2="384" y2="452" stroke="rgba(57,255,20,0.6)" stroke-width="7"/>
+  <line x1="128" y1="452" x2="154" y2="468" stroke="rgba(168,85,247,0.6)" stroke-width="7"/>
 
-  <!-- Outer border ring -->
-  <rect x="18" y="18" width="476" height="476" rx="80" fill="none"
-        stroke="#39ff14" stroke-width="6" opacity="0.6"/>
+  <!-- Inner thin ring -->
+  <circle cx="256" cy="256" r="205" fill="none" stroke="rgba(57,255,20,0.08)" stroke-width="3"/>
 
-  <!-- Corner targeting brackets (TL) -->
-  <polyline points="60,18 18,18 18,60" fill="none" stroke="#39ff14" stroke-width="10" stroke-linecap="square"/>
-  <!-- Corner targeting brackets (TR) -->
-  <polyline points="452,18 494,18 494,60" fill="none" stroke="#39ff14" stroke-width="10" stroke-linecap="square"/>
-  <!-- Corner targeting brackets (BL) -->
-  <polyline points="60,494 18,494 18,452" fill="none" stroke="#39ff14" stroke-width="10" stroke-linecap="square"/>
-  <!-- Corner targeting brackets (BR) -->
-  <polyline points="452,494 494,494 494,452" fill="none" stroke="#39ff14" stroke-width="10" stroke-linecap="square"/>
+  <!-- "V" — bold purple, offset left -->
+  <text x="60" y="370" fill="#a855f7" font-family="'Courier New',monospace" font-size="310" font-weight="900" dominant-baseline="auto">V</text>
+  <!-- Scan lines over V (glitch effect) -->
+  <rect x="40" y="145" width="230" height="14" fill="rgba(2,2,16,0.72)"/>
+  <rect x="40" y="180" width="230" height="10" fill="rgba(2,2,16,0.55)"/>
+  <rect x="40" y="222" width="230" height="14" fill="rgba(2,2,16,0.65)"/>
+  <rect x="40" y="265" width="230" height="10" fill="rgba(2,2,16,0.5)"/>
+  <rect x="40" y="305" width="230" height="14" fill="rgba(2,2,16,0.6)"/>
 
-  <!-- VR Headset body -->
-  <path d="M90,195 C90,162 114,140 148,140 L364,140 C398,140 422,162 422,195
-           L422,290 C422,323 398,345 364,345
-           L320,345 C312,370 286,388 256,388
-           C226,388 200,370 192,345
-           L148,345 C114,345 90,323 90,290 Z"
-        fill="#030318" stroke="#39ff14" stroke-width="10"/>
+  <!-- "R" — bold neon green, offset right, overlapping V -->
+  <text x="195" y="370" fill="#39ff14" font-family="'Courier New',monospace" font-size="310" font-weight="900" dominant-baseline="auto">R</text>
+  <!-- Scan lines over R -->
+  <rect x="190" y="145" width="290" height="14" fill="rgba(2,2,16,0.6)"/>
+  <rect x="190" y="188" width="290" height="10" fill="rgba(2,2,16,0.45)"/>
+  <rect x="190" y="234" width="290" height="14" fill="rgba(2,2,16,0.55)"/>
+  <rect x="190" y="278" width="290" height="10" fill="rgba(2,2,16,0.5)"/>
 
-  <!-- Neon glow copy of headset body for glow effect -->
-  <path d="M90,195 C90,162 114,140 148,140 L364,140 C398,140 422,162 422,195
-           L422,290 C422,323 398,345 364,345
-           L320,345 C312,370 286,388 256,388
-           C226,388 200,370 192,345
-           L148,345 C114,345 90,323 90,290 Z"
-        fill="none" stroke="rgba(57,255,20,0.25)" stroke-width="20" filter="url(#neonGlow)"/>
+  <!-- Glitch ghost: purple offset "VR" -->
+  <text x="68" y="366" fill="rgba(168,85,247,0.18)" font-family="'Courier New',monospace" font-size="310" font-weight="900" dominant-baseline="auto">VR</text>
 
-  <!-- Left lens -->
-  <rect x="108" y="162" width="132" height="145" rx="28"
-        fill="rgba(168,85,247,0.18)" stroke="#39ff14" stroke-width="9"/>
-  <!-- Left lens inner frame -->
-  <rect x="122" y="176" width="104" height="117" rx="18"
-        fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.6)" stroke-width="4"/>
-  <!-- Left lens purple glow -->
-  <rect x="122" y="176" width="104" height="117" rx="18"
-        fill="none" stroke="rgba(168,85,247,0.4)" stroke-width="16" filter="url(#purpleGlow)"/>
-  <!-- Left lens highlight -->
-  <line x1="126" y1="182" x2="160" y2="216" stroke="rgba(57,255,20,0.35)" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="136" cy="192" r="6" fill="rgba(255,255,255,0.15)"/>
+  <!-- Bottom accent line -->
+  <line x1="80" y1="400" x2="432" y2="400" stroke="rgba(168,85,247,0.35)" stroke-width="4"/>
 
-  <!-- Right lens -->
-  <rect x="272" y="162" width="132" height="145" rx="28"
-        fill="rgba(168,85,247,0.18)" stroke="#39ff14" stroke-width="9"/>
-  <!-- Right lens inner frame -->
-  <rect x="286" y="176" width="104" height="117" rx="18"
-        fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.6)" stroke-width="4"/>
-  <!-- Right lens purple glow -->
-  <rect x="286" y="176" width="104" height="117" rx="18"
-        fill="none" stroke="rgba(168,85,247,0.4)" stroke-width="16" filter="url(#purpleGlow)"/>
-  <!-- Right lens highlight -->
-  <line x1="290" y1="182" x2="324" y2="216" stroke="rgba(57,255,20,0.35)" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="300" cy="192" r="6" fill="rgba(255,255,255,0.15)"/>
-
-  <!-- Nose bridge arc -->
-  <path d="M240,234 C240,216 272,216 272,234"
-        fill="none" stroke="rgba(57,255,20,0.7)" stroke-width="8" stroke-linecap="round"/>
-
-  <!-- Bottom strap curve hint -->
-  <path d="M192,362 Q256,400 320,362"
-        fill="none" stroke="rgba(57,255,20,0.3)" stroke-width="5" stroke-linecap="round"/>
-
-  <!-- VRCYBERDECK label at bottom -->
-  <text x="256" y="462" text-anchor="middle" fill="rgba(168,85,247,0.8)"
-        font-family="Courier New, monospace" font-size="42" font-weight="700"
-        letter-spacing="8">CYBERDECK</text>
+  <!-- Corner accent dots -->
+  <circle cx="430" cy="82" r="9" fill="rgba(57,255,20,0.6)"/>
+  <circle cx="82" cy="82" r="7" fill="rgba(168,85,247,0.55)"/>
 </svg>

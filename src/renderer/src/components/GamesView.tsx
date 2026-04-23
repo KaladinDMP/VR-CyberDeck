@@ -1510,26 +1510,26 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               </Menu>
             </section>
 
-            {/* ── FOOTER ── */}
-            <div style={{ marginTop: 'auto', paddingTop: tokens.spacingVerticalL, display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
-              {appVersion && (
-                <Text size={100} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
-                  v{appVersion}
-                </Text>
-              )}
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>G|THU|3</a>
-                <a href="https://t.me/s/the_vrSrc/2" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>T3/_3GR4M</a>
-                <a href="https://qpmegathread.top" target="_blank" rel="noopener noreferrer"
-                  style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>|V|3G4THR34D</a>
-              </div>
-              <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace' }}>
-                {t('lastSynced')} {formatDate(lastSyncTime)}
-              </Text>
-            </div>
+          </div>
 
+          {/* ── SIDEBAR FOOTER — outside scroll so always visible ── */}
+          <div style={{ flexShrink: 0, borderTop: '1px solid rgba(57,255,20,0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+            {appVersion && (
+              <Text size={100} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
+                v{appVersion}
+              </Text>
+            )}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
+                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>G|THU|3</a>
+              <a href="https://t.me/s/the_vrSrc/2" target="_blank" rel="noopener noreferrer"
+                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>T3/_3GR4M</a>
+              <a href="https://qpmegathread.top" target="_blank" rel="noopener noreferrer"
+                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>|V|3G4THR34D</a>
+            </div>
+            <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace', fontSize: '8px' }}>
+              {t('lastSynced')} {formatDate(lastSyncTime)}
+            </Text>
           </div>
         </div>
 
@@ -1563,66 +1563,107 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               appearance="subtle"
               size="small"
               icon={prefs.viewMode === 'table' ? <GridRegular /> : <TableRegular />}
-              onClick={() => setPrefs({ viewMode: prefs.viewMode === 'table' ? 'cards' : 'table' })}
+              onClick={() => {
+                const next = prefs.viewMode === 'table' ? 'cards' : 'table'
+                setPrefs({ viewMode: next })
+                if (next === 'cards' && prefs.cardSortKey) {
+                  setSorting([{ id: prefs.cardSortKey, desc: prefs.cardSortDir === 'desc' }])
+                } else if (next === 'table') {
+                  setSorting([])
+                }
+              }}
               title={prefs.viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
               style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }}
             />
-            {prefs.viewMode !== 'cards' && (
             <Popover open={viewOptionsOpen} onOpenChange={(_, d) => setViewOptionsOpen(d.open)} positioning="below-end">
               <PopoverTrigger>
-                <Button appearance="subtle" icon={<OptionsRegular />} title="Display options" size="small"
+                <Button appearance="subtle" icon={<OptionsRegular />}
+                  title={prefs.viewMode === 'cards' ? 'Card view options' : 'Display options'}
+                  size="small"
                   style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }} />
               </PopoverTrigger>
-              <PopoverSurface style={{ minWidth: '280px', background: '#050514', border: '1px solid rgba(57,255,20,0.3)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
+              <PopoverSurface style={{ minWidth: '260px', background: '#050514', border: '1px solid rgba(57,255,20,0.3)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalM }}>
-                  <Text weight="semibold">Display Options</Text>
-                  <div>
-                    <Text size={200}>Row Density</Text>
-                    <Slider min={0} max={100} value={prefs.rowDensity} onChange={(_, d) => setPrefs({ rowDensity: d.value })} />
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text size={200}>Alternating rows</Text>
-                    <Switch checked={prefs.alternatingRows} onChange={(_, d) => setPrefs({ alternatingRows: d.checked })} />
-                  </div>
-                  {prefs.alternatingRows && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS }}>
-                      {(
-                        [
-                          { label: 'Even row colour', key: 'evenRowColor' as const },
-                          { label: 'Odd row colour', key: 'oddRowColor' as const }
-                        ] as { label: string; key: 'evenRowColor' | 'oddRowColor' }[]
-                      ).map(({ label, key }) => (
-                        <div key={key}>
-                          <Text size={200}>{label}</Text>
-                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                            {COLOR_SWATCHES.map((sw) => (
-                              <button
-                                key={sw.label}
-                                title={sw.label}
-                                style={{
-                                  width: '22px', height: '22px', borderRadius: '4px', padding: 0, cursor: 'pointer',
-                                  background: sw.value,
-                                  border: prefs[key] === sw.value ? '2px solid #00d4ff' : '1px solid rgba(128,128,128,0.3)'
-                                }}
-                                onClick={() => setPrefs({ [key]: sw.value })}
-                              />
-                            ))}
-                            <input
-                              type="color"
-                              value={prefs[key] === 'transparent' ? '#000000' : prefs[key]}
-                              title="Custom colour"
-                              style={{ width: '22px', height: '22px', borderRadius: '4px', border: '1px solid rgba(128,128,128,0.3)', padding: 0, cursor: 'pointer', background: 'none' }}
-                              onChange={(e) => setPrefs({ [key]: e.target.value })}
-                            />
-                          </div>
+                  {prefs.viewMode === 'cards' ? (
+                    <>
+                      <Text weight="semibold">Card View Options</Text>
+                      <div>
+                        <Text size={200}>Card Size</Text>
+                        <Slider min={0} max={100} value={prefs.cardSize} onChange={(_, d) => setPrefs({ cardSize: d.value })} />
+                      </div>
+                      <div>
+                        <Text size={200}>Sort By</Text>
+                        <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                          <select
+                            value={prefs.cardSortKey}
+                            onChange={(e) => {
+                              const key = e.target.value
+                              setPrefs({ cardSortKey: key })
+                              setSorting(key ? [{ id: key, desc: prefs.cardSortDir === 'desc' }] : [])
+                            }}
+                            style={{ flex: 1, background: '#050514', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)', borderRadius: 4, padding: '3px 6px', fontFamily: 'monospace', fontSize: 12, cursor: 'pointer' }}
+                          >
+                            <option value="name">Name</option>
+                            <option value="size">Size</option>
+                            <option value="downloads">Popularity</option>
+                            <option value="lastUpdated">Last Updated</option>
+                            <option value="version">Version</option>
+                          </select>
+                          <button
+                            onClick={() => {
+                              const dir = prefs.cardSortDir === 'asc' ? 'desc' : 'asc'
+                              setPrefs({ cardSortDir: dir })
+                              if (prefs.cardSortKey) setSorting([{ id: prefs.cardSortKey, desc: dir === 'desc' }])
+                            }}
+                            style={{ background: 'transparent', border: '1px solid rgba(57,255,20,0.35)', borderRadius: 4, color: '#39ff14', cursor: 'pointer', padding: '3px 8px', fontFamily: 'monospace' }}
+                          >
+                            {prefs.cardSortDir === 'asc' ? '▲ ASC' : '▼ DESC'}
+                          </button>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Text weight="semibold">Display Options</Text>
+                      <div>
+                        <Text size={200}>Row Density</Text>
+                        <Slider min={0} max={100} value={prefs.rowDensity} onChange={(_, d) => setPrefs({ rowDensity: d.value })} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text size={200}>Alternating rows</Text>
+                        <Switch checked={prefs.alternatingRows} onChange={(_, d) => setPrefs({ alternatingRows: d.checked })} />
+                      </div>
+                      {prefs.alternatingRows && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS }}>
+                          {(
+                            [
+                              { label: 'Even row colour', key: 'evenRowColor' as const },
+                              { label: 'Odd row colour', key: 'oddRowColor' as const }
+                            ] as { label: string; key: 'evenRowColor' | 'oddRowColor' }[]
+                          ).map(({ label, key }) => (
+                            <div key={key}>
+                              <Text size={200}>{label}</Text>
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                {COLOR_SWATCHES.map((sw) => (
+                                  <button key={sw.label} title={sw.label}
+                                    style={{ width: '22px', height: '22px', borderRadius: '4px', padding: 0, cursor: 'pointer', background: sw.value, border: prefs[key] === sw.value ? '2px solid #00d4ff' : '1px solid rgba(128,128,128,0.3)' }}
+                                    onClick={() => setPrefs({ [key]: sw.value })} />
+                                ))}
+                                <input type="color"
+                                  value={prefs[key] === 'transparent' ? '#000000' : prefs[key]}
+                                  title="Custom colour"
+                                  style={{ width: '22px', height: '22px', borderRadius: '4px', border: '1px solid rgba(128,128,128,0.3)', padding: 0, cursor: 'pointer', background: 'none' }}
+                                  onChange={(e) => setPrefs({ [key]: e.target.value })} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </PopoverSurface>
             </Popover>
-            )}
           </div>
 
           {/* Status messages */}
@@ -1669,7 +1710,10 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             ) : (
               <>
                 {prefs.viewMode === 'cards' ? (
-                  <div className="games-card-grid">
+                  <div
+                    className="games-card-grid"
+                    style={{ '--card-min-w': `${140 + Math.round(prefs.cardSize * 1.4)}px` } as React.CSSProperties}
+                  >
                     {rows.map((row) => {
                       const game = row.original
                       const ds = game.releaseName ? downloadStatusMap.get(game.releaseName) : undefined

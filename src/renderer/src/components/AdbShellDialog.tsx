@@ -672,10 +672,15 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
     let isError = false
 
     try {
-      output = await window.api.adb.runShellCommand(deviceId, cmd)
-      if (output === null) {
-        output = '(no output)'
+      const isLocalAdb = /^adb(\s|$)/.test(cmd)
+      if (isLocalAdb) {
+        // Run locally with bundled adb — strip 'adb ' prefix
+        const adbArgs = cmd.slice(3).trim()
+        output = await window.api.adb.runLocalAdbCommand(adbArgs)
+      } else {
+        output = await window.api.adb.runShellCommand(deviceId, cmd)
       }
+      if (!output) output = '(no output)'
     } catch (err) {
       output = err instanceof Error ? err.message : String(err)
       isError = true
