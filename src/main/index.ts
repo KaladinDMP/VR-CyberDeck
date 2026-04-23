@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session } from 'electron'
 import os from 'os'
 import { join } from 'path'
+import { exec } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import adbService from './services/adbService'
@@ -285,6 +286,14 @@ app.whenReady().then(async () => {
   })
   typedIpcMain.handle('adb:run-shell-command', async (_event, serial, command) => {
     return adbService.runShellCommand(serial, command)
+  })
+  typedIpcMain.handle('adb:run-local-adb-command', async (_event, args: string) => {
+    const adbPath = dependencyService.getAdbPath()
+    return new Promise<string>((resolve) => {
+      exec(`"${adbPath}" ${args}`, { timeout: 15000 }, (err, stdout, stderr) => {
+        resolve((stdout || '') + (stderr || '') || (err?.message ?? '(no output)'))
+      })
+    })
   })
 
   // --- Game Handlers ---

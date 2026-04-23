@@ -376,7 +376,9 @@ const AppLayout: React.FC = () => {
                     <div className={styles.titleSection}>
                       <span className={styles.titleMain}>
                         <span className={styles.titleVR}>VR</span>
-                        <span className={styles.titleCyberdeck}>CYBERDECK</span>
+                        <span className={styles.titleCyberdeck}>
+                          <span className="title-glitch-wrap" data-text="CYBERDECK">CYBERDECK</span>
+                        </span>
                       </span>
                       <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
                     </div>
@@ -407,55 +409,75 @@ const AppLayout: React.FC = () => {
                 {/* Dark mode joke dialog */}
                 <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
                   <DialogSurface style={{ background: '#030310', border: '1px solid rgba(57,255,20,0.45)', maxWidth: '480px', width: '90vw', fontFamily: 'monospace', boxShadow: '0 0 50px rgba(57,255,20,0.08), 0 0 80px rgba(168,85,247,0.06)' }}>
-                    <DialogBody>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '8px 0 10px', textAlign: 'center' }}>
+                    <DialogBody style={{ padding: '24px 28px 28px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
 
-                        {/* Neon crying-laughing face SVG */}
-                        <svg width="160" height="160" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 20px rgba(57,255,20,0.3))' }}>
+                        {/* Neon crying-laughing face */}
+                        <svg width="200" height="200" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 14px #39ff14) drop-shadow(0 0 40px rgba(57,255,20,0.55)) drop-shadow(0 0 70px rgba(57,255,20,0.2))' }}>
                           <defs>
-                            <filter id="jk-glow" x="-40%" y="-40%" width="180%" height="180%">
-                              <feGaussianBlur stdDeviation="3" result="b"/>
+                            <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur stdDeviation="4" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
-                            <filter id="jk-pglow" x="-40%" y="-40%" width="180%" height="180%">
-                              <feGaussianBlur stdDeviation="3" result="b"/>
+                            <filter id="jk-pg" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur stdDeviation="5" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
                           </defs>
-                          {/* Face circle */}
-                          <circle cx="100" cy="100" r="80" fill="#030310" stroke="#39ff14" strokeWidth="3.5" filter="url(#jk-glow)"/>
-                          {/* Left squinting eye — arc curving downward (laugh squint) */}
-                          <path d="M 62,82 Q 72,72 82,82" fill="none" stroke="#39ff14" strokeWidth="3" strokeLinecap="round" filter="url(#jk-glow)"/>
+                          {/* Face: dark fill + thick glowing ring */}
+                          <circle cx="100" cy="100" r="88" fill="#010108"/>
+                          <circle cx="100" cy="100" r="88" fill="none" stroke="#39ff14" strokeWidth="5" filter="url(#jk-g)"/>
+                          {/* Left squinting eye */}
+                          <path d="M 58,80 Q 72,68 86,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
                           {/* Right squinting eye */}
-                          <path d="M 118,82 Q 128,72 138,82" fill="none" stroke="#39ff14" strokeWidth="3" strokeLinecap="round" filter="url(#jk-glow)"/>
-                          {/* Wide open mouth — smile */}
-                          <path d="M 58,122 Q 100,165 142,122" fill="none" stroke="#39ff14" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-glow)"/>
-                          {/* Left tear stream */}
-                          <path d="M 65,88 Q 55,105 60,122" fill="none" stroke="rgba(168,85,247,0.9)" strokeWidth="3" strokeLinecap="round" filter="url(#jk-pglow)"/>
-                          <ellipse cx="60" cy="125" rx="5" ry="7" fill="rgba(168,85,247,0.85)" filter="url(#jk-pglow)"/>
-                          {/* Right tear stream */}
-                          <path d="M 135,88 Q 145,105 140,122" fill="none" stroke="rgba(168,85,247,0.9)" strokeWidth="3" strokeLinecap="round" filter="url(#jk-pglow)"/>
-                          <ellipse cx="140" cy="125" rx="5" ry="7" fill="rgba(168,85,247,0.85)" filter="url(#jk-pglow)"/>
+                          <path d="M 114,80 Q 128,68 142,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
+                          {/* Wide smile */}
+                          <path d="M 52,124 Q 100,175 148,124" fill="none" stroke="#39ff14" strokeWidth="4.5" strokeLinecap="round" filter="url(#jk-g)"/>
+                          {/* Left tear */}
+                          <path d="M 64,87 Q 52,108 58,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                          <ellipse cx="57" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
+                          {/* Right tear */}
+                          <path d="M 136,87 Q 148,108 142,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                          <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
                         </svg>
 
                         {/* LMAO */}
-                        <div style={{ fontSize: '44px', color: '#39ff14', letterSpacing: '0.18em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 8px #39ff14, 0 0 24px rgba(57,255,20,0.6), 0 0 50px rgba(57,255,20,0.2)' }}>LMAO</div>
+                        <div style={{ fontSize: '52px', color: '#39ff14', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px #39ff14, 0 0 30px rgba(57,255,20,0.7), 0 0 60px rgba(57,255,20,0.3)', lineHeight: 1 }}>LMAO</div>
 
-                        {/* Purple circuit divider */}
-                        <div style={{ display: 'flex', alignItems: 'center', width: '85%' }}>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.5)', boxShadow: '0 0 5px rgba(168,85,247,0.35)' }}/>
-                          <span style={{ color: 'rgba(168,85,247,0.95)', fontSize: '10px', margin: '0 8px', textShadow: '0 0 7px rgba(168,85,247,0.8)' }}>◆</span>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.5)', boxShadow: '0 0 5px rgba(168,85,247,0.35)' }}/>
+                        {/* Purple divider */}
+                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
+                          <span style={{ color: '#a855f7', fontSize: '12px', margin: '0 10px', textShadow: '0 0 8px rgba(168,85,247,0.9)', filter: 'drop-shadow(0 0 4px #a855f7)' }}>◆</span>
+                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
                         </div>
 
-                        {/* Body text */}
-                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 1.9, fontFamily: '"Courier New", monospace', textShadow: '0 0 5px rgba(57,255,20,0.3)' }}>
+                        {/* Body text — 3 centred lines */}
+                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(57,255,20,0.35)' }}>
                           This is just for looks.<br />
-                          Do people actually USE light mode?
+                          Do people actually USE<br />
+                          light mode?
                         </div>
 
-                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '6px', background: 'transparent', border: '2px solid rgba(57,255,20,0.6)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '13px', letterSpacing: '0.12em', padding: '10px 40px', borderRadius: '6px', cursor: 'pointer', fontStyle: 'italic', boxShadow: '0 0 12px rgba(57,255,20,0.15), inset 0 0 12px rgba(57,255,20,0.03)', width: '80%' }}>
-                          [ *Cries in binary* ]
+                        {/* Single-line full-width button */}
+                        <button
+                          onClick={() => setIsDarkModeJokeOpen(false)}
+                          style={{
+                            width: '100%',
+                            background: 'transparent',
+                            border: '2px solid rgba(57,255,20,0.65)',
+                            color: '#39ff14',
+                            fontFamily: '"Courier New", monospace',
+                            fontSize: '14px',
+                            letterSpacing: '0.1em',
+                            padding: '12px 0',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontStyle: 'italic',
+                            boxShadow: '0 0 14px rgba(57,255,20,0.15), inset 0 0 14px rgba(57,255,20,0.04)',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          [ *Cries in binary ]
                         </button>
                       </div>
                     </DialogBody>

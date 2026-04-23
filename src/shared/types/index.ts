@@ -220,6 +220,7 @@ export interface AdbAPI {
   setUserName: (serial: string, name: string) => Promise<void>
   pingDevice: (ipAddress: string) => Promise<{ reachable: boolean; responseTime?: number }>
   runShellCommand: (serial: string, command: string) => Promise<string | null>
+  runLocalAdbCommand: (args: string) => Promise<string>
 }
 
 export interface DependencyAPI {
