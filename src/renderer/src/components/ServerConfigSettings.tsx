@@ -102,7 +102,7 @@ const ServerConfigSettings: React.FC = () => {
     <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>
       <DialogTrigger disableButtonEnhancement>
         <Button appearance="secondary" icon={<ServerRegular />}>
-          Set Public Server JSON{hasConfig ? ' (set)' : ''}
+          Set Public Server JSON
         </Button>
       </DialogTrigger>
       <DialogSurface style={{ maxWidth: '600px' }}>
