@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { getMatrixUsername } from '../utils/matrixUsername'
 
-const POOL_USERNAMES = ['DMP', 'DeliciousMeatPop', 'KaladinDMP', 'SickSoThr33', 'G4M3R_0NE', 'CyberN4ut']
 const TYPO_CHARS = 'asdfjkl;qwertyuiop'
 
 function sleep(ms: number): Promise<void> {
@@ -47,9 +47,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         // use pool
       }
 
-      const allNames = [...POOL_USERNAMES]
-      if (systemUser && !allNames.includes(systemUser)) allNames.push(systemUser)
-      const username = allNames[rand(0, allNames.length - 1)]
+      const username = getMatrixUsername() || systemUser || 'n30'
 
       // ── Phase 1: boot cursor, 1.5s ──────────────────────────────
       await sleep(1500)

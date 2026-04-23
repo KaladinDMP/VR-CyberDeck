@@ -1,29 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <!-- Dark background -->
   <circle cx="50" cy="50" r="50" fill="#020210"/>
-  <!-- Outer green ring -->
-  <circle cx="50" cy="50" r="47" fill="none" stroke="#39ff14" stroke-width="2.5"/>
-  <!-- Inner faint ring -->
-  <circle cx="50" cy="50" r="43" fill="none" stroke="rgba(57,255,20,0.2)" stroke-width="0.75"/>
-  <!-- Subtle grid cross-hairs -->
-  <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(57,255,20,0.07)" stroke-width="0.5"/>
-  <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(57,255,20,0.07)" stroke-width="0.5"/>
-  <!-- Cardinal tick marks -->
-  <line x1="50" y1="4" x2="50" y2="11" stroke="#39ff14" stroke-width="2.5"/>
-  <line x1="50" y1="89" x2="50" y2="96" stroke="#39ff14" stroke-width="2.5"/>
-  <line x1="4" y1="50" x2="11" y2="50" stroke="#39ff14" stroke-width="2.5"/>
-  <line x1="89" y1="50" x2="96" y2="50" stroke="#39ff14" stroke-width="2.5"/>
-  <!-- Diagonal accent dots -->
-  <circle cx="83" cy="17" r="1.8" fill="rgba(168,85,247,0.8)"/>
-  <circle cx="17" cy="83" r="1.8" fill="rgba(168,85,247,0.8)"/>
-  <circle cx="17" cy="17" r="1.5" fill="rgba(57,255,20,0.4)"/>
-  <circle cx="83" cy="83" r="1.5" fill="rgba(57,255,20,0.4)"/>
-  <!-- VR main text -->
-  <text x="50" y="62" text-anchor="middle" fill="#39ff14"
-        font-family="Courier New,monospace" font-size="36" font-weight="900">VR</text>
-  <!-- Purple divider bar -->
-  <rect x="14" y="66" width="72" height="1.5" fill="#a855f7" rx="0.75"/>
-  <!-- CYBERDECK subtext -->
-  <text x="50" y="79" text-anchor="middle" fill="rgba(168,85,247,0.9)"
-        font-family="Courier New,monospace" font-size="8.5">CYBERDECK</text>
+
+  <!-- Outer neon ring -->
+  <circle cx="50" cy="50" r="46" fill="none" stroke="#39ff14" stroke-width="1.8" opacity="0.9"/>
+
+  <!-- Corner targeting brackets -->
+  <polyline points="18,8 8,8 8,18" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="square"/>
+  <polyline points="82,8 92,8 92,18" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="square"/>
+  <polyline points="18,92 8,92 8,82" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="square"/>
+  <polyline points="82,92 92,92 92,82" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="square"/>
+
+  <!-- VR headset body -->
+  <path d="M17,38 C17,31 22,27 29,27 L71,27 C78,27 83,31 83,38 L83,57 C83,64 78,68 71,68 L64,68 C61,73 56,76 50,76 C44,76 39,73 36,68 L29,68 C22,68 17,64 17,57 Z"
+        fill="#020210" stroke="#39ff14" stroke-width="2.2"/>
+
+  <!-- Left lens -->
+  <rect x="21" y="32" width="25" height="28" rx="6"
+        fill="rgba(168,85,247,0.15)" stroke="rgba(57,255,20,0.75)" stroke-width="1.8"/>
+  <!-- Left lens inner glow -->
+  <rect x="24" y="35" width="19" height="22" rx="4"
+        fill="rgba(168,85,247,0.1)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <!-- Left lens highlight streak -->
+  <line x1="24" y1="36" x2="30" y2="42" stroke="rgba(57,255,20,0.3)" stroke-width="1.2"/>
+
+  <!-- Right lens -->
+  <rect x="54" y="32" width="25" height="28" rx="6"
+        fill="rgba(168,85,247,0.15)" stroke="rgba(57,255,20,0.75)" stroke-width="1.8"/>
+  <!-- Right lens inner glow -->
+  <rect x="57" y="35" width="19" height="22" rx="4"
+        fill="rgba(168,85,247,0.1)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <!-- Right lens highlight streak -->
+  <line x1="57" y1="36" x2="63" y2="42" stroke="rgba(57,255,20,0.3)" stroke-width="1.2"/>
+
+  <!-- Nose bridge -->
+  <path d="M46,46 C46,42 54,42 54,46" fill="none" stroke="rgba(57,255,20,0.55)" stroke-width="1.8"/>
+
+  <!-- Chin strap indicator dots -->
+  <circle cx="50" cy="73" r="1.5" fill="rgba(168,85,247,0.7)"/>
+  <circle cx="44" cy="71" r="1" fill="rgba(168,85,247,0.4)"/>
+  <circle cx="56" cy="71" r="1" fill="rgba(168,85,247,0.4)"/>
+
+  <!-- Bottom label -->
+  <text x="50" y="90" text-anchor="middle" fill="rgba(168,85,247,0.75)"
+        font-family="Courier New,monospace" font-size="7" letter-spacing="2">CYBERDECK</text>
 </svg>
