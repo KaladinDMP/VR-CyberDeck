@@ -15,7 +15,7 @@ const HackerConsole: React.FC = () => {
   }, [])
 
   const hasServer = serverConfig?.baseUri?.length > 0
-  const totalGames = games.length
+  const totalGames = games.filter((g) => { const s = String(g.size ?? '').trim(); return s !== '0 MB' && s !== '' }).length
   const installedGames = games.filter((g) => g.isInstalled).length
   const updatesAvailable = games.filter((g) => g.hasUpdate).length
   const deviceName = selectedDeviceDetails?.friendlyModelName ?? null

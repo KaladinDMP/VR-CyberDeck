@@ -834,9 +834,13 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   }, [styles, tableWidth, t])
 
   const filteredGames = useMemo(() => {
+    let hideAdult = true
+    try { hideAdult = localStorage.getItem('vrcyberdeck:hideAdult') !== 'false' } catch { /* ignore */ }
     return games.filter((game) => {
       const size = String(game.size ?? '').trim()
-      return size !== '0 MB' && size !== ''
+      if (size === '0 MB' || size === '') return false
+      if (hideAdult && String(game.name ?? '').includes('18+')) return false
+      return true
     })
   }, [games])
 
@@ -1534,13 +1538,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
           {/* Control Row */}
           <div className={styles.controlRow}>
-            <Input
-              value={searchInput}
-              onChange={handleSearchChange}
-              placeholder={t('searchPlaceholder')}
-              type="search"
-              className={styles.searchBoxWrap}
-            />
+            <div className="search-wrap" style={{ flex: 1, minWidth: '140px' }}>
+              <Input
+                value={searchInput}
+                onChange={handleSearchChange}
+                placeholder={t('searchPlaceholder')}
+                type="search"
+                style={{ width: '100%' }}
+              />
+            </div>
             <div className="filter-buttons" style={{ margin: 0 }}>
               <button onClick={() => setActiveFilter('all')} className={activeFilter === 'all' ? 'active' : ''}>
                 {t('filterAll')} ({counts.total})

@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogActions
 } from '@fluentui/react-components'
-import geekyUsernames from '../assets/g33kyu$3rn4m3$.json'
+import { getMatrixUsername, isFirstLaunchToday } from '../utils/matrixUsername'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,57 +40,7 @@ const CHAR_POOL = 'アイウエオカキクケコサシスセソタチツテト�
 const PHASE_1_END = 1500  // ms — rain + "INITIALIZING..."
 const PHASE_2_END = 2500  // ms — "FOLLOW THE WHITE RABBIT..."
 // Phase 3 starts at 2500ms — terminal revealed
-const RABBIT_FIRST_LAUNCH_KEY = 'vr-matrix-rabbit-date'
-
-// localStorage key for username preferences
-const USERNAME_PREFS_KEY = 'vr-matrix-usernames'
-
-interface UsernamePref {
-  mode: 'random+custom' | 'only-custom'
-  ratio: number  // how many times to weight custom vs random (1 = equal, 2 = 2:1 custom preference)
-  custom: string[]
-}
-
-function getMatrixUsername(): string {
-  // Built-in contributor/hacker names
-  const builtInRandom = [
-    ...(geekyUsernames?.random ?? []),
-    'DMP', 'KaladinDMP', 'n30_h4ck3r', 'v01d_w4lk3r', 'glitch_daemon', 'r00t@cyberdeck'
-  ]
-
-  // Load user prefs
-  let prefs: UsernamePref = { mode: 'random+custom', ratio: 2, custom: [] }
-  try {
-    const raw = localStorage.getItem(USERNAME_PREFS_KEY)
-    if (raw) prefs = { ...prefs, ...JSON.parse(raw) }
-  } catch { /* use defaults */ }
-
-  const { mode, ratio, custom } = prefs
-  const hasCustom = custom.length > 0
-
-  if (mode === 'only-custom' && hasCustom) {
-    return custom[Math.floor(Math.random() * custom.length)]
-  }
-
-  // Build weighted pool
-  const pool: string[] = [...builtInRandom]
-  if (hasCustom) {
-    const r = Math.max(1, Math.round(ratio))
-    for (let i = 0; i < r; i++) pool.push(...custom)
-  }
-
-  return pool[Math.floor(Math.random() * pool.length)] ?? 'n30'
-}
-
-function isFirstLaunchToday(): boolean {
-  const today = new Date().toDateString()
-  const stored = localStorage.getItem(RABBIT_FIRST_LAUNCH_KEY) ?? ''
-  if (stored !== today) {
-    localStorage.setItem(RABBIT_FIRST_LAUNCH_KEY, today)
-    return true
-  }
-  return false
-}
+// USERNAME_PREFS_KEY exported from matrixUsername utility
 
 // ─── Matrix Canvas Animation ─────────────────────────────────────────────────
 

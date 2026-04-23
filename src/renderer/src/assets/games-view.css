@@ -503,3 +503,29 @@
   margin-top: 2px;
   font-family: monospace;
 }
+
+/* ── Neon-themed search Input ──────────────────────────────────────────────── */
+.search-wrap .fui-Input {
+  background-color: #050514;
+  border-color: rgba(57, 255, 20, 0.3);
+  font-family: "Courier New", Courier, monospace;
+}
+.search-wrap .fui-Input:hover {
+  border-color: rgba(57, 255, 20, 0.55);
+}
+.search-wrap .fui-Input:focus-within {
+  border-color: rgba(57, 255, 20, 0.7);
+  box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.3);
+}
+.search-wrap .fui-Input input {
+  color: #39ff14;
+  background-color: transparent;
+  caret-color: #39ff14;
+}
+.search-wrap .fui-Input input::placeholder {
+  color: rgba(57, 255, 20, 0.35);
+}
+.search-wrap .fui-Input .fui-Input__contentAfter,
+.search-wrap .fui-Input .fui-Input__contentBefore {
+  color: rgba(57, 255, 20, 0.5);
+}
