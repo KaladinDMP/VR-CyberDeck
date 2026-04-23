@@ -119,13 +119,21 @@ const useStyles = makeStyles({
     fontSize: '32px',
     fontWeight: '800',
     letterSpacing: '0.06em',
-    background: 'linear-gradient(100deg, #39ff14 0%, #a855f7 100%)',
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    color: 'transparent',
     lineHeight: '1.1',
-    textShadow: 'none'
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '10px'
+  },
+  titleVR: {
+    color: '#a855f7',
+    textShadow: '0 0 18px rgba(168,85,247,0.9), 0 0 40px rgba(168,85,247,0.4)',
+    fontFamily: '"Courier New", monospace'
+  },
+  titleCyberdeck: {
+    color: '#39ff14',
+    textShadow: '0 0 18px rgba(57,255,20,0.8), 0 0 40px rgba(57,255,20,0.3)',
+    fontFamily: '"Courier New", monospace',
+    letterSpacing: '0.08em'
   },
   titleSub: {
     fontSize: '11px',
@@ -366,7 +374,10 @@ const AppLayout: React.FC = () => {
                   <div className={styles.headerContent}>
                     <img alt="logo" className={styles.logo} src={electronLogo} />
                     <div className={styles.titleSection}>
-                      <span className={styles.titleMain}>VR CYBERDECK</span>
+                      <span className={styles.titleMain}>
+                        <span className={styles.titleVR}>VR</span>
+                        <span className={styles.titleCyberdeck}>CYBERDECK</span>
+                      </span>
                       <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
                     </div>
                   </div>

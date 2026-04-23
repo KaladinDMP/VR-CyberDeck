@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogActions
 } from '@fluentui/react-components'
+import geekyUsernames from '../assets/g33kyu$3rn4m3$.json'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,57 @@ const CHAR_POOL = 'アイウエオカキクケコサシスセソタチツテト�
 const PHASE_1_END = 1500  // ms — rain + "INITIALIZING..."
 const PHASE_2_END = 2500  // ms — "FOLLOW THE WHITE RABBIT..."
 // Phase 3 starts at 2500ms — terminal revealed
+const RABBIT_FIRST_LAUNCH_KEY = 'vr-matrix-rabbit-date'
+
+// localStorage key for username preferences
+const USERNAME_PREFS_KEY = 'vr-matrix-usernames'
+
+interface UsernamePref {
+  mode: 'random+custom' | 'only-custom'
+  ratio: number  // how many times to weight custom vs random (1 = equal, 2 = 2:1 custom preference)
+  custom: string[]
+}
+
+function getMatrixUsername(): string {
+  // Built-in contributor/hacker names
+  const builtInRandom = [
+    ...(geekyUsernames?.random ?? []),
+    'DMP', 'KaladinDMP', 'n30_h4ck3r', 'v01d_w4lk3r', 'glitch_daemon', 'r00t@cyberdeck'
+  ]
+
+  // Load user prefs
+  let prefs: UsernamePref = { mode: 'random+custom', ratio: 2, custom: [] }
+  try {
+    const raw = localStorage.getItem(USERNAME_PREFS_KEY)
+    if (raw) prefs = { ...prefs, ...JSON.parse(raw) }
+  } catch { /* use defaults */ }
+
+  const { mode, ratio, custom } = prefs
+  const hasCustom = custom.length > 0
+
+  if (mode === 'only-custom' && hasCustom) {
+    return custom[Math.floor(Math.random() * custom.length)]
+  }
+
+  // Build weighted pool
+  const pool: string[] = [...builtInRandom]
+  if (hasCustom) {
+    const r = Math.max(1, Math.round(ratio))
+    for (let i = 0; i < r; i++) pool.push(...custom)
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)] ?? 'n30'
+}
+
+function isFirstLaunchToday(): boolean {
+  const today = new Date().toDateString()
+  const stored = localStorage.getItem(RABBIT_FIRST_LAUNCH_KEY) ?? ''
+  if (stored !== today) {
+    localStorage.setItem(RABBIT_FIRST_LAUNCH_KEY, today)
+    return true
+  }
+  return false
+}
 
 // ─── Matrix Canvas Animation ─────────────────────────────────────────────────
 
@@ -365,9 +417,11 @@ interface MatrixIntroProps {
   onComplete: () => void
   width: number
   height: number
+  holdMs: number
+  username: string
 }
 
-function MatrixIntro({ onComplete, width, height }: MatrixIntroProps): React.ReactElement {
+function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntroProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [animPhase, setAnimPhase] = useState<AnimPhase>('rain')
   const [initOpacity, setInitOpacity] = useState(0)
@@ -398,14 +452,14 @@ function MatrixIntro({ onComplete, width, height }: MatrixIntroProps): React.Rea
     return () => clearInterval(t)
   }, [animPhase])
 
-  // Complete at 2500ms
+  // Complete at holdMs
   useEffect(() => {
     const t = setTimeout(() => {
       setAnimPhase('done')
       onComplete()
-    }, PHASE_2_END)
+    }, holdMs)
     return () => clearTimeout(t)
-  }, [onComplete])
+  }, [onComplete, holdMs])
 
   return (
     <div
@@ -464,20 +518,26 @@ function MatrixIntro({ onComplete, width, height }: MatrixIntroProps): React.Rea
       {animPhase === 'rabbit' && (
         <div
           style={{
-            position: 'relative',
+            position: 'absolute',
+            inset: 0,
             zIndex: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             textAlign: 'center',
             fontFamily: "'Courier New', monospace",
-            userSelect: 'none'
+            userSelect: 'none',
+            flexDirection: 'column',
+            gap: '12px'
           }}
         >
           <div
             style={{
-              fontSize: '18px',
-              letterSpacing: '0.2em',
+              fontSize: '20px',
+              letterSpacing: '0.25em',
               color: NEON,
               textShadow: `0 0 16px ${NEON}, 0 0 32px rgba(57,255,20,0.5), 0 0 60px rgba(57,255,20,0.2)`,
-              animation: 'matrixFadeIn 0.4s ease-out forwards'
+              animation: 'matrixFadeIn 0.4s ease-out forwards, rabbitPulse 1.2s ease-in-out 0.4s infinite'
             }}
           >
             FOLLOW THE WHITE RABBIT
@@ -493,14 +553,29 @@ function MatrixIntro({ onComplete, width, height }: MatrixIntroProps): React.Rea
               _
             </span>
           </div>
+          <div
+            style={{
+              fontSize: '13px',
+              letterSpacing: '0.15em',
+              color: 'rgba(57,255,20,0.55)',
+              fontFamily: "'Courier New', monospace",
+              animation: 'matrixFadeIn 0.6s ease-out 0.2s both'
+            }}
+          >
+            {`> identity confirmed: `}<span style={{ color: NEON, textShadow: `0 0 8px ${NEON}` }}>{username}</span>
+          </div>
         </div>
       )}
 
       {/* Keyframes injected via a style tag */}
       <style>{`
         @keyframes matrixFadeIn {
-          from { opacity: 0; transform: scale(0.96); }
+          from { opacity: 0; transform: scale(0.94); }
           to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes rabbitPulse {
+          0%, 100% { opacity: 1; text-shadow: 0 0 16px #39ff14, 0 0 32px rgba(57,255,20,0.5), 0 0 60px rgba(57,255,20,0.2); }
+          50%       { opacity: 0.65; text-shadow: 0 0 28px #39ff14, 0 0 52px rgba(57,255,20,0.7), 0 0 90px rgba(57,255,20,0.35); }
         }
       `}</style>
     </div>
@@ -573,6 +648,10 @@ function FlashInput({ value, onChange, onKeyDown, disabled, inputRef }: FlashInp
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogProps): React.ReactElement {
+  const matrixUsername = useRef(getMatrixUsername()).current
+  const firstLaunch = useRef(isFirstLaunchToday()).current
+  const PHASE_2_HOLD = firstLaunch ? 4000 : 2500  // hold longer on first launch of day
+
   const [command, setCommand] = useState('')
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isRunning, setIsRunning] = useState(false)
@@ -724,6 +803,8 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
                   onComplete={handleAnimComplete}
                   width={dialogSize.w}
                   height={360}
+                  holdMs={PHASE_2_HOLD}
+                  username={matrixUsername}
                 />
               )}
 

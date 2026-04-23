@@ -94,6 +94,16 @@ const FIXED_COLUMNS_WIDTH =
 
 type FilterType = 'all' | 'installed' | 'update'
 
+// Parse "1.2 GB" / "500 MB" / "100 KB" to bytes for numeric sort
+const parseSizeBytes = (s: string): number => {
+  if (!s) return 0
+  const m = s.match(/([0-9.]+)\s*(GB|MB|KB|B)?/i)
+  if (!m) return 0
+  const n = parseFloat(m[1])
+  const u = (m[2] ?? 'B').toUpperCase()
+  return n * ({ B: 1, KB: 1024, MB: 1048576, GB: 1073741824 }[u] ?? 1)
+}
+
 const filterGameNameAndPackage: FilterFn<GameInfo> = (row, _columnId, filterValue) => {
   const searchStr = String(filterValue).toLowerCase()
   const gameName = String(row.original.name ?? '').toLowerCase()
@@ -118,7 +128,7 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     height: 'calc(100vh - 110px)',
     overflow: 'hidden',
-    backgroundColor: tokens.colorNeutralBackground1
+    backgroundColor: '#050514'
   },
   header: {
     display: 'flex',
@@ -240,7 +250,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     flex: 1,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    backgroundColor: '#050514'
   },
   sidebar: {
     width: '240px',
@@ -357,14 +368,16 @@ const useStyles = makeStyles({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    backgroundColor: '#050514'
   },
   controlRow: {
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalS,
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
-    borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: '1px solid rgba(57,255,20,0.12)',
+    backgroundColor: '#050514',
     flexShrink: 0,
     flexWrap: 'nowrap'
   },
@@ -377,7 +390,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM} ${tokens.spacingVerticalM}`
+    padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM} ${tokens.spacingVerticalM}`,
+    backgroundColor: '#050514'
   }
 })
 
@@ -782,6 +796,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
         accessorKey: 'size',
         header: () => t('size'),
         size: COLUMN_WIDTHS.SIZE,
+        sortingFn: (a, b) => parseSizeBytes(a.original.size ?? '') - parseSizeBytes(b.original.size ?? ''),
         cell: (info) => {
           const sizeValue = info.getValue()
           const sizeStr = String(sizeValue || '')
@@ -796,6 +811,11 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
         accessorKey: 'lastUpdated',
         header: () => t('lastUpdated'),
         size: COLUMN_WIDTHS.LAST_UPDATED,
+        sortingFn: (a, b) => {
+          const da = a.original.lastUpdated ? new Date(a.original.lastUpdated).getTime() : 0
+          const db = b.original.lastUpdated ? new Date(b.original.lastUpdated).getTime() : 0
+          return da - db
+        },
         cell: (info) => info.getValue() || '-',
         enableResizing: true
       },
@@ -1343,7 +1363,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} style={{ '--colorNeutralBackground1': '#050514', '--colorNeutralBackground2': '#060615', '--colorNeutralBackground3': '#060615', '--colorNeutralForeground1': '#39ff14', '--colorNeutralForeground2': 'rgba(57,255,20,0.75)', '--colorNeutralStroke1': 'rgba(57,255,20,0.2)', '--colorNeutralStrokeAccessible': 'rgba(57,255,20,0.3)', '--colorBrandBackground': '#39ff14', '--colorNeutralForegroundOnBrand': '#050514' } as React.CSSProperties}>
       <div className={styles.layout}>
 
         {/* ════════════ SIDEBAR ════════════ */}
@@ -1687,7 +1707,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                                     }}
                                   >
                                     {flexRender(header.column.columnDef.header, header.getContext())}
-                                    {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] ?? null}
+                                    {header.column.getIsSorted() === 'asc' && <span style={{ color: '#39ff14', marginLeft: '4px', fontSize: '10px' }}>▲</span>}
+                                    {header.column.getIsSorted() === 'desc' && <span style={{ color: '#a855f7', marginLeft: '4px', fontSize: '10px' }}>▼</span>}
+                                    {!header.column.getIsSorted() && header.column.getCanSort() && <span style={{ color: 'rgba(57,255,20,0.2)', marginLeft: '4px', fontSize: '10px' }}>⇅</span>}
                                   </div>
                                 )}
                                 {header.column.getCanResize() && (
