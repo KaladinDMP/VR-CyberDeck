@@ -1,26 +1,31 @@
 import { useState, useCallback } from 'react'
 
 export interface TablePreferences {
-  rowDensity: number      // 0 = compact, 100 = comfortable (default 50 ≈ current look)
+  rowDensity: number
   alternatingRows: boolean
-  evenRowColor: string    // any CSS color string
+  evenRowColor: string
   oddRowColor: string
   viewMode: 'table' | 'cards'
+  cardSize: number            // 0=smallest, 100=largest
+  cardSortKey: string         // column id or '' for none
+  cardSortDir: 'asc' | 'desc'
 }
 
-const STORAGE_KEY = 'avr-table-prefs-v3'
-const OLD_KEYS = ['avr-table-prefs-v1', 'avr-table-prefs-v2']
+const STORAGE_KEY = 'avr-table-prefs-v4'
+const OLD_KEYS = ['avr-table-prefs-v1', 'avr-table-prefs-v2', 'avr-table-prefs-v3']
 
 const DEFAULTS: TablePreferences = {
   rowDensity: 50,
   alternatingRows: true,
   evenRowColor: '#050514',
   oddRowColor: 'rgba(57,255,20,0.06)',
-  viewMode: 'table'
+  viewMode: 'table',
+  cardSize: 50,
+  cardSortKey: 'name',
+  cardSortDir: 'asc'
 }
 
 function load(): TablePreferences {
-  // Wipe stale old keys so they can't cause issues
   for (const key of OLD_KEYS) {
     try { localStorage.removeItem(key) } catch { /* ignore */ }
   }
@@ -28,10 +33,8 @@ function load(): TablePreferences {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<TablePreferences>
-      // Guard: ensure viewMode is a valid value
-      if (parsed.viewMode !== 'table' && parsed.viewMode !== 'cards') {
-        parsed.viewMode = 'table'
-      }
+      if (parsed.viewMode !== 'table' && parsed.viewMode !== 'cards') parsed.viewMode = 'table'
+      if (parsed.cardSortDir !== 'asc' && parsed.cardSortDir !== 'desc') parsed.cardSortDir = 'asc'
       return { ...DEFAULTS, ...parsed }
     }
   } catch { /* corrupt storage — start fresh */ }
@@ -44,10 +47,8 @@ export function useTablePreferences() {
   const setPrefs = useCallback((update: Partial<TablePreferences>) => {
     setState((prev) => {
       const next = { ...prev, ...update }
-      // Guard viewMode before saving
-      if (next.viewMode !== 'table' && next.viewMode !== 'cards') {
-        next.viewMode = 'table'
-      }
+      if (next.viewMode !== 'table' && next.viewMode !== 'cards') next.viewMode = 'table'
+      if (next.cardSortDir !== 'asc' && next.cardSortDir !== 'desc') next.cardSortDir = 'asc'
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch { /* ignore */ }
       return next
     })
