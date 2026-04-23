@@ -454,8 +454,8 @@ const AppLayout: React.FC = () => {
                           Do people actually USE light mode?
                         </div>
 
-                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '6px', background: 'transparent', border: '2px solid rgba(57,255,20,0.6)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '13px', letterSpacing: '0.15em', padding: '10px 40px', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 0 12px rgba(57,255,20,0.15), inset 0 0 12px rgba(57,255,20,0.03)', width: '80%' }}>
-                          [ OK ]
+                        <button onClick={() => setIsDarkModeJokeOpen(false)} style={{ marginTop: '6px', background: 'transparent', border: '2px solid rgba(57,255,20,0.6)', color: '#39ff14', fontFamily: '"Courier New", monospace', fontSize: '13px', letterSpacing: '0.12em', padding: '10px 40px', borderRadius: '6px', cursor: 'pointer', fontStyle: 'italic', boxShadow: '0 0 12px rgba(57,255,20,0.15), inset 0 0 12px rgba(57,255,20,0.03)', width: '80%' }}>
+                          [ *Cries in binary* ]
                         </button>
                       </div>
                     </DialogBody>
