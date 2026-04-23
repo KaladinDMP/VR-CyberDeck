@@ -23,7 +23,12 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   const [cursorOn, setCursorOn] = useState(true)
   const [textJitter, setTextJitter] = useState({ x: 0, y: 0 })
   const [fading, setFading] = useState(false)
+  const [appVersion, setAppVersion] = useState('0.0.1')
   const dead = useRef(false)
+
+  useEffect(() => {
+    window.api.app.getVersion().then(setAppVersion).catch(() => {})
+  }, [])
 
   // cursor blink
   useEffect(() => {
@@ -206,7 +211,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
           color: 'rgba(57,255,20,0.4)', fontSize: '11px',
           lineHeight: '1.6', letterSpacing: '0.08em'
         }}>
-          <div>VR CYBERDECK v0.0.1</div>
+          <div>VR CYBERDECK v{appVersion}</div>
           <div>SECURE TERMINAL — DELICIOUSMEATPOP</div>
           <div>STATUS: {phase === 'authorized' || phase === 'fade' ? 'ACCESS GRANTED' : phase === 'unauthorized' ? 'ACCESS DENIED' : 'CONNECTING...'}</div>
         </div>
