@@ -29,6 +29,13 @@
   --color-background-mute: var(--ev-c-black-mute);
 
   --color-text: var(--ev-c-text-1);
+
+  /* Global font scale — controlled by Settings > UI Scale */
+  --vrcd-font-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--vrcd-font-scale));
 }
 
 *,

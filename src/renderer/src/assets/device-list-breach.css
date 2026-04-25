@@ -1,0 +1,158 @@
+/* ─── VR CyberDeck — Breach Sequence UI ─────────────────────────────────── */
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ringPulse {
+  0%   { opacity: 0.6; transform: scale(1); }
+  50%  { opacity: 0.15; transform: scale(1.04); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+
+@keyframes ringPulse2 {
+  0%   { opacity: 0.4; transform: scale(1); }
+  50%  { opacity: 0.08; transform: scale(1.06); }
+  100% { opacity: 0.4; transform: scale(1); }
+}
+
+@keyframes scanlineDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 0 40px; }
+}
+
+@keyframes breachFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes glitchShake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-3px); }
+  40%  { transform: translateX(3px); }
+  60%  { transform: translateX(-2px); }
+  80%  { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes targetLockPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(57,255,20,0.4), 0 0 20px rgba(57,255,20,0.15); }
+  70%  { box-shadow: 0 0 0 12px rgba(57,255,20,0), 0 0 20px rgba(57,255,20,0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(57,255,20,0), 0 0 20px rgba(57,255,20,0.15); }
+}
+
+@keyframes statusTypeCursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Radar container */
+.breach-radar-ring {
+  animation: ringPulse 2.4s ease-in-out infinite;
+}
+.breach-radar-ring-2 {
+  animation: ringPulse2 3.2s ease-in-out infinite;
+}
+.breach-radar-sweep {
+  animation: radarSweep 4s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+/* Scanlines overlay */
+.breach-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.18) 2px,
+    rgba(0,0,0,0.18) 4px
+  );
+  background-size: 100% 4px;
+  animation: scanlineDrift 0.8s linear infinite;
+  pointer-events: none;
+}
+
+/* Device target card */
+.breach-target-card {
+  animation: targetLockPulse 1.8s ease-out infinite;
+}
+
+/* Breach step line */
+.breach-step {
+  animation: breachFadeIn 0.3s ease-out both;
+}
+.breach-step-cursor {
+  animation: statusTypeCursor 0.9s step-end infinite;
+}
+
+/* Neon glow text */
+.breach-neon-green {
+  color: #39ff14;
+  text-shadow: 0 0 8px rgba(57,255,20,0.8), 0 0 20px rgba(57,255,20,0.4);
+}
+.breach-neon-purple {
+  color: #a855f7;
+  text-shadow: 0 0 8px rgba(168,85,247,0.8), 0 0 20px rgba(168,85,247,0.4);
+}
+
+/* Neon input */
+.breach-input {
+  background: rgba(57,255,20,0.04) !important;
+  border: 1px solid rgba(57,255,20,0.35) !important;
+  color: #39ff14 !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 12px !important;
+  letter-spacing: 0.05em;
+  outline: none !important;
+}
+.breach-input::placeholder {
+  color: rgba(57,255,20,0.3) !important;
+}
+.breach-input:focus {
+  border-color: rgba(57,255,20,0.7) !important;
+  box-shadow: 0 0 8px rgba(57,255,20,0.15) !important;
+}
+
+/* Neon button */
+.breach-btn {
+  background: transparent;
+  border: 1px solid rgba(57,255,20,0.5);
+  color: #39ff14;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(57,255,20,0.08);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.breach-btn:hover:not(:disabled) {
+  border-color: rgba(57,255,20,0.9);
+  box-shadow: 0 0 14px rgba(57,255,20,0.25);
+}
+.breach-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.breach-btn-purple {
+  border-color: rgba(168,85,247,0.5);
+  color: #a855f7;
+  box-shadow: 0 0 8px rgba(168,85,247,0.08);
+}
+.breach-btn-purple:hover:not(:disabled) {
+  border-color: rgba(168,85,247,0.9);
+  box-shadow: 0 0 14px rgba(168,85,247,0.25);
+}
+.breach-btn-primary {
+  border-color: rgba(57,255,20,0.8);
+  box-shadow: 0 0 12px rgba(57,255,20,0.2), inset 0 0 12px rgba(57,255,20,0.04);
+}

@@ -20,6 +20,7 @@ import {
 } from '@fluentui/react-components'
 import { UpdateInfo, UpdateProgressInfo } from '@shared/types'
 import { ArrowDownloadRegular, CheckmarkCircleRegular, CodeRegular, DocumentTextRegular } from '@fluentui/react-icons'
+import { isAutoUpdateDisabled } from '../hooks/useExtrasSettings'
 
 const useStyles = makeStyles({
   updateContent: {
@@ -128,6 +129,7 @@ function formatBytes(bytes: number): string {
 }
 
 export function UpdateNotification(): React.ReactElement | null {
+  const autoUpdateDisabled = isAutoUpdateDisabled()
   const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(null)
   const [updateError, setUpdateError] = useState<Error | null>(null)
   const [isChecking, setIsChecking] = useState(false)
@@ -139,6 +141,9 @@ export function UpdateNotification(): React.ReactElement | null {
   const styles = useStyles()
 
   useEffect(() => {
+    // If auto-update is disabled, don't subscribe to events
+    if (autoUpdateDisabled) return
+
     const removeCheckingListener = window.api.updates?.onCheckingForUpdate?.(() => {
       setIsChecking(true)
       setUpdateError(null)
@@ -184,7 +189,7 @@ export function UpdateNotification(): React.ReactElement | null {
       removeProgressListener?.()
       removeDownloadedListener?.()
     }
-  }, [])
+  }, [autoUpdateDisabled])
 
   const handleCheckForUpdates = async (): Promise<void> => {
     try {
@@ -230,7 +235,7 @@ export function UpdateNotification(): React.ReactElement | null {
     })
   }
 
-  if (!updateAvailable && !isChecking && !updateError) {
+  if (autoUpdateDisabled || (!updateAvailable && !isChecking && !updateError)) {
     return null
   }
 

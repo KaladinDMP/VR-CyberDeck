@@ -466,7 +466,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     },
     []
   )
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(() =>
+    prefs.tableSortKey ? [{ id: prefs.tableSortKey, desc: prefs.tableSortDir === 'desc' }] : []
+  )
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -858,7 +860,17 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       columnVisibility: { isInstalled: false, hasUpdate: false },
       columnSizing
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater
+        const first = next[0]
+        setPrefs({
+          tableSortKey: first?.id ?? '',
+          tableSortDir: first?.desc ? 'desc' : 'asc'
+        })
+        return next
+      })
+    },
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
