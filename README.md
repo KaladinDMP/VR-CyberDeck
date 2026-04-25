@@ -1,3 +1,8 @@
+
+
+<details>
+  <summary>🟢 This is not quite ready yet. not been officially released. Removed issues for now. Need a few more days </summary>
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2ace873a-2aef-4959-af2a-beec4b6d2ff5" width="500">
 </p>
@@ -183,6 +188,8 @@ VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprent
 GNU Affero GPL v3
 
 ---
+
+</details>
 
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=kaladindmp%2Fvr-cyberdeck&label=People%20Who%20Forgot%20To%20Star%20This%20Repo&countColor=%23ba68c8&style=plastic)
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/VR-CyberDeck?label=Last%20Updated)
