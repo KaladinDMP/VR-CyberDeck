@@ -49,6 +49,15 @@ jobs:
           npx electron-builder --mac --dir --x64 --publish never
           npx electron-builder --mac --dir --arm64 --publish never
 
+      - name: Apply ad-hoc code signature to both app bundles
+        shell: bash
+        run: |
+          for APP in dist/mac/*.app dist/mac-arm64/*.app; do
+            [ -e "$APP" ] || continue
+            echo "Signing: $APP"
+            codesign --force --deep --sign - "$APP"
+          done
+
       - name: Package DMGs using hdiutil (built-in macOS tool)
         shell: bash
         run: |
