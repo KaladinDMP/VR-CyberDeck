@@ -4,7 +4,11 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import os from 'os'
 import { LogsAPI } from '@shared/types'
 
-const MAX_LOG_BYTES = 300 * 1024 // 300 KB cap for rentry.co
+// Rentry.co validates the slug before the content, so a "slug taken" response
+// means the content was never checked. On the retry (random slug), content is
+// validated and rentry returns status 400 if the POST body is too large.
+// 300 KB raw becomes ~500 KB URL-encoded after rentry markup — keep well under limit.
+const MAX_LOG_BYTES = 150 * 1024 // 150 KB raw → ~250 KB URL-encoded
 
 // ─── Error-line highlighting ──────────────────────────────────────────────────
 
@@ -230,6 +234,7 @@ class LogsService implements LogsAPI {
       }
 
       if (result.status !== '200') {
+        console.warn('[LogsService] First upload attempt failed — status:', result.status, 'content:', (result as Record<string, unknown>).content ?? '')
         // If the desired slug was taken, retry without it to get a random one.
         // Refresh the CSRF token first — rentry.co invalidates the previous token
         // after a non-200 POST, so reusing it returns HTTP 400.
@@ -273,6 +278,7 @@ class LogsService implements LogsAPI {
           }
 
           if (retryResult.status !== '200') {
+            console.error('[LogsService] Retry also failed — status:', retryResult.status, 'content:', (retryResult as Record<string, unknown>).content ?? '')
             throw new Error(`Rentry API returned status ${retryResult.status}`)
           }
 

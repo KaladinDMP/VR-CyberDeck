@@ -472,7 +472,6 @@ const ExtraSystemsSettings: React.FC = () => {
     showMatrixShell, setShowMatrixShell,
     disableAllExtras, setDisableAllExtras,
     disableAutoUpdate, setDisableAutoUpdate,
-    fontScale, setFontScale,
     deleteOnRemove, setDeleteOnRemove,
     disableSideloading, setDisableSideloading,
     colorblindMode, setColorblindMode,
@@ -488,12 +487,6 @@ const ExtraSystemsSettings: React.FC = () => {
     setMaxConcurrentState(n)
     window.api.settings.setMaxConcurrentDownloads(n).catch(() => {/* ignore */})
   }
-
-  const scaleLabels: Record<string, string> = {
-    '0.75': '75% — compact', '0.875': '87.5% — small', '1': '100% — default',
-    '1.125': '112.5% — large', '1.25': '125% — larger', '1.5': '150% — large', '2': '200% — accessibility'
-  }
-  const scaleValues = [0.75, 0.875, 1, 1.125, 1.25, 1.5, 2]
 
   const neonOptionBtn = (active: boolean) => ({
     background: active ? 'rgba(var(--vrcd-neon-raw),0.12)' : 'transparent',
@@ -636,22 +629,6 @@ const ExtraSystemsSettings: React.FC = () => {
         </span>
       </div>
 
-      {/* Font scale */}
-      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
-        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
-          UI Font Scale — {Math.round(fontScale * 100)}%
-        </span>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {scaleValues.map((v) => (
-            <button key={v} onClick={() => setFontScale(v)} style={neonOptionBtn(Math.abs(fontScale - v) < 0.01)}>
-              {scaleLabels[String(v)] ?? `${Math.round(v * 100)}%`}
-            </button>
-          ))}
-        </div>
-        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
-          Scales the app UI text globally. Takes effect immediately.
-        </span>
-      </div>
     </div>
   )
 }

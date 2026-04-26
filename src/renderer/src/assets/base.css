@@ -38,13 +38,6 @@ html {
   font-size: calc(16px * var(--vrcd-font-scale));
 }
 
-/* Chromium-only: zoom scales the entire UI proportionally, including
-   Fluent UI components that use pixel sizing. The html font-size above
-   handles rem-based components; zoom catches everything else. */
-body {
-  zoom: var(--vrcd-font-scale);
-}
-
 *,
 *::before,
 *::after {
