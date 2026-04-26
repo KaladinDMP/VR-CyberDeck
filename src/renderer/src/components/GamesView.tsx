@@ -1824,18 +1824,34 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                     className={`table-wrapper${prefs.alternatingRows ? ' alternating-rows' : ''}`}
                     ref={tableContainerRef}
                   >
-                    <table className="games-table" style={{ width: table.getTotalSize() }}>
-                      <thead style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1 }}>
+                    {(() => {
+                      const totalSize = table.getTotalSize()
+                      const colPct = (size: number): string =>
+                        `${((size / totalSize) * 100).toFixed(4)}%`
+                      return (
+                    <table className="games-table" style={{ width: '100%', minWidth: totalSize, display: 'block' }}>
+                      <thead style={{ display: 'block', position: 'sticky', top: 0, zIndex: 1 }}>
                         {table.getHeaderGroups().map((headerGroup) => (
-                          <tr key={headerGroup.id}>
+                          <tr key={headerGroup.id} style={{ display: 'flex', width: '100%' }}>
                             {headerGroup.headers.map((header) => (
-                              <th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize(), position: 'relative' }}>
+                              <th
+                                key={header.id}
+                                colSpan={header.colSpan}
+                                style={{
+                                  flex: `${header.getSize()} 0 0`,
+                                  minWidth: header.getSize(),
+                                  position: 'relative',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                              >
                                 {header.isPlaceholder ? null : (
                                   <div
                                     {...{
                                       className: header.column.getCanSort() ? 'cursor-pointer select-none' : '',
                                       onClick: header.column.getToggleSortingHandler()
                                     }}
+                                    style={{ flex: 1, minWidth: 0 }}
                                   >
                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                     {header.column.getIsSorted() === 'asc' && <span style={{ color: 'var(--vrcd-neon)', marginLeft: '4px', fontSize: '10px' }}>▲</span>}
@@ -1855,7 +1871,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                           </tr>
                         ))}
                       </thead>
-                      <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                      <tbody style={{ display: 'block', height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
                         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                           const row = rows[virtualRow.index]
                           if (!row) return null
@@ -1869,6 +1885,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                               key={row.id}
                               className={rowClasses}
                               style={{
+                                display: 'flex',
                                 position: 'absolute', top: 0, left: 0, width: '100%',
                                 height: `${virtualRow.size}px`,
                                 transform: `translateY(${virtualRow.start}px)`
@@ -1876,8 +1893,20 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                               onClick={(e) => handleRowClick(e, row)}
                             >
                               {row.getVisibleCells().map((cell) => (
-                                <td key={cell.id} style={{ width: cell.column.getSize(), maxWidth: cell.column.getSize() }}>
-                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                <td
+                                  key={cell.id}
+                                  style={{
+                                    flex: `${cell.column.getSize()} 0 0`,
+                                    minWidth: cell.column.getSize(),
+                                    width: colPct(cell.column.getSize()),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    overflow: 'hidden'
+                                  }}
+                                >
+                                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </div>
                                 </td>
                               ))}
                             </tr>
@@ -1885,6 +1914,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                         })}
                       </tbody>
                     </table>
+                      )
+                    })()}
                   </div>
                 )}
               </>

@@ -160,6 +160,7 @@
 
 .table-wrapper {
   overflow-y: auto;
+  overflow-x: auto;
   flex-grow: 1;
   margin-top: 8px;
   border: 1px solid rgba(var(--vrcd-neon-raw),0.2);
