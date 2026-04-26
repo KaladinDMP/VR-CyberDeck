@@ -30,12 +30,14 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 | **Onboarding** | Hardcoded (original) /Configure server before use (forks) | Bundled server defaults — works on first launch |
 | **Intro** | None | `UNAUTHORIZED → AUTHORIZED` glitch boot |
 | **Identity** | None | Matrix-style random `g33ky_u$3rn4m3$` per session |
-| **Console** | None | In-header Hacker Console + ADB Shell dialog |
-| **Library view** | Table only | Table **and** card view, with size + sort presets |
+| **Console** | None | In-header Hacker Console + ADB Shell with quick-command shortcuts |
+| **Live HUD** | None | Header `// TRANSFER_BUS` strip with rotating progress, speed, ETA |
+| **Library view** | Table only | Table **and** card view, sort presets, table stretches edge-to-edge |
 | **Downloads** | Sequential | Up to **5 concurrent**, with NEW / UPDATED badges |
 | **Uploads** | Headset-only | Headset **or** local PC files (folders + ZIPs) |
+| **Quit safety** | None | Confirmation prompt when transfers are in flight |
 | **Settings** | Flat panel | Collapsible sections, accent color, tab memory |
-| **A11y** | Limited | Colorblind mode, font scale to 200% |
+| **A11y** | Limited | Full colorblind theming, font scale to 200%, 900x640 min size |
 | **Updates** | Manual | In-app auto-updater on every platform |
 
 ---
@@ -45,6 +47,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 **`[ LIBRARY ]`**
 - Bundled server defaults — no JSON, no rclone, no setup required
 - Card view + table view, persistent sort, size presets, 18+ filter
+- Table view stretches to fill the window so wide screens aren't wasted
 - Built-in mirror management with public mirror fallback
 - `NEW` / `UPDATED` badges driven off real `lastUpdated` timestamps 
 
@@ -52,9 +55,11 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 
 **`[ TRANSFERS ]`**
 - Up to 5 parallel downloads with live progress
-- Unified Transfers drawer (downloads + uploads in one place)
+- Live `// TRANSFER_BUS` strip in the header — rotates through active downloads/uploads with name, stage, %, speed, and ETA
+- Unified Transfers drawer (downloads + uploads in one place) with stage-aware labels (`Installing APK...`, `Copying OBB...`)
 - Scan existing downloads folder and reconcile against the library
 - Clear-completed, retry, and per-item delete actions
+- Close the window mid-transfer? Cyberdeck warns you with `[ TRANSFERS IN PROGRESS ]` before letting you bail (works for both X and Cmd+Q on macOS)
 
 **`[ UPLOADS ]`**
 - Auto-detect games on your headset that are missing or newer than the library
@@ -62,17 +67,25 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 - Full pipeline: stage → ADB pull APK → grab OBBs → metadata → 7z → rclone
 - Optional `CRACKED` tagging on uploads
 
-**`[ DEVICE ]`**
+**`[ DEVICE / ADB ]`**
 - Auto-connect Quest on launch
-- ADB Shell dialog for power users
+- ADB Shell dialog with built-in **quick-command shortcuts**:
+  - `PERFORMANCE` — pin CPU/GPU level, swap refresh rate (72/90/120Hz), reset texture
+  - `UPDATES` — block / unblock the OS updater and Meta Store
+  - `SYSTEM` — reboot variants, battery, storage, wifi, IP, proximity toggle
+  - `PACKAGES` — list 3rd-party / all / current focused app
+  - `WIRELESS` — `tcpip 5555`, `adb devices`
+- **Custom user macros** — define your own labelled shortcut for any command you spam (right-click to edit/delete, persisted across sessions)
 - Disable-sideloading toggle for safety
 - WiFi bookmarks for wireless ADB
 
 **`[ INTERFACE ]`**
 - Glitch boot intro, neon Hacker Console, themed dialogs top to bottom
+- Compact laptop-friendly header — drops down to a 900x640 min window
 - Dark mode done right (no half-themed popups)
 - Accent color picker, tab memory
-- Colorblind mode + font scale up to 200%
+- Colorblind mode now covers the whole UI — version subtitles, filter counters, Transfers button, battery pill, breach animation all swap palette
+- Font scale up to 200%
 - One-click log upload from Settings → Log Upload
 
 ---
@@ -115,6 +128,8 @@ chmod +x vr-cyberdeck-x.x.x-x86_64.AppImage
 That's it. The bundled server config means there's nothing to configure on first run.
 
 > Want to point at a custom server, swap in your own rclone config, or upload from PC? See **Settings** — every advanced flow lives there.
+
+> Power user? Open the **ADB Shell** from the sidebar — the shortcut panel above the terminal covers most Quest tweaks in one click, and you can save your own commands as `MY MACROS` pills.
 
 ---
 
