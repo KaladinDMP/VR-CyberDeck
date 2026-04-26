@@ -69,6 +69,7 @@ export interface IPCChannels {
   'download:add': DefineChannel<[game: GameInfo], boolean>
   'download:remove': DefineChannel<[releaseName: string], void>
   'download:remove-only': DefineChannel<[releaseName: string], void>
+  'download:scan': DefineChannel<[], { added: number; pruned: number }>
   'download:delete-files': DefineChannel<[releaseName: string], boolean>
   'download:install-from-completed': DefineChannel<[releaseName: string, deviceId: string], void>
 

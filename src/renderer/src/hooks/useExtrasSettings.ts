@@ -9,6 +9,8 @@ export const DISABLE_ALL_EXTRAS_KEY = 'vrcyberdeck:disableAllExtras'
 export const DISABLE_AUTO_UPDATE_KEY = 'vrcyberdeck:disableAutoUpdate'
 export const FONT_SCALE_KEY = 'vrcyberdeck:fontScale'
 export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
+export const DISABLE_SIDELOADING_KEY = 'vrcyberdeck:disableSideloading'
+export const COLORBLIND_MODE_KEY = 'vrcyberdeck:colorblindMode'
 
 export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
 
@@ -46,6 +48,14 @@ export function getDeleteOnRemove(): DeleteOnRemove {
   return readDeleteOnRemove()
 }
 
+export function getSideloadingDisabled(): boolean {
+  return readBool(DISABLE_SIDELOADING_KEY, false)
+}
+
+export function getColorblindMode(): boolean {
+  return readBool(COLORBLIND_MODE_KEY, false)
+}
+
 // ─── Bootstrap helpers (called outside React, e.g. in App.tsx) ─────────────
 export function shouldShowIntro(): boolean {
   // Master disable wins
@@ -81,6 +91,8 @@ export interface ExtrasSettings {
   disableAutoUpdate: boolean
   fontScale: number
   deleteOnRemove: DeleteOnRemove
+  disableSideloading: boolean
+  colorblindMode: boolean
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
   setShowMatrixShell: (v: boolean) => void
@@ -88,6 +100,8 @@ export interface ExtrasSettings {
   setDisableAutoUpdate: (v: boolean) => void
   setFontScale: (v: number) => void
   setDeleteOnRemove: (v: DeleteOnRemove) => void
+  setDisableSideloading: (v: boolean) => void
+  setColorblindMode: (v: boolean) => void
 }
 
 export function useExtrasSettings(): ExtrasSettings {
@@ -98,6 +112,8 @@ export function useExtrasSettings(): ExtrasSettings {
   const [disableAutoUpdate, setDisableAutoUpdateState] = useState<boolean>(() => readBool(DISABLE_AUTO_UPDATE_KEY, false))
   const [fontScale, setFontScaleState] = useState<number>(() => getFontScale())
   const [deleteOnRemove, setDeleteOnRemoveState] = useState<DeleteOnRemove>(readDeleteOnRemove)
+  const [disableSideloading, setDisableSideloadingState] = useState<boolean>(() => readBool(DISABLE_SIDELOADING_KEY, false))
+  const [colorblindMode, setColorblindModeState] = useState<boolean>(() => readBool(COLORBLIND_MODE_KEY, false))
 
   const persistBool = (key: string, value: boolean): void => {
     try { localStorage.setItem(key, String(value)) } catch { /* ignore */ }
@@ -121,6 +137,18 @@ export function useExtrasSettings(): ExtrasSettings {
     setDeleteOnRemoveState(v)
     try { localStorage.setItem(DELETE_ON_REMOVE_KEY, v) } catch { /* ignore */ }
   }, [])
+  const setDisableSideloading = useCallback((v: boolean) => {
+    setDisableSideloadingState(v)
+    persistBool(DISABLE_SIDELOADING_KEY, v)
+  }, [])
+  const setColorblindMode = useCallback((v: boolean) => {
+    setColorblindModeState(v)
+    persistBool(COLORBLIND_MODE_KEY, v)
+    try {
+      if (v) document.documentElement.classList.add('vrcd-colorblind')
+      else document.documentElement.classList.remove('vrcd-colorblind')
+    } catch { /* ignore */ }
+  }, [])
 
   // Live-apply font scale whenever it changes
   useEffect(() => {
@@ -129,14 +157,26 @@ export function useExtrasSettings(): ExtrasSettings {
     } catch { /* ignore */ }
   }, [fontScale])
 
+  // Keep html class in sync with state
+  useEffect(() => {
+    try {
+      if (colorblindMode) document.documentElement.classList.add('vrcd-colorblind')
+      else document.documentElement.classList.remove('vrcd-colorblind')
+    } catch { /* ignore */ }
+  }, [colorblindMode])
+
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode
   }
 }
 
-// Apply font scale on initial module load so it takes effect before React mounts
+// Apply font scale and colorblind mode on initial module load
 try {
   const initial = getFontScale()
   document.documentElement.style.setProperty('--vrcd-font-scale', String(initial))
+} catch { /* ignore */ }
+
+try {
+  if (getColorblindMode()) document.documentElement.classList.add('vrcd-colorblind')
 } catch { /* ignore */ }

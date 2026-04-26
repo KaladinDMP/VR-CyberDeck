@@ -128,7 +128,7 @@
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #39ff14;
+  background-color: var(--vrcd-neon);
   transition: width 0.3s ease;
 }
 
@@ -146,7 +146,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(57,255,20,0.2);
+  border: 1px solid rgba(var(--vrcd-neon-raw),0.2);
   background-color: #050514;
 }
 
@@ -162,7 +162,7 @@
   overflow-y: auto;
   flex-grow: 1;
   margin-top: 8px;
-  border: 1px solid rgba(57,255,20,0.2);
+  border: 1px solid rgba(var(--vrcd-neon-raw),0.2);
   border-radius: 4px;
   position: relative;
   background-color: #050514;
@@ -202,8 +202,8 @@
 
 .games-table th {
   font-weight: 600;
-  color: #39ff14;
-  border-bottom: 1px solid rgba(57,255,20,0.3);
+  color: var(--vrcd-neon);
+  border-bottom: 1px solid rgba(var(--vrcd-neon-raw),0.3);
   background-color: #050514;
 }
 
@@ -221,7 +221,7 @@
 
 .game-name-main {
   font-weight: 500;
-  color: #39ff14;
+  color: var(--vrcd-neon);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -229,7 +229,7 @@
 
 .game-package-sub {
   font-size: 11px;
-  color: rgba(168,85,247,0.85);
+  color: rgba(var(--vrcd-purple-raw),0.85);
   font-family: monospace;
   margin-top: 2px;
   white-space: nowrap;
@@ -296,7 +296,7 @@
 }
 
 .filter-buttons button.active {
-  color: #39ff14;
+  color: var(--vrcd-neon);
   border-color: rgba(57, 255, 20, 0.7);
   box-shadow: 0 0 8px rgba(57, 255, 20, 0.25);
   background-color: rgba(57, 255, 20, 0.06);
@@ -329,7 +329,7 @@
 .row-not-installed:hover td,
 .row-installed:hover td,
 .row-update-available:hover td {
-  background-color: rgba(57,255,20,0.12) !important;
+  background-color: rgba(var(--vrcd-neon-raw),0.12) !important;
   cursor: pointer;
 }
 
@@ -351,7 +351,7 @@
 .resizer:hover,
 .resizer.isResizing {
   opacity: 1;
-  background: #39ff14;
+  background: var(--vrcd-neon);
 }
 
 .games-table th {
@@ -391,12 +391,12 @@
   background-color: var(--row-even-color, #050514);
 }
 .table-wrapper.alternating-rows tr.row-odd td {
-  background-color: var(--row-odd-color, rgba(57,255,20,0.06));
+  background-color: var(--row-odd-color, rgba(var(--vrcd-neon-raw),0.06));
 }
 /* Hover always wins over stripe colour */
 .table-wrapper.alternating-rows tr.row-even:hover td,
 .table-wrapper.alternating-rows tr.row-odd:hover td {
-  background-color: rgba(57,255,20,0.12);
+  background-color: rgba(var(--vrcd-neon-raw),0.12);
 }
 
 /* ── Card grid view ────────────────────────────────────────────── */
@@ -490,7 +490,7 @@
 .game-card-title {
   font-size: 13px;
   font-weight: 600;
-  color: #39ff14;
+  color: var(--vrcd-neon);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -511,7 +511,7 @@
 .game-card-status-text {
   font-size: 11px;
   font-weight: 500;
-  color: #39ff14;
+  color: var(--vrcd-neon);
   margin-top: 2px;
   font-family: monospace;
 }
@@ -530,9 +530,9 @@
   box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.3);
 }
 .search-wrap .fui-Input input {
-  color: #39ff14;
+  color: var(--vrcd-neon);
   background-color: transparent;
-  caret-color: #39ff14;
+  caret-color: var(--vrcd-neon);
 }
 .search-wrap .fui-Input input::placeholder {
   color: rgba(57, 255, 20, 0.35);

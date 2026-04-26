@@ -393,6 +393,11 @@ app.whenReady().then(async () => {
     await downloadService.removeFromQueueOnly(releaseName)
   })
 
+  typedIpcMain.handle('download:scan', async () => {
+    console.log('[IPC] Scanning download folder...')
+    return downloadService.scanDownloadFolder()
+  })
+
   typedIpcMain.on('download:cancel', (_event, releaseName) =>
     downloadService.cancelUserRequest(releaseName)
   )

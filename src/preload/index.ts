@@ -121,6 +121,8 @@ const api = {
       typedIpcRenderer.invoke('download:remove', releaseName),
     removeFromQueueOnly: (releaseName: string): Promise<void> =>
       typedIpcRenderer.invoke('download:remove-only', releaseName),
+    scanDownloadFolder: (): Promise<{ added: number; pruned: number }> =>
+      typedIpcRenderer.invoke('download:scan'),
     cancelUserRequest: (releaseName: string): void =>
       typedIpcRenderer.send('download:cancel', releaseName),
     retryDownload: (releaseName: string): void =>

@@ -1,3 +1,19 @@
+/* ── Neon theme CSS variables ─────────────────────────────── */
+:root {
+  --vrcd-neon: #39ff14;
+  --vrcd-neon-raw: 57, 255, 20;
+  --vrcd-purple: #a855f7;
+  --vrcd-purple-raw: 168, 85, 247;
+}
+
+/* Colorblind mode: green→white, purple→near-black */
+html.vrcd-colorblind {
+  --vrcd-neon: #ffffff;
+  --vrcd-neon-raw: 255, 255, 255;
+  --vrcd-purple: #1a1a1a;
+  --vrcd-purple-raw: 26, 26, 26;
+}
+
 html,
 body {
   margin: 0;
