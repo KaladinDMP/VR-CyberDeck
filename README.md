@@ -26,8 +26,8 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 
 | | ApprenticeVR | VR CyberDeck |
 |---|---|---|
-| **Theme** | Stock Fluent UI | Full optional cyberpunk / neon-terminal rebrand |
-| **Onboarding** | Configure server before use | Bundled server defaults — works on first launch |
+| **Theme** | Stock Fluent UI | Fully optional cyberpunk / neon-terminal rebrand |
+| **Onboarding** | Hardcoded (original) /Configure server before use (forks) | Bundled server defaults — works on first launch |
 | **Intro** | None | `UNAUTHORIZED → AUTHORIZED` glitch boot |
 | **Identity** | None | Matrix-style random `g33ky_u$3rn4m3$` per session |
 | **Console** | None | In-header Hacker Console + ADB Shell dialog |
@@ -45,8 +45,10 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 **`[ LIBRARY ]`**
 - Bundled server defaults — no JSON, no rclone, no setup required
 - Card view + table view, persistent sort, size presets, 18+ filter
-- `NEW` / `UPDATED` badges driven off real `lastUpdated` timestamps
 - Built-in mirror management with public mirror fallback
+- `NEW` / `UPDATED` badges driven off real `lastUpdated` timestamps 
+
+// NOTE: New is "added in the last 30 days". So, since the server is new, everything looks new for now. This will eventually be a useful feature, but a bit confusing right now. Updated badge means it was updated in the last 7 days, Updated badges do NOT turn into New badges for the last 3 weeks. New means new to the server, as in a new game, updated means a not new game thats been updated... But i guess there could be NEW and UPDATED at the same time. Not sure if it would badge it right or only one would show. Hmm, I should probably figure that out huh?
 
 **`[ TRANSFERS ]`**
 - Up to 5 parallel downloads with live progress
