@@ -40,7 +40,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
         fontFamily: '"Courier New", Courier, monospace',
         padding: '40px'
       }}>
-        <div style={{ fontSize: '32px', color: '#39ff14', letterSpacing: '0.1em' }}>
+        <div style={{ fontSize: '32px', color: 'var(--vrcd-neon)', letterSpacing: '0.1em' }}>
           // SYSTEM FAULT
         </div>
         <div style={{
@@ -57,15 +57,15 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
         }}>
           {this.state.message || 'An unexpected error occurred.'}
         </div>
-        <div style={{ fontSize: '11px', color: 'rgba(57,255,20,0.5)', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(var(--vrcd-neon-raw),0.5)', textAlign: 'center', maxWidth: '500px', lineHeight: '1.6' }}>
           Saved preferences will be cleared to prevent this from happening again.
         </div>
         <button
           onClick={this.handleReset}
           style={{
             background: 'transparent',
-            border: '1px solid rgba(57,255,20,0.5)',
-            color: '#39ff14',
+            border: '1px solid rgba(var(--vrcd-neon-raw),0.5)',
+            color: 'var(--vrcd-neon)',
             fontFamily: '"Courier New", Courier, monospace',
             fontSize: '11px',
             letterSpacing: '0.14em',
@@ -73,7 +73,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
             padding: '10px 24px',
             borderRadius: '6px',
             cursor: 'pointer',
-            boxShadow: '0 0 10px rgba(57,255,20,0.15)'
+            boxShadow: '0 0 10px rgba(var(--vrcd-neon-raw),0.15)'
           }}
         >
           Reset &amp; Reload

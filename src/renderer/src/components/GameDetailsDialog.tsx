@@ -28,17 +28,17 @@ import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
 import { getSideloadingDisabled } from '@renderer/hooks/useExtrasSettings'
 
-const NEON = '#39ff14'
-const PURPLE = '#a855f7'
+const NEON = 'var(--vrcd-neon)'
+const PURPLE = 'var(--vrcd-purple)'
 const BG = '#030310'
 const SURFACE_VARS = {
   '--colorNeutralBackground1': BG,
   '--colorNeutralBackground2': '#050520',
   '--colorNeutralBackground3': '#040418',
   '--colorNeutralForeground1': NEON,
-  '--colorNeutralForeground2': 'rgba(57,255,20,0.75)',
-  '--colorNeutralForeground3': 'rgba(57,255,20,0.5)',
-  '--colorNeutralStroke1': 'rgba(57,255,20,0.2)',
+  '--colorNeutralForeground2': 'rgba(var(--vrcd-neon-raw),0.75)',
+  '--colorNeutralForeground3': 'rgba(var(--vrcd-neon-raw),0.5)',
+  '--colorNeutralStroke1': 'rgba(var(--vrcd-neon-raw),0.2)',
   '--colorBrandBackground': NEON,
   '--colorNeutralForegroundOnBrand': BG,
   '--colorPaletteRedForeground1': '#ff5555',
@@ -171,14 +171,14 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
         <div style={{ display: 'flex', gap: 8 }}>
           {!noSideload && <Button appearance="primary" icon={<ArrowUpRegular />} onClick={() => onUpdate(g)} disabled={!isConnected || isBusy}>Update</Button>}
           {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
-          {noSideload && <Text size={200} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
+          {noSideload && <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
       return (
         <div style={{ display: 'flex', gap: 8 }}>
           {!noSideload && <Button appearance="secondary" icon={<ArrowSyncRegular />} onClick={() => onReinstall(g)} disabled={!isConnected || isBusy}>Reinstall</Button>}
           {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
-          {noSideload && <Text size={200} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
+          {noSideload && <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
     }
@@ -203,9 +203,9 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
   const showProgress = dlStatus === 'Downloading' || dlStatus === 'Extracting' || dlStatus === 'Installing'
 
   const statusColor = game.isInstalled ? NEON
-    : dlStatus === 'Completed' ? 'rgba(57,255,20,0.5)'
+    : dlStatus === 'Completed' ? 'rgba(var(--vrcd-neon-raw),0.5)'
     : dlStatus === 'InstallError' ? '#ff5555'
-    : 'rgba(57,255,20,0.4)'
+    : 'rgba(var(--vrcd-neon-raw),0.4)'
   const statusLabel = game.isInstalled ? (game.hasUpdate ? 'Update Available' : 'Installed')
     : dlStatus === 'Completed' ? 'Downloaded'
     : dlStatus === 'InstallError' ? 'Install Error'
@@ -219,8 +219,8 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
         style={{
           ...SURFACE_VARS,
           background: BG,
-          border: `1px solid rgba(57,255,20,0.4)`,
-          boxShadow: `0 0 50px rgba(57,255,20,0.08), 0 0 1px rgba(168,85,247,0.3)`,
+          border: `1px solid rgba(var(--vrcd-neon-raw),0.4)`,
+          boxShadow: `0 0 50px rgba(var(--vrcd-neon-raw),0.08), 0 0 1px rgba(var(--vrcd-purple-raw),0.3)`,
           maxWidth: '680px',
           width: '90vw',
           maxHeight: '92vh',
@@ -236,7 +236,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
           style={{
             position: 'absolute', top: 10, right: 12, zIndex: 10,
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: 'rgba(57,255,20,0.6)', fontSize: 18, lineHeight: 1,
+            color: 'rgba(var(--vrcd-neon-raw),0.6)', fontSize: 18, lineHeight: 1,
             padding: '2px 6px'
           }}
           aria-label="Close"
@@ -250,7 +250,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
             <img
               src={game.thumbnailPath ? `file://${game.thumbnailPath}` : placeholderImage}
               alt={game.name}
-              style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(57,255,20,0.3)', display: 'block' }}
+              style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', display: 'block' }}
             />
 
             {/* Game meta */}
@@ -263,22 +263,22 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
                 <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 4, padding: '1px 7px', letterSpacing: '0.06em' }}>
                   {statusLabel}
                 </span>
-                <span style={{ fontSize: 11, color: 'rgba(57,255,20,0.6)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: 11, color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace' }}>
                   <DocumentDataRegular fontSize={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{game.size || '-'}
                 </span>
-                <span style={{ fontSize: 11, color: 'rgba(57,255,20,0.6)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: 11, color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace' }}>
                   <DownloadIcon fontSize={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{game.downloads?.toLocaleString() || '-'}
                 </span>
-                <span style={{ fontSize: 11, color: 'rgba(57,255,20,0.6)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: 11, color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace' }}>
                   <InfoRegular fontSize={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />
                   {game.version ? `v${game.version}` : '-'}
-                  {game.isInstalled && game.deviceVersionCode && <span style={{ color: 'rgba(57,255,20,0.4)' }}> (dev: v{game.deviceVersionCode})</span>}
+                  {game.isInstalled && game.deviceVersionCode && <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.4)' }}> (dev: v{game.deviceVersionCode})</span>}
                 </span>
               </div>
 
-              <div style={{ height: '1px', background: 'rgba(57,255,20,0.15)', marginTop: 4 }} />
+              <div style={{ height: '1px', background: 'rgba(var(--vrcd-neon-raw),0.15)', marginTop: 4 }} />
 
-              <div style={{ fontSize: 11, color: 'rgba(57,255,20,0.7)', fontFamily: 'monospace', display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ fontSize: 11, color: 'rgba(var(--vrcd-neon-raw),0.7)', fontFamily: 'monospace', display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <span><TagRegular fontSize={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />{game.releaseName || '-'}</span>
                 <span><CalendarClockRegular fontSize={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />{String(game.lastUpdated || '-')}</span>
               </div>
@@ -302,13 +302,13 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
           )}
 
           {/* ── Collapsible Trailer ── */}
-          <div style={{ borderTop: '1px solid rgba(57,255,20,0.12)', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.12)', paddingTop: 12 }}>
             <button
               onClick={() => setTrailerOpen(!trailerOpen)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                 background: 'transparent', border: 'none', cursor: 'pointer',
-                color: 'rgba(57,255,20,0.8)', fontFamily: 'monospace', fontSize: 12,
+                color: 'rgba(var(--vrcd-neon-raw),0.8)', fontFamily: 'monospace', fontSize: 12,
                 letterSpacing: '0.1em', textAlign: 'left', padding: '2px 0'
               }}
             >
@@ -327,12 +327,12 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
                 </a>
               )}
               {!videoId && !loadingVideo && (
-                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(57,255,20,0.35)' }}>no trailer found</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(var(--vrcd-neon-raw),0.35)' }}>no trailer found</span>
               )}
             </button>
 
             {trailerOpen && videoId && (
-              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(57,255,20,0.2)' }}>
+              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(var(--vrcd-neon-raw),0.2)' }}>
                 <webview
                   ref={webviewRef}
                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' } as React.CSSProperties}
@@ -344,21 +344,21 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
               </div>
             )}
             {trailerOpen && !videoId && !loadingVideo && (
-              <p style={{ color: 'rgba(57,255,20,0.4)', fontFamily: 'monospace', fontSize: 12, margin: '8px 0 0' }}>No trailer available.</p>
+              <p style={{ color: 'rgba(var(--vrcd-neon-raw),0.4)', fontFamily: 'monospace', fontSize: 12, margin: '8px 0 0' }}>No trailer available.</p>
             )}
           </div>
 
           {/* ── Note section (bottom) ── */}
-          <div style={{ borderTop: '1px solid rgba(57,255,20,0.12)', paddingTop: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: 'monospace', letterSpacing: '0.1em', color: 'rgba(57,255,20,0.6)', marginBottom: 6 }}>// NOTE</div>
+          <div style={{ borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.12)', paddingTop: 12 }}>
+            <div style={{ fontSize: 11, fontFamily: 'monospace', letterSpacing: '0.1em', color: 'rgba(var(--vrcd-neon-raw),0.6)', marginBottom: 6 }}>// NOTE</div>
             {loadingNote ? (
               <Spinner size="tiny" label="Loading..." />
             ) : currentGameNote ? (
-              <div style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(57,255,20,0.8)', whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto', background: 'rgba(57,255,20,0.03)', border: '1px solid rgba(57,255,20,0.12)', borderRadius: 4, padding: '8px 10px' }}>
+              <div style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(var(--vrcd-neon-raw),0.8)', whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto', background: 'rgba(var(--vrcd-neon-raw),0.03)', border: '1px solid rgba(var(--vrcd-neon-raw),0.12)', borderRadius: 4, padding: '8px 10px' }}>
                 {currentGameNote}
               </div>
             ) : (
-              <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(57,255,20,0.35)' }}>No note available.</span>
+              <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(var(--vrcd-neon-raw),0.35)' }}>No note available.</span>
             )}
           </div>
 

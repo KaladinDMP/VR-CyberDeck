@@ -23,7 +23,8 @@ import {
   DrawerHeaderTitle,
   DrawerBody,
   TabList,
-  Tab
+  Tab,
+  CounterBadge
 } from '@fluentui/react-components'
 import electronLogo from '../assets/icon.svg'
 import { useDependency } from '../hooks/useDependency'
@@ -385,7 +386,7 @@ const AppLayout: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
                         {appVersion && (
-                          <span style={{ fontSize: '9px', fontFamily: 'monospace', color: 'rgba(168,85,247,0.6)', letterSpacing: '0.1em' }}>
+                          <span style={{ fontSize: '9px', fontFamily: 'monospace', color: 'rgba(var(--vrcd-purple-raw),0.6)', letterSpacing: '0.1em' }}>
                             v{appVersion}
                           </span>
                         )}
@@ -409,7 +410,7 @@ const AppLayout: React.FC = () => {
                 <div className={styles.headerRight}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }} onClick={() => setIsDarkModeJokeOpen(true)}>
                     <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(var(--vrcd-neon-raw), 0.6)', textTransform: 'uppercase' }}>Dark Mode</span>
-                    <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)', pointerEvents: 'none' } as React.CSSProperties}>
+                    <div style={{ '--colorBrandBackground': 'var(--vrcd-neon)', '--colorBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)', '--colorBrandBackgroundPressed': 'rgba(var(--vrcd-neon-raw),0.6)', '--colorCompoundBrandBackground': 'var(--vrcd-neon)', '--colorCompoundBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)', pointerEvents: 'none' } as React.CSSProperties}>
                       <Switch checked={true} readOnly />
                     </div>
                   </div>
@@ -437,18 +438,18 @@ const AppLayout: React.FC = () => {
                   <div
                     style={{
                       background: '#030310',
-                      border: '1px solid rgba(57,255,20,0.45)',
+                      border: '1px solid rgba(var(--vrcd-neon-raw),0.45)',
                       maxWidth: '480px',
                       width: '90vw',
                       fontFamily: 'monospace',
                       borderRadius: '8px',
                       padding: '24px 28px 28px',
-                      boxShadow: '0 0 50px rgba(57,255,20,0.08), 0 0 80px rgba(168,85,247,0.06)'
+                      boxShadow: '0 0 50px rgba(var(--vrcd-neon-raw),0.08), 0 0 80px rgba(var(--vrcd-purple-raw),0.06)'
                     }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
                       {/* Neon crying-laughing face */}
-                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 14px #39ff14) drop-shadow(0 0 40px rgba(57,255,20,0.55)) drop-shadow(0 0 70px rgba(57,255,20,0.2))' }}>
+                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 14px var(--vrcd-neon)) drop-shadow(0 0 40px rgba(var(--vrcd-neon-raw),0.55)) drop-shadow(0 0 70px rgba(var(--vrcd-neon-raw),0.2))' }}>
                         <defs>
                           <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
                             <feGaussianBlur stdDeviation="4" result="b"/>
@@ -460,25 +461,25 @@ const AppLayout: React.FC = () => {
                           </filter>
                         </defs>
                         <circle cx="100" cy="100" r="88" fill="#010108"/>
-                        <circle cx="100" cy="100" r="88" fill="none" stroke="#39ff14" strokeWidth="5" filter="url(#jk-g)"/>
-                        <path d="M 58,80 Q 72,68 86,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
-                        <path d="M 114,80 Q 128,68 142,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
-                        <path d="M 52,124 Q 100,175 148,124" fill="none" stroke="#39ff14" strokeWidth="4.5" strokeLinecap="round" filter="url(#jk-g)"/>
-                        <path d="M 64,87 Q 52,108 58,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
-                        <ellipse cx="57" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
-                        <path d="M 136,87 Q 148,108 142,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
-                        <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
+                        <circle cx="100" cy="100" r="88" fill="none" stroke="var(--vrcd-neon)" strokeWidth="5" filter="url(#jk-g)"/>
+                        <path d="M 58,80 Q 72,68 86,80" fill="none" stroke="var(--vrcd-neon)" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 114,80 Q 128,68 142,80" fill="none" stroke="var(--vrcd-neon)" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 52,124 Q 100,175 148,124" fill="none" stroke="var(--vrcd-neon)" strokeWidth="4.5" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 64,87 Q 52,108 58,128" fill="none" stroke="var(--vrcd-purple)" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                        <ellipse cx="57" cy="132" rx="5.5" ry="8" fill="var(--vrcd-purple)" filter="url(#jk-pg)"/>
+                        <path d="M 136,87 Q 148,108 142,128" fill="none" stroke="var(--vrcd-purple)" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                        <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="var(--vrcd-purple)" filter="url(#jk-pg)"/>
                       </svg>
 
-                      <div style={{ fontSize: '52px', color: '#39ff14', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px #39ff14, 0 0 30px rgba(57,255,20,0.7), 0 0 60px rgba(57,255,20,0.3)', lineHeight: 1 }}>LMAO</div>
+                      <div style={{ fontSize: '52px', color: 'var(--vrcd-neon)', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px var(--vrcd-neon), 0 0 30px rgba(var(--vrcd-neon-raw),0.7), 0 0 60px rgba(var(--vrcd-neon-raw),0.3)', lineHeight: 1 }}>LMAO</div>
 
                       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
-                        <span style={{ color: '#a855f7', fontSize: '12px', margin: '0 10px', textShadow: '0 0 8px rgba(168,85,247,0.9)', filter: 'drop-shadow(0 0 4px #a855f7)' }}>◆</span>
-                        <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(var(--vrcd-purple-raw),0.6)', boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.4)' }}/>
+                        <span style={{ color: 'var(--vrcd-purple)', fontSize: '12px', margin: '0 10px', textShadow: '0 0 8px rgba(var(--vrcd-purple-raw),0.9)', filter: 'drop-shadow(0 0 4px var(--vrcd-purple))' }}>◆</span>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(var(--vrcd-purple-raw),0.6)', boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.4)' }}/>
                       </div>
 
-                      <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(57,255,20,0.35)' }}>
+                      <div style={{ fontSize: '15px', color: 'var(--vrcd-neon)', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.35)' }}>
                         This is just for looks.<br />
                         Do people actually USE<br />
                         light mode?
@@ -489,8 +490,8 @@ const AppLayout: React.FC = () => {
                         style={{
                           width: '100%',
                           background: 'transparent',
-                          border: '2px solid rgba(57,255,20,0.65)',
-                          color: '#39ff14',
+                          border: '2px solid rgba(var(--vrcd-neon-raw),0.65)',
+                          color: 'var(--vrcd-neon)',
                           fontFamily: '"Courier New", monospace',
                           fontSize: '14px',
                           letterSpacing: '0.1em',
@@ -498,7 +499,7 @@ const AppLayout: React.FC = () => {
                           borderRadius: '8px',
                           cursor: 'pointer',
                           fontStyle: 'italic',
-                          boxShadow: '0 0 14px rgba(57,255,20,0.15), inset 0 0 14px rgba(57,255,20,0.04)',
+                          boxShadow: '0 0 14px rgba(var(--vrcd-neon-raw),0.15), inset 0 0 14px rgba(var(--vrcd-neon-raw),0.04)',
                           whiteSpace: 'nowrap'
                         }}
                       >
@@ -530,10 +531,10 @@ const AppLayout: React.FC = () => {
                 open={isTransfersOpen}
                 onOpenChange={(_, { open }) => setIsTransfersOpen(open)}
                 position="end"
-                style={{ width: '700px', background: '#050514', borderLeft: '1px solid rgba(57,255,20,0.25)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.2)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' } as React.CSSProperties}
+                style={{ width: '700px', background: '#050514', borderLeft: '1px solid rgba(var(--vrcd-neon-raw),0.25)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralStroke1' as string]: 'rgba(var(--vrcd-neon-raw),0.2)', ['--colorBrandBackground' as string]: 'var(--vrcd-neon)', ['--colorNeutralForegroundOnBrand' as string]: '#050514' } as React.CSSProperties}
                 mountNode={mountNodeRef.current}
               >
-                <DrawerHeader style={{ background: '#050514', borderBottom: '1px solid rgba(57,255,20,0.15)', padding: '12px 20px' }}>
+                <DrawerHeader style={{ background: '#050514', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)', padding: '12px 20px' }}>
                   <DrawerHeaderTitle
                     action={
                       <Button
@@ -541,10 +542,10 @@ const AppLayout: React.FC = () => {
                         aria-label={t('close')}
                         icon={<CloseIcon />}
                         onClick={() => setIsTransfersOpen(false)}
-                        style={{ color: '#39ff14' }}
+                        style={{ color: 'var(--vrcd-neon)' }}
                       />
                     }
-                    style={{ color: '#39ff14', fontFamily: 'monospace', letterSpacing: '0.08em' }}
+                    style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', letterSpacing: '0.08em' }}
                   >
                     Transfers
                   </DrawerHeaderTitle>
@@ -553,10 +554,21 @@ const AppLayout: React.FC = () => {
                   <TabList
                     selectedValue={transfersTab}
                     onTabSelect={(_, d) => setTransfersTab(d.value as 'downloads' | 'uploads')}
-                    style={{ padding: '0 16px', borderBottom: '1px solid rgba(57,255,20,0.15)', flexShrink: 0 }}
+                    style={{ padding: '0 16px', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)', flexShrink: 0 }}
                   >
                     <Tab value="downloads" icon={<DownloadIcon />}>{t('downloads')}</Tab>
-                    <Tab value="uploads" icon={<UploadIcon />}>{t('uploads')}</Tab>
+                    <Tab value="uploads" icon={<UploadIcon />}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {t('uploads')}
+                        {uploadQueue.filter((i) => i.status === 'Queued' || i.status === 'Preparing' || i.status === 'Uploading').length > 0 && (
+                          <CounterBadge
+                            count={uploadQueue.filter((i) => i.status === 'Queued' || i.status === 'Preparing' || i.status === 'Uploading').length}
+                            size="small"
+                            color="brand"
+                          />
+                        )}
+                      </span>
+                    </Tab>
                   </TabList>
                   <div style={{ flex: 1, overflow: 'auto' }}>
                     {transfersTab === 'downloads' ? (
@@ -591,13 +603,13 @@ const AppLayout: React.FC = () => {
                       maxWidth: '1400px',
                       maxHeight: '92vh',
                       background: '#050514',
-                      border: '1px solid rgba(57,255,20,0.25)',
+                      border: '1px solid rgba(var(--vrcd-neon-raw),0.25)',
                       borderRadius: '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       position: 'relative',
                       overflow: 'hidden',
-                      boxShadow: '0 0 40px rgba(57,255,20,0.06)'
+                      boxShadow: '0 0 40px rgba(var(--vrcd-neon-raw),0.06)'
                     }}
                   >
                     <Button
@@ -605,7 +617,7 @@ const AppLayout: React.FC = () => {
                       icon={<CloseIcon />}
                       aria-label={t('close')}
                       onClick={() => setIsSettingsOpen(false)}
-                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, color: '#39ff14' }}
+                      style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, color: 'var(--vrcd-neon)' }}
                     />
                     <Settings />
                   </div>
