@@ -1,24 +1,81 @@
 
 
-<details>
-  <summary>🟢 This is not quite ready yet. not been officially released. Removed issues for now. Need a few more days </summary>
-
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2ace873a-2aef-4959-af2a-beec4b6d2ff5" width="500">
 </p>
-
 
 # VR CyberDeck
 
 **Made with <3 by DMP**
 
-> OPERATE. DEPLOY. CONTROL.
+> `> ACCESS GRANTED. JACK IN. SIDELOAD. UPLOAD. REPEAT.`
 
-VR CyberDeck is a cross-platform desktop app built with Electron, React, and TypeScript for managing and sideloading content onto Meta Quest devices. Connect to a community game library, download and install automatically, and contribute games back.
+```
+[ STATUS ] ONLINE
+[ TARGET ] META QUEST // ALL MODELS
+[ STACK  ] ELECTRON · REACT · TYPESCRIPT
+```
+
+VR CyberDeck is a cross-platform desktop deck for managing, sideloading, and uploading content to Meta Quest devices. It plugs into a community-run game library, runs the whole download → install → metadata → upload pipeline for you, and wraps the whole thing in a neon terminal aesthetic that doesn't feel like a 2014 sideloader.
 
 ---
 
-## Download
+## `// FORK_NOTE`
+
+VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core engine — ADB control, the download/upload pipeline, rclone integration, library connection — is theirs. Everything below the surface is a heavy rewrite of the *experience*:
+
+| | ApprenticeVR | VR CyberDeck |
+|---|---|---|
+| **Theme** | Stock Fluent UI | Full cyberpunk / neon-terminal rebrand |
+| **Onboarding** | Configure server before use | Bundled server defaults — works on first launch |
+| **Intro** | None | `UNAUTHORIZED → AUTHORIZED` glitch boot |
+| **Identity** | None | Matrix-style random `g33ky_u$3rn4m3$` per session |
+| **Console** | None | In-header Hacker Console + ADB Shell dialog |
+| **Library view** | Table only | Table **and** card view, with size + sort presets |
+| **Downloads** | Sequential | Up to **5 concurrent**, with NEW / UPDATED badges |
+| **Uploads** | Headset-only | Headset **or** local PC files (folders + ZIPs) |
+| **Settings** | Flat panel | Collapsible sections, accent color, tab memory |
+| **A11y** | Limited | Colorblind mode, font scale to 200% |
+| **Updates** | Manual | In-app auto-updater on every platform |
+
+---
+
+## `// FEATURES`
+
+**`[ LIBRARY ]`**
+- Bundled server defaults — no JSON, no rclone, no setup required
+- Card view + table view, persistent sort, size presets, 18+ filter
+- `NEW` / `UPDATED` badges driven off real `lastUpdated` timestamps
+- Built-in mirror management with public mirror fallback
+
+**`[ TRANSFERS ]`**
+- Up to 5 parallel downloads with live progress
+- Unified Transfers drawer (downloads + uploads in one place)
+- Scan existing downloads folder and reconcile against the library
+- Clear-completed, retry, and per-item delete actions
+
+**`[ UPLOADS ]`**
+- Auto-detect games on your headset that are missing or newer than the library
+- Local PC upload — point at a folder or pre-made ZIP, no headset required
+- Full pipeline: stage → ADB pull APK → grab OBBs → metadata → 7z → rclone
+- Optional `CRACKED` tagging on uploads
+
+**`[ DEVICE ]`**
+- Auto-connect Quest on launch
+- ADB Shell dialog for power users
+- Disable-sideloading toggle for safety
+- WiFi bookmarks for wireless ADB
+
+**`[ INTERFACE ]`**
+- Glitch boot intro, neon Hacker Console, themed dialogs top to bottom
+- Dark mode done right (no half-themed popups)
+- Accent color picker, tab memory, in-app notifications
+- Colorblind mode + font scale up to 200%
+- One-click log upload from Settings → Log Upload
+
+---
+
+## `// DOWNLOAD`
 
 | File | Platform |
 |------|----------|
@@ -31,9 +88,9 @@ VR CyberDeck is a cross-platform desktop app built with Electron, React, and Typ
 | `vr-cyberdeck-x.x.x-amd64.deb` | Debian/Ubuntu x64 |
 | `vr-cyberdeck-x.x.x-arm64.deb` | Debian/Ubuntu ARM64 |
 
-Always use the latest release. If you have it installed already just update in-app =)
+Always grab the latest release. If it's already installed, just update in-app.
 
-**macOS — "App is damaged" error:**
+**macOS — "App is damaged":**
 ```
 xattr -c /Applications/VR\ CyberDeck.app
 ```
@@ -46,7 +103,20 @@ chmod +x vr-cyberdeck-x.x.x-x86_64.AppImage
 
 ---
 
-## Build from Source
+## `// JACK_IN`
+
+1. Install the build for your OS
+2. Plug in your Quest via USB (data-capable cable)
+3. Allow USB Debugging on the headset
+4. Browse the library and hit download
+
+That's it. The bundled server config means there's nothing to configure on first run.
+
+> Want to point at a custom server, swap in your own rclone config, or upload from PC? See **Settings** — every advanced flow lives there.
+
+---
+
+## `// BUILD_FROM_SOURCE`
 
 ```
 npm install --legacy-peer-deps
@@ -60,136 +130,15 @@ npm install --legacy-peer-deps
 
 ---
 
-## Setup
+## `// CREDITS`
 
-**Step 1:** Install the version for your OS and preference and use it.
+Built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. Without that foundation this project doesn't exist.
 
-**Step 2:** Things required to add a server: None! 
-
-This version comes with the current server info already, but in the future you may need or want to change this. 
-If that happens, here is the info you would need:
-
-### Part 1 — Get Server Credentials
-
-VR CyberDeck requires a `baseUri` and `password` (base64 encoded) to connect to the game library. 
-
-Find them here if they change:
-- Telegram: https://t.me/the_vrSrc
-- Web preview: https://t.me/s/the_vrSrc
-- Public JSON: https://qpmegathread.top/pages/public-json.html
-
-You can also use an rclone config if you have one.
-
-### Part 2 — Enter The Credentials
-
-**Option A — In-App (recommended):**
-1. Open Settings
-2. Click **Set Public Server JSON** or **"Set Rclone Config"**
-3. Paste your JSON or enter values manually, or point to the rclone.conf
-4. Click **Save**
-
-**Option B — ServerInfo.json file:**
-
-| Platform | Path |
-|----------|------|
-| Windows | `%APPDATA%\vr-cyberdeck\ServerInfo.json` |
-| macOS | `~/Library/Application Support/vr-cyberdeck/ServerInfo.json` |
-| Linux | `~/.config/vr-cyberdeck/ServerInfo.json` |
-
-```json
-{"baseUri":"https://your-url-here/","password":"your-password-here"}
-```
-
-Restart required when using this method.
-
-### Step 3 — Connect Your Quest
-
-1. Plug in via USB
-2. Allow USB Debugging on the headset
-3. Device appears in the app
-4. Browse the library and download
-
-Up to 5 downloads run in parallel.
-
----
-
-## Uploading Games
-
-### From a Connected Quest
-
-The app detects games on your device that are missing from or newer than the library and prompts you to upload them. 
-
-**The pipeline:**
-
-1. Creates a staging folder
-2. Pulls the APK via ADB
-3. Checks for OBB files and pulls them
-4. Generates metadata
-5. Compresses into a ZIP
-6. Uploads via rclone
-7. Adds the entry to your blacklist
-
-### From Local Files
-
-Use **Transfers → Upload Local Files** to send game folders or ZIP archives directly from your PC without a connected headset.
-
-- Each folder must contain exactly one APK — OBB folders and instruction files are included automatically
-- Pre-made ZIPs are sent as-is
-- Multiple items can be queued and upload one at a time with live progress
-
-> Requires at least one successful server connection so that `upload.config` is written locally.
-
-Uploads do not guarantee library inclusion.
-
----
-
-## Logs
-
-| Platform | Path |
-|----------|------|
-| Windows | `%APPDATA%\vr-cyberdeck\logs\main.log` |
-| macOS | `~/Library/Logs/vr-cyberdeck/main.log` |
-| Linux | `~/.config/vr-cyberdeck/logs/main.log` |
-
-Logs can also be uploaded and shared directly from **Settings → Log Upload**. Just share the full link or shortcode either in the message to me or in the 'issues' post you make.
-
----
-
-## Troubleshooting
-
-**Server connection issues**
-- Verify `baseUri` ends with `/`
-- Check password encoding
-- Try a different DNS (Cloudflare `1.1.1.1` or Google `8.8.8.8`)
-- Use a VPN if your region blocks the server
-
-**Quest not detected**
-- Use a data-capable USB cable (not charge-only)
-- Accept USB Debugging on the headset when prompted
-- Check antivirus isn't blocking ADB
-- Try a different USB port
-
-**ARM64 Linux — adb not found**
-```
-sudo apt install adb           # Debian/Ubuntu
-sudo pacman -S android-tools   # Arch
-```
-
----
-
-## Credits
-
-VR CyberDeck is built on top of [ApprenticeVR](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core architecture — ADB management, download/upload pipeline, rclone integration, and the game library connection — comes from their work. Without it this project wouldn't exist.
-
----
-
-## License
+## `// LICENSE`
 
 GNU Affero GPL v3
 
 ---
-
-</details>
 
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=kaladindmp%2Fvr-cyberdeck&label=People%20Who%20Forgot%20To%20Star%20This%20Repo&countColor=%23ba68c8&style=plastic)
 ![Last Commit](https://img.shields.io/github/last-commit/KaladinDMP/VR-CyberDeck?label=Last%20Updated)
