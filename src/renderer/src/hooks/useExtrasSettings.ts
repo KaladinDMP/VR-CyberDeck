@@ -172,7 +172,7 @@ export function useExtrasSettings(): ExtrasSettings {
   const setDisableAllExtras = useCallback((v: boolean) => { setDisableAllExtrasState(v); persistBool(DISABLE_ALL_EXTRAS_KEY, v) }, [])
   const setDisableAutoUpdate = useCallback((v: boolean) => { setDisableAutoUpdateState(v); persistBool(DISABLE_AUTO_UPDATE_KEY, v) }, [])
   const setFontScale = useCallback((v: number) => {
-    const clamped = Math.max(0.75, Math.min(1.5, v))
+    const clamped = Math.max(0.75, Math.min(2.0, v))
     setFontScaleState(clamped)
     persistNumber(FONT_SCALE_KEY, clamped)
   }, [])

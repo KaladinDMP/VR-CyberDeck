@@ -230,22 +230,39 @@ class LogsService implements LogsAPI {
       }
 
       if (result.status !== '200') {
-        // If the desired slug was taken, retry without it to get a random one
+        // If the desired slug was taken, retry without it to get a random one.
+        // Refresh the CSRF token first — rentry.co invalidates the previous token
+        // after a non-200 POST, so reusing it returns HTTP 400.
         if (formData.has('url')) {
           console.warn('[LogsService] Desired slug taken, retrying with random slug')
-          formData.delete('url')
+
+          const refreshResponse = await fetch('https://rentry.co/', {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+          })
+          const refreshCookie = refreshResponse.headers.get('set-cookie')
+          const refreshMatch = refreshCookie?.match(/csrftoken=([^;,\s]+)/)
+          const retryCsrf = refreshMatch ? refreshMatch[1] : csrfToken
+
+          const retryForm = new URLSearchParams()
+          retryForm.append('csrfmiddlewaretoken', retryCsrf)
+          retryForm.append('text', content)
 
           const retryResponse = await fetch('https://rentry.co/api/new', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
-              Cookie: `csrftoken=${csrfToken}`,
+              Cookie: `csrftoken=${retryCsrf}`,
               Referer: 'https://rentry.co/'
             },
-            body: formData.toString()
+            body: retryForm.toString()
           })
 
           if (!retryResponse.ok) {
+            const body = await retryResponse.text().catch(() => '(no body)')
+            console.error('[LogsService] Retry response body:', body.slice(0, 500))
             throw new Error(`Rentry API HTTP error: ${retryResponse.status} ${retryResponse.statusText}`)
           }
 
