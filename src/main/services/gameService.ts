@@ -28,14 +28,12 @@ class GameService extends EventEmitter implements GamesAPI {
   private blacklistGamesPath: string
   private customBlacklistPath: string
   private serverInfoPath: string
-  private firstSeenPath: string
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
   private customBlacklistGames: BlacklistEntry[] = []
   private status: ServiceStatus = 'NOT_INITIALIZED'
   private videoIdCache: Map<string, string | null> = new Map()
-  private firstSeenMap: Map<string, string> = new Map()
   constructor() {
     super()
     this.dataPath = join(app.getPath('userData'), 'vrp-data')
@@ -45,25 +43,6 @@ class GameService extends EventEmitter implements GamesAPI {
     this.blacklistGamesPath = join(this.metaPath, 'nouns', 'blacklist.txt')
     this.customBlacklistPath = join(app.getPath('userData'), 'custom-blacklist.json')
     this.serverInfoPath = join(app.getPath('userData'), 'ServerInfo.json')
-    this.firstSeenPath = join(app.getPath('userData'), 'first-seen.json')
-  }
-
-  private async loadFirstSeen(): Promise<void> {
-    try {
-      const raw = await fs.readFile(this.firstSeenPath, 'utf-8')
-      const obj = JSON.parse(raw) as Record<string, string>
-      this.firstSeenMap = new Map(Object.entries(obj))
-    } catch {
-      this.firstSeenMap = new Map()
-    }
-  }
-
-  private async saveFirstSeen(): Promise<void> {
-    try {
-      const obj: Record<string, string> = {}
-      for (const [k, v] of this.firstSeenMap) obj[k] = v
-      await fs.writeFile(this.firstSeenPath, JSON.stringify(obj), 'utf-8')
-    } catch { /* ignore */ }
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -81,7 +60,6 @@ class GameService extends EventEmitter implements GamesAPI {
     try {
       // Load configuration if exists
       await this.loadConfig()
-      await this.loadFirstSeen()
 
       // Check if we need to sync data
       // const needsSync = await this.needsSync()
@@ -736,10 +714,6 @@ class GameService extends EventEmitter implements GamesAPI {
         // Generate note path based on release name
         const notePath = releaseName ? join(this.metaPath, 'notes', `${releaseName}.txt`) : ''
 
-        if (packageName && !this.firstSeenMap.has(packageName)) {
-          this.firstSeenMap.set(packageName, new Date().toISOString())
-        }
-
         const gameInfo: GameInfo = {
           id: packageName || gameName.replace(/\s+/g, '-').toLowerCase(),
           name: gameName,
@@ -751,8 +725,7 @@ class GameService extends EventEmitter implements GamesAPI {
           downloads: parseFloat(downloads) || 0,
           thumbnailPath: thumbnailExists ? thumbnailPath : '',
           notePath,
-          isInstalled: false,
-          firstSeen: packageName ? this.firstSeenMap.get(packageName) : undefined
+          isInstalled: false
         }
 
         games.push(gameInfo)
@@ -763,8 +736,6 @@ class GameService extends EventEmitter implements GamesAPI {
 
     this.games = games
     console.log(`Loaded ${games.length} games`)
-    // Persist any new firstSeen entries (fire-and-forget)
-    this.saveFirstSeen().catch(() => { /* ignore */ })
   }
 
   async forceSync(): Promise<GameInfo[]> {

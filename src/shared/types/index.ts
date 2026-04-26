@@ -75,7 +75,6 @@ export interface GameInfo {
   isInstalled: boolean
   deviceVersionCode?: number
   hasUpdate?: boolean
-  firstSeen?: string  // ISO date — when this packageName first appeared in the local catalog
 }
 
 export interface UploadCandidate {

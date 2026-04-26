@@ -108,15 +108,11 @@ const NEW_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000   // 30 days
 const UPDATED_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000  // 7 days
 
 function getGameBadge(game: GameInfo): 'new' | 'updated' | null {
-  const now = Date.now()
-  if (game.firstSeen) {
-    const age = now - new Date(game.firstSeen).getTime()
-    if (age <= NEW_THRESHOLD_MS) return 'new'
-  }
-  if (game.lastUpdated) {
-    const age = now - new Date(game.lastUpdated).getTime()
-    if (age <= UPDATED_THRESHOLD_MS) return 'updated'
-  }
+  if (!game.lastUpdated) return null
+  const age = Date.now() - new Date(game.lastUpdated).getTime()
+  if (!Number.isFinite(age) || age < 0) return null
+  if (age <= UPDATED_THRESHOLD_MS) return 'updated'
+  if (age <= NEW_THRESHOLD_MS) return 'new'
   return null
 }
 
