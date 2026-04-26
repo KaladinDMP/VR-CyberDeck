@@ -48,11 +48,13 @@ nsis:
   createDesktopShortcut: always
 portable:
   artifactName: ${name}-${version}-portable-${arch}.${ext}
+afterSign: build/afterSign.cjs
 mac:
   target:
     - target: dmg
       arch:
         - x64
+        - arm64
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
