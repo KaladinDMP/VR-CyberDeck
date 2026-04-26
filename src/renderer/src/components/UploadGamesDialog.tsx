@@ -31,6 +31,8 @@ const UploadGamesDialog: React.FC = () => {
   const [showUploadDialog, setShowUploadDialog] = useState<boolean>(false)
   const [selectedCandidates, setSelectedCandidates] = useState<Record<string, boolean>>({})
   const [crackedFlags, setCrackedFlags] = useState<Record<string, boolean>>({})
+  const [isQueuing, setIsQueuing] = useState<boolean>(false)
+  const [queuedCount, setQueuedCount] = useState<number>(0)
 
   const lastShownVersion = useRef(0)
 
@@ -81,10 +83,15 @@ const UploadGamesDialog: React.FC = () => {
 
   const handleUpload = async (): Promise<void> => {
     const toUpload = uploadCandidates.filter((c) => selectedCandidates[c.packageName])
-    setShowUploadDialog(false)
+    setIsQueuing(true)
+    let count = 0
     for (const c of toUpload) {
-      await addToQueue(c.packageName, resolvedGameName(c.packageName, c.gameName), c.versionCode, selectedDevice!)
+      const ok = await addToQueue(c.packageName, resolvedGameName(c.packageName, c.gameName), c.versionCode, selectedDevice!)
+      if (ok) count++
     }
+    setQueuedCount(count)
+    setIsQueuing(false)
+    setTimeout(() => setShowUploadDialog(false), 900)
   }
 
   const handleBlacklist = async (): Promise<void> => {
@@ -116,7 +123,7 @@ const UploadGamesDialog: React.FC = () => {
     <Dialog open={showUploadDialog} onOpenChange={(_, data) => setShowUploadDialog(data.open)}>
       <DialogSurface
         mountNode={document.getElementById('portal')}
-        style={{ maxWidth: '1100px', background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}
+        style={{ maxWidth: '1100px', background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(var(--vrcd-neon-raw),0.25)', ['--colorBrandBackground' as string]: 'var(--vrcd-neon)', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}
       >
         <DialogBody>
           <DialogTitle>{t('uploadGamesTitle')}</DialogTitle>
@@ -183,18 +190,24 @@ const UploadGamesDialog: React.FC = () => {
           </DialogContent>
 
           <DialogActions>
+            {queuedCount > 0 && !isQueuing && (
+              <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.8)', fontFamily: 'monospace', marginRight: 'auto' }}>
+                ✓ {queuedCount} queued
+              </Text>
+            )}
+
             <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary">{t('cancel')}</Button>
+              <Button appearance="secondary" disabled={isQueuing}>{t('cancel')}</Button>
             </DialogTrigger>
 
-            <Button appearance="secondary" onClick={handleReverseSelection}>
+            <Button appearance="secondary" onClick={handleReverseSelection} disabled={isQueuing}>
               Reverse selection
             </Button>
 
             <Button
               appearance="secondary"
               onClick={handleBlacklist}
-              disabled={!anySelected}
+              disabled={!anySelected || isQueuing}
             >
               {t('blacklistSelected')}
             </Button>
@@ -202,7 +215,7 @@ const UploadGamesDialog: React.FC = () => {
             <Button
               appearance="secondary"
               onClick={handleUploadSelectedBlacklistRest}
-              disabled={!anySelected || !anyUnselected}
+              disabled={!anySelected || !anyUnselected || isQueuing}
               title="Upload the selected games and blacklist all unchecked games"
             >
               Upload selected, blacklist rest
@@ -211,9 +224,9 @@ const UploadGamesDialog: React.FC = () => {
             <Button
               appearance="primary"
               onClick={handleUpload}
-              disabled={!anySelected}
+              disabled={!anySelected || isQueuing}
             >
-              {t('uploadSelectedGames')}
+              {isQueuing ? 'Queuing...' : t('uploadSelectedGames')}
             </Button>
           </DialogActions>
         </DialogBody>

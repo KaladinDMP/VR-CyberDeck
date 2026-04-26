@@ -270,7 +270,7 @@ const useStyles = makeStyles({
     minWidth: '240px',
     display: 'flex',
     flexDirection: 'column',
-    borderRight: '1px solid rgba(57,255,20,0.18)',
+    borderRight: '1px solid rgba(var(--vrcd-neon-raw),0.18)',
     backgroundColor: '#07070f',
     overflow: 'hidden',
     transition: 'width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease',
@@ -295,12 +295,12 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     borderRadius: '50%',
     backgroundColor: '#07070f',
-    border: '1px solid rgba(57,255,20,0.4)',
-    color: '#39ff14',
+    border: '1px solid rgba(var(--vrcd-neon-raw),0.4)',
+    color: 'var(--vrcd-neon)',
     cursor: 'pointer',
     fontSize: '12px',
     fontWeight: 700,
-    boxShadow: '0 0 8px rgba(57,255,20,0.3)',
+    boxShadow: '0 0 8px rgba(var(--vrcd-neon-raw),0.3)',
     transition: 'all 0.15s ease',
     flexShrink: 0
   },
@@ -316,12 +316,12 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     borderRadius: '50%',
     backgroundColor: '#07070f',
-    border: '1px solid rgba(57,255,20,0.4)',
-    color: '#39ff14',
+    border: '1px solid rgba(var(--vrcd-neon-raw),0.4)',
+    color: 'var(--vrcd-neon)',
     cursor: 'pointer',
     fontSize: '12px',
     fontWeight: 700,
-    boxShadow: '0 0 8px rgba(57,255,20,0.3)'
+    boxShadow: '0 0 8px rgba(var(--vrcd-neon-raw),0.3)'
   },
   sidebarToggleRow: {
     display: 'flex',
@@ -329,7 +329,7 @@ const useStyles = makeStyles({
     justifyContent: 'space-between',
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}`,
     flexShrink: 0,
-    borderBottom: '1px solid rgba(57,255,20,0.12)'
+    borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.12)'
   },
   sidebarScroll: {
     flex: 1,
@@ -345,14 +345,14 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: tokens.spacingVerticalXS,
     paddingBottom: tokens.spacingVerticalM,
-    borderBottom: '1px solid rgba(57,255,20,0.10)'
+    borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.10)'
   },
   sidebarLabel: {
     fontSize: '10px',
     fontWeight: '700',
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: '#39ff14',
+    color: 'var(--vrcd-neon)',
     opacity: 0.7,
     paddingBottom: tokens.spacingVerticalXXS
   },
@@ -388,7 +388,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: tokens.spacingHorizontalS,
     padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`,
-    borderBottom: '1px solid rgba(57,255,20,0.12)',
+    borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.12)',
     backgroundColor: '#050514',
     flexShrink: 0,
     flexWrap: 'nowrap'
@@ -1379,19 +1379,19 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       ? tokens.colorPaletteRedForeground1
       : storageUsedPct > 65
         ? '#ffaa00'
-        : '#39ff14'
+        : 'var(--vrcd-neon)'
 
   const CB: React.CSSProperties = {
     background: 'transparent',
-    border: '1px solid rgba(57,255,20,0.45)',
-    color: '#39ff14',
+    border: '1px solid rgba(var(--vrcd-neon-raw),0.45)',
+    color: 'var(--vrcd-neon)',
     width: '100%',
     justifyContent: 'center',
     fontFamily: '"Courier New", Courier, monospace',
     fontSize: '11px',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    boxShadow: '0 0 6px rgba(57,255,20,0.12)'
+    boxShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.12)'
   }
   const CBP: React.CSSProperties = {
     ...CB,
@@ -1407,7 +1407,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   }
 
   return (
-    <div className={styles.root} style={{ '--colorNeutralBackground1': '#050514', '--colorNeutralBackground2': '#060615', '--colorNeutralBackground3': '#060615', '--colorNeutralForeground1': '#39ff14', '--colorNeutralForeground2': 'rgba(57,255,20,0.75)', '--colorNeutralStroke1': 'rgba(57,255,20,0.2)', '--colorNeutralStrokeAccessible': 'rgba(57,255,20,0.3)', '--colorBrandBackground': '#39ff14', '--colorNeutralForegroundOnBrand': '#050514' } as React.CSSProperties}>
+    <div className={styles.root} style={{ '--colorNeutralBackground1': '#050514', '--colorNeutralBackground2': '#060615', '--colorNeutralBackground3': '#060615', '--colorNeutralForeground1': 'var(--vrcd-neon)', '--colorNeutralForeground2': 'rgba(var(--vrcd-neon-raw),0.75)', '--colorNeutralStroke1': 'rgba(var(--vrcd-neon-raw),0.2)', '--colorNeutralStrokeAccessible': 'rgba(var(--vrcd-neon-raw),0.3)', '--colorBrandBackground': 'var(--vrcd-neon)', '--colorNeutralForegroundOnBrand': '#050514' } as React.CSSProperties}>
       <div className={styles.layout}>
 
         {/* ════════════ SIDEBAR ════════════ */}
@@ -1438,15 +1438,15 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             <section className={styles.sidebarSection}>
               <div className={styles.sidebarLabel}>Device</div>
               {selectedDeviceDetails ? (
-                <div style={{ border: '1px solid rgba(57,255,20,0.4)', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'rgba(57,255,20,0.03)' }}>
+                <div style={{ border: '1px solid rgba(var(--vrcd-neon-raw),0.4)', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'rgba(var(--vrcd-neon-raw),0.03)' }}>
                   {/* Device name with green dot */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#39ff14', boxShadow: '0 0 6px #39ff14', flexShrink: 0 }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--vrcd-neon)', boxShadow: '0 0 6px var(--vrcd-neon)', flexShrink: 0 }} />
                     <Text weight="semibold" style={{ fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {(selectedDeviceDetails.friendlyModelName || 'Connected Device')
                         .split(' ')
                         .map((word, i) => (
-                          <span key={i} style={{ color: i % 2 === 0 ? '#39ff14' : '#a855f7' }}>{i > 0 ? ' ' : ''}{word}</span>
+                          <span key={i} style={{ color: i % 2 === 0 ? 'var(--vrcd-neon)' : 'var(--vrcd-purple)' }}>{i > 0 ? ' ' : ''}{word}</span>
                         ))}
                     </Text>
                   </div>
@@ -1495,7 +1495,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   <div>
                     <Text size={200} style={{ color: '#ff6666', display: 'block' }}>No device connected</Text>
                     <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
-                      <button onClick={onBackToDevices} style={{ background: 'none', border: 'none', color: 'rgba(57,255,20,0.7)', cursor: 'pointer', fontSize: '11px', padding: 0, textDecoration: 'underline' }}>
+                      <button onClick={onBackToDevices} style={{ background: 'none', border: 'none', color: 'rgba(var(--vrcd-neon-raw),0.7)', cursor: 'pointer', fontSize: '11px', padding: 0, textDecoration: 'underline' }}>
                         Click to connect a headset
                       </button>
                     </Text>
@@ -1540,7 +1540,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                     {isManualInstalling ? t('manualInstalling') : 'Manual Install'}
                   </Button>
                 </MenuTrigger>
-                <MenuPopover style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.2)' } as React.CSSProperties}>
+                <MenuPopover style={{ background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralStroke1' as string]: 'rgba(var(--vrcd-neon-raw),0.2)' } as React.CSSProperties}>
                   <MenuList>
                     <MenuItem icon={<DocumentRegular />} onClick={() => handleManualInstall('apk')} disabled={isManualInstalling}>{t('installApkFile')}</MenuItem>
                     <MenuItem icon={<FolderAddRegular />} onClick={() => handleManualInstall('folder')} disabled={isManualInstalling}>{t('installFolder')}</MenuItem>
@@ -1553,21 +1553,21 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
           </div>
 
           {/* ── SIDEBAR FOOTER — outside scroll so always visible ── */}
-          <div style={{ flexShrink: 0, borderTop: '1px solid rgba(57,255,20,0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+          <div style={{ flexShrink: 0, borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
             {appVersion && (
-              <Text size={100} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
+              <Text size={100} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
                 v{appVersion}
               </Text>
             )}
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <a href="https://github.com/kaladindmp/vr-cyberdeck" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>G|THU|3</a>
+                style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>G|THU|3</a>
               <a href="https://t.me/s/the_vrSrc/2" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>T3/_3GR4M</a>
+                style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>T3/_3GR4M</a>
               <a href="https://qpmegathread.top" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'rgba(57,255,20,0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>|V|3G4THR34D</a>
+                style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', fontFamily: 'monospace' }}>|V|3G4THR34D</a>
             </div>
-            <Text size={100} style={{ color: 'rgba(57,255,20,0.3)', textAlign: 'center', fontFamily: 'monospace', fontSize: '8px' }}>
+            <Text size={100} style={{ color: 'rgba(var(--vrcd-neon-raw),0.3)', textAlign: 'center', fontFamily: 'monospace', fontSize: '8px' }}>
               {t('lastSynced')} {formatDate(lastSyncTime)}
             </Text>
           </div>
@@ -1613,16 +1613,16 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                 }
               }}
               title={prefs.viewMode === 'table' ? 'Switch to card view' : 'Switch to table view'}
-              style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }}
+              style={{ color: 'rgba(var(--vrcd-neon-raw),0.7)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', borderRadius: '6px' }}
             />
             <Popover open={viewOptionsOpen} onOpenChange={(_, d) => setViewOptionsOpen(d.open)} positioning="below-end">
               <PopoverTrigger>
                 <Button appearance="subtle" icon={<OptionsRegular />}
                   title={prefs.viewMode === 'cards' ? 'Card view options' : 'Display options'}
                   size="small"
-                  style={{ color: 'rgba(57,255,20,0.7)', border: '1px solid rgba(57,255,20,0.3)', borderRadius: '6px' }} />
+                  style={{ color: 'rgba(var(--vrcd-neon-raw),0.7)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', borderRadius: '6px' }} />
               </PopoverTrigger>
-              <PopoverSurface style={{ minWidth: '260px', background: '#050514', border: '1px solid rgba(57,255,20,0.3)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
+              <PopoverSurface style={{ minWidth: '260px', background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(var(--vrcd-neon-raw),0.25)', ['--colorBrandBackground' as string]: 'var(--vrcd-neon)', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalM }}>
                   {prefs.viewMode === 'cards' ? (
                     <>
@@ -1641,7 +1641,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                               setPrefs({ cardSortKey: key })
                               setSorting(key ? [{ id: key, desc: prefs.cardSortDir === 'desc' }] : [])
                             }}
-                            style={{ flex: 1, background: '#050514', color: '#39ff14', border: '1px solid rgba(57,255,20,0.35)', borderRadius: 4, padding: '3px 6px', fontFamily: 'monospace', fontSize: 12, cursor: 'pointer' }}
+                            style={{ flex: 1, background: '#050514', color: 'var(--vrcd-neon)', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', borderRadius: 4, padding: '3px 6px', fontFamily: 'monospace', fontSize: 12, cursor: 'pointer' }}
                           >
                             <option value="name">Name</option>
                             <option value="size">Size</option>
@@ -1655,7 +1655,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                               setPrefs({ cardSortDir: dir })
                               if (prefs.cardSortKey) setSorting([{ id: prefs.cardSortKey, desc: dir === 'desc' }])
                             }}
-                            style={{ background: 'transparent', border: '1px solid rgba(57,255,20,0.35)', borderRadius: 4, color: '#39ff14', cursor: 'pointer', padding: '3px 8px', fontFamily: 'monospace' }}
+                            style={{ background: 'transparent', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', borderRadius: 4, color: 'var(--vrcd-neon)', cursor: 'pointer', padding: '3px 8px', fontFamily: 'monospace' }}
                           >
                             {prefs.cardSortDir === 'asc' ? '▲ ASC' : '▼ DESC'}
                           </button>
@@ -1729,21 +1729,21 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             ) : games.length === 0 && !loadingGames ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', flex: 1, padding: '40px 20px' }}>
                 <svg width="72" height="72" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="8" y="20" width="48" height="28" rx="14" stroke="rgba(57,255,20,0.45)" strokeWidth="2" fill="rgba(57,255,20,0.04)"/>
-                  <path d="M20 32h-6M17 29v6" stroke="rgba(57,255,20,0.7)" strokeWidth="2.5" strokeLinecap="round"/>
+                  <rect x="8" y="20" width="48" height="28" rx="14" stroke="rgba(var(--vrcd-neon-raw),0.45)" strokeWidth="2" fill="rgba(var(--vrcd-neon-raw),0.04)"/>
+                  <path d="M20 32h-6M17 29v6" stroke="rgba(var(--vrcd-neon-raw),0.7)" strokeWidth="2.5" strokeLinecap="round"/>
                   <circle cx="44" cy="29" r="2.5" fill="rgba(176,64,255,0.7)"/>
-                  <circle cx="50" cy="32" r="2.5" fill="rgba(57,255,20,0.7)"/>
-                  <circle cx="44" cy="35" r="2.5" fill="rgba(57,255,20,0.5)"/>
+                  <circle cx="50" cy="32" r="2.5" fill="rgba(var(--vrcd-neon-raw),0.7)"/>
+                  <circle cx="44" cy="35" r="2.5" fill="rgba(var(--vrcd-neon-raw),0.5)"/>
                   <circle cx="38" cy="32" r="2.5" fill="rgba(255,100,0,0.6)"/>
-                  <path d="M14 44 Q10 54 15 58" stroke="rgba(57,255,20,0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                  <path d="M50 44 Q54 54 49 58" stroke="rgba(57,255,20,0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M14 44 Q10 54 15 58" stroke="rgba(var(--vrcd-neon-raw),0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <path d="M50 44 Q54 54 49 58" stroke="rgba(var(--vrcd-neon-raw),0.3)" strokeWidth="2" strokeLinecap="round" fill="none"/>
                 </svg>
                 <div style={{ textAlign: 'center' }}>
                   <Text size={500} weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>No games found</Text>
                   <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>Click Refresh Games to sync the game library</Text>
                 </div>
                 <Button appearance="subtle" size="medium" icon={<ArrowClockwiseRegular />} onClick={refreshGames} disabled={isBusy}
-                  style={{ background: 'transparent', border: '1px solid rgba(57,255,20,0.45)', color: '#39ff14', letterSpacing: '0.1em', boxShadow: '0 0 6px rgba(57,255,20,0.12)' }}>
+                  style={{ background: 'transparent', border: '1px solid rgba(var(--vrcd-neon-raw),0.45)', color: 'var(--vrcd-neon)', letterSpacing: '0.1em', boxShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.12)' }}>
                   {isBusy ? t('working') : t('refreshGames')}
                 </Button>
               </div>
@@ -1806,9 +1806,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                                     }}
                                   >
                                     {flexRender(header.column.columnDef.header, header.getContext())}
-                                    {header.column.getIsSorted() === 'asc' && <span style={{ color: '#39ff14', marginLeft: '4px', fontSize: '10px' }}>▲</span>}
-                                    {header.column.getIsSorted() === 'desc' && <span style={{ color: '#a855f7', marginLeft: '4px', fontSize: '10px' }}>▼</span>}
-                                    {!header.column.getIsSorted() && header.column.getCanSort() && <span style={{ color: 'rgba(57,255,20,0.2)', marginLeft: '4px', fontSize: '10px' }}>⇅</span>}
+                                    {header.column.getIsSorted() === 'asc' && <span style={{ color: 'var(--vrcd-neon)', marginLeft: '4px', fontSize: '10px' }}>▲</span>}
+                                    {header.column.getIsSorted() === 'desc' && <span style={{ color: 'var(--vrcd-purple)', marginLeft: '4px', fontSize: '10px' }}>▼</span>}
+                                    {!header.column.getIsSorted() && header.column.getCanSort() && <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.2)', marginLeft: '4px', fontSize: '10px' }}>⇅</span>}
                                   </div>
                                 )}
                                 {header.column.getCanResize() && (
@@ -1883,7 +1883,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       )}
 
       <Dialog open={showInstallDialog} onOpenChange={(_, data) => !data.open && closeInstallDialog()}>
-        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
+        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
           <DialogBody>
             <DialogTitle>{t('manualOperation')}</DialogTitle>
             <DialogContent>
@@ -1935,13 +1935,13 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       )}
 
       <Dialog open={showMirrorMgmt} onOpenChange={(_, data) => setShowMirrorMgmt(data.open)}>
-        <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(57,255,20,0.25)', ['--colorBrandBackground' as string]: '#39ff14', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
+        <DialogSurface style={{ width: '80vw', maxWidth: '1200px', height: '80vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralBackground1' as string]: '#050514', ['--colorNeutralStroke1' as string]: 'rgba(var(--vrcd-neon-raw),0.25)', ['--colorBrandBackground' as string]: 'var(--vrcd-neon)', ['--colorNeutralForegroundOnBrand' as string]: '#050514' }}>
           <DialogBody style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: 0 }}>
-            <DialogTitle style={{ padding: '16px 24px', borderBottom: '1px solid rgba(57,255,20,0.15)' }}>Mirror Management</DialogTitle>
+            <DialogTitle style={{ padding: '16px 24px', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)' }}>Mirror Management</DialogTitle>
             <DialogContent style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 24px' }}>
               <MirrorManagement />
             </DialogContent>
-            <DialogActions style={{ padding: '12px 24px', borderTop: '1px solid rgba(57,255,20,0.15)' }}>
+            <DialogActions style={{ padding: '12px 24px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.15)' }}>
               <Button appearance="secondary" onClick={() => setShowMirrorMgmt(false)}>Close</Button>
             </DialogActions>
           </DialogBody>
@@ -1949,7 +1949,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
       </Dialog>
 
       <Dialog open={showObbConfirmDialog} onOpenChange={(_, data) => !data.open && handleObbCancelCopy()}>
-        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(57,255,20,0.35)', ['--colorNeutralForeground1' as string]: '#39ff14', ['--colorNeutralForeground2' as string]: 'rgba(57,255,20,0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
+        <DialogSurface style={{ background: '#050514', border: '1px solid rgba(var(--vrcd-neon-raw),0.35)', ['--colorNeutralForeground1' as string]: 'var(--vrcd-neon)', ['--colorNeutralForeground2' as string]: 'rgba(var(--vrcd-neon-raw),0.75)', ['--colorNeutralBackground1' as string]: '#050514' }}>
           <DialogBody>
             <DialogTitle>{t('confirmObbCopy')}</DialogTitle>
             <DialogContent>

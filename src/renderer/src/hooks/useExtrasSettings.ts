@@ -79,7 +79,7 @@ export function isAutoUpdateDisabled(): boolean {
 
 export function getFontScale(): number {
   const n = readNumber(FONT_SCALE_KEY, 1)
-  return Math.max(0.75, Math.min(1.5, n))
+  return Math.max(0.75, Math.min(2.0, n))
 }
 
 // ─── React hook for Settings UI ─────────────────────────────────────────────

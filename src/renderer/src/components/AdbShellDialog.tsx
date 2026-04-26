@@ -31,9 +31,9 @@ interface AdbShellDialogProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const NEON = '#39ff14'
-const NEON_DIM = 'rgba(57,255,20,0.35)'
-const NEON_DIM2 = 'rgba(57,255,20,0.18)'
+const NEON = 'var(--vrcd-neon)'
+const NEON_DIM = 'rgba(var(--vrcd-neon-raw),0.35)'
+const NEON_DIM2 = 'rgba(var(--vrcd-neon-raw),0.18)'
 const BG_SURFACE = '#030310'
 const BG_TERMINAL = '#000008'
 const CHAR_POOL = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF'
@@ -100,7 +100,7 @@ function useMatrixCanvas(
         // trailing chars
         for (let j = 1; j < 20; j++) {
           const alpha = 1 - j / 20
-          ctx.fillStyle = `rgba(57,255,20,${alpha * 0.85})`
+          ctx.fillStyle = `rgba(var(--vrcd-neon-raw),${alpha * 0.85})`
           ctx.shadowBlur = 4
           ctx.fillText(
             col.chars[(col.head - j + col.chars.length) % col.chars.length],
@@ -204,11 +204,11 @@ function useTypingAnimation(
 const S = {
   surface: {
     background: BG_SURFACE,
-    border: `1px solid rgba(57,255,20,0.4)`,
+    border: `1px solid rgba(var(--vrcd-neon-raw),0.4)`,
     minWidth: '700px',
     maxWidth: '1000px',
     padding: '0',
-    boxShadow: '0 0 40px rgba(57,255,20,0.08), 0 0 80px rgba(57,255,20,0.04)',
+    boxShadow: '0 0 40px rgba(var(--vrcd-neon-raw),0.08), 0 0 80px rgba(var(--vrcd-neon-raw),0.04)',
     borderRadius: '6px',
     overflow: 'hidden'
   } as React.CSSProperties,
@@ -265,7 +265,7 @@ const S = {
     color: NEON,
     whiteSpace: 'pre-wrap' as const,
     wordBreak: 'break-all' as const,
-    textShadow: `0 0 6px rgba(57,255,20,0.5)`
+    textShadow: `0 0 6px rgba(var(--vrcd-neon-raw),0.5)`
   } as React.CSSProperties,
 
   errorText: {
@@ -276,7 +276,7 @@ const S = {
   } as React.CSSProperties,
 
   emptyHint: {
-    color: 'rgba(57,255,20,0.4)',
+    color: 'rgba(var(--vrcd-neon-raw),0.4)',
     fontStyle: 'italic' as const,
     fontFamily: "'Courier New', monospace"
   } as React.CSSProperties,
@@ -326,7 +326,7 @@ const S = {
 
   neonBtnHover: {
     borderColor: NEON,
-    boxShadow: `0 0 8px rgba(57,255,20,0.4)`,
+    boxShadow: `0 0 8px rgba(var(--vrcd-neon-raw),0.4)`,
     color: '#ccffcc'
   } as React.CSSProperties
 }
@@ -452,7 +452,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
             fontFamily: "'Courier New', monospace",
             fontSize: '12px',
             letterSpacing: '0.25em',
-            color: 'rgba(57,255,20,0.7)',
+            color: 'rgba(var(--vrcd-neon-raw),0.7)',
             textShadow: `0 0 12px ${NEON}`,
             opacity: initOpacity,
             transition: 'opacity 0.8s ease-in',
@@ -487,7 +487,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
               fontSize: '20px',
               letterSpacing: '0.25em',
               color: NEON,
-              textShadow: `0 0 16px ${NEON}, 0 0 32px rgba(57,255,20,0.5), 0 0 60px rgba(57,255,20,0.2)`,
+              textShadow: `0 0 16px ${NEON}, 0 0 32px rgba(var(--vrcd-neon-raw),0.5), 0 0 60px rgba(var(--vrcd-neon-raw),0.2)`,
               animation: 'matrixFadeIn 0.4s ease-out forwards, rabbitPulse 1.2s ease-in-out 0.4s infinite'
             }}
           >
@@ -508,7 +508,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
             style={{
               fontSize: '13px',
               letterSpacing: '0.15em',
-              color: 'rgba(57,255,20,0.55)',
+              color: 'rgba(var(--vrcd-neon-raw),0.55)',
               fontFamily: "'Courier New', monospace",
               animation: 'matrixFadeIn 0.6s ease-out 0.2s both'
             }}
@@ -525,8 +525,8 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
           to   { opacity: 1; transform: scale(1); }
         }
         @keyframes rabbitPulse {
-          0%, 100% { opacity: 1; text-shadow: 0 0 16px #39ff14, 0 0 32px rgba(57,255,20,0.5), 0 0 60px rgba(57,255,20,0.2); }
-          50%       { opacity: 0.65; text-shadow: 0 0 28px #39ff14, 0 0 52px rgba(57,255,20,0.7), 0 0 90px rgba(57,255,20,0.35); }
+          0%, 100% { opacity: 1; text-shadow: 0 0 16px var(--vrcd-neon), 0 0 32px rgba(var(--vrcd-neon-raw),0.5), 0 0 60px rgba(var(--vrcd-neon-raw),0.2); }
+          50%       { opacity: 0.65; text-shadow: 0 0 28px var(--vrcd-neon), 0 0 52px rgba(var(--vrcd-neon-raw),0.7), 0 0 90px rgba(var(--vrcd-neon-raw),0.35); }
         }
       `}</style>
     </div>
@@ -738,7 +738,7 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
                 fontFamily: "'Courier New', monospace",
                 fontSize: '10px',
                 letterSpacing: '0.15em',
-                color: 'rgba(57,255,20,0.35)',
+                color: 'rgba(var(--vrcd-neon-raw),0.35)',
                 userSelect: 'none'
               }}>
                 SECURE TERMINAL
@@ -799,7 +799,7 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
                 {isRunning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={S.prompt}>{promptLabel}</span>
-                    <span style={{ color: 'rgba(57,255,20,0.5)', fontFamily: "'Courier New', monospace" }}>
+                    <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: "'Courier New', monospace" }}>
                       executing...
                     </span>
                   </div>

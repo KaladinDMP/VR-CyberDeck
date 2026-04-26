@@ -49,8 +49,8 @@ const SPEED_UNITS = [
 
 const neonBtn = {
   background: 'transparent',
-  border: '1px solid rgba(57,255,20,0.5)',
-  color: '#39ff14',
+  border: '1px solid rgba(var(--vrcd-neon-raw),0.5)',
+  color: 'var(--vrcd-neon)',
   fontFamily: '"Courier New", monospace',
   fontSize: '11px',
   letterSpacing: '0.12em',
@@ -58,13 +58,13 @@ const neonBtn = {
   padding: '8px 20px',
   borderRadius: '4px',
   cursor: 'pointer',
-  boxShadow: '0 0 8px rgba(57,255,20,0.12)'
+  boxShadow: '0 0 8px rgba(var(--vrcd-neon-raw),0.12)'
 }
 
 const neonInput = {
-  background: 'rgba(57,255,20,0.04)',
-  border: '1px solid rgba(57,255,20,0.3)',
-  color: '#39ff14',
+  background: 'rgba(var(--vrcd-neon-raw),0.04)',
+  border: '1px solid rgba(var(--vrcd-neon-raw),0.3)',
+  color: 'var(--vrcd-neon)',
   fontFamily: '"Courier New", monospace',
   fontSize: '12px'
 }
@@ -90,12 +90,12 @@ const useStyles = makeStyles({
   },
   headerTitle: {
     marginBottom: tokens.spacingVerticalXS,
-    color: '#39ff14',
+    color: 'var(--vrcd-neon)',
     fontFamily: '"Courier New", monospace',
     letterSpacing: '0.04em'
   },
   headerSubtitle: {
-    color: 'rgba(57,255,20,0.55)',
+    color: 'rgba(var(--vrcd-neon-raw),0.55)',
     display: 'block',
     marginBottom: tokens.spacingVerticalL,
     fontFamily: 'monospace',
@@ -103,8 +103,8 @@ const useStyles = makeStyles({
   },
   card: {
     width: '100%',
-    background: 'rgba(57,255,20,0.03)',
-    border: '1px solid rgba(57,255,20,0.18)',
+    background: 'rgba(var(--vrcd-neon-raw),0.03)',
+    border: '1px solid rgba(var(--vrcd-neon-raw),0.18)',
     borderRadius: '6px',
     boxShadow: 'none'
   },
@@ -427,19 +427,19 @@ const LogUploadSettings: React.FC = () => {
 
 // ─── Extra Systems (consolidated) ────────────────────────────────────────────
 const switchVars = {
-  '--colorBrandBackground': '#39ff14',
-  '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)',
-  '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)',
-  '--colorCompoundBrandBackground': '#39ff14',
-  '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)'
+  '--colorBrandBackground': 'var(--vrcd-neon)',
+  '--colorBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)',
+  '--colorBrandBackgroundPressed': 'rgba(var(--vrcd-neon-raw),0.6)',
+  '--colorCompoundBrandBackground': 'var(--vrcd-neon)',
+  '--colorCompoundBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)'
 } as React.CSSProperties
 
 const switchVarsPurple = {
-  '--colorBrandBackground': '#a855f7',
-  '--colorBrandBackgroundHover': 'rgba(168,85,247,0.8)',
-  '--colorBrandBackgroundPressed': 'rgba(168,85,247,0.6)',
-  '--colorCompoundBrandBackground': '#a855f7',
-  '--colorCompoundBrandBackgroundHover': 'rgba(168,85,247,0.8)'
+  '--colorBrandBackground': 'var(--vrcd-purple)',
+  '--colorBrandBackgroundHover': 'rgba(var(--vrcd-purple-raw),0.8)',
+  '--colorBrandBackgroundPressed': 'rgba(var(--vrcd-purple-raw),0.6)',
+  '--colorCompoundBrandBackground': 'var(--vrcd-purple)',
+  '--colorCompoundBrandBackgroundHover': 'rgba(var(--vrcd-purple-raw),0.8)'
 } as React.CSSProperties
 
 interface ToggleRowProps {
@@ -452,14 +452,14 @@ interface ToggleRowProps {
 }
 
 const ToggleRow: React.FC<ToggleRowProps> = ({ label, description, checked, onChange, purple }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 0', borderBottom: '1px solid rgba(57,255,20,0.06)' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 0', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.06)' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
       <div style={purple ? switchVarsPurple : switchVars}>
         <Switch checked={checked} onChange={(_, d) => onChange(d.checked)} />
       </div>
-      <span style={{ color: purple ? '#a855f7' : '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>{label}</span>
+      <span style={{ color: purple ? 'var(--vrcd-purple)' : 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>{label}</span>
     </div>
-    <span style={{ color: 'rgba(57,255,20,0.38)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5, paddingLeft: '52px' }}>
+    <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.38)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5, paddingLeft: '52px' }}>
       {description}
     </span>
   </div>
@@ -489,17 +489,17 @@ const ExtraSystemsSettings: React.FC = () => {
 
   const scaleLabels: Record<string, string> = {
     '0.75': '75% — compact', '0.875': '87.5% — small', '1': '100% — default',
-    '1.125': '112.5% — large', '1.25': '125% — larger', '1.5': '150% — max'
+    '1.125': '112.5% — large', '1.25': '125% — larger', '1.5': '150% — large', '2': '200% — accessibility'
   }
-  const scaleValues = [0.75, 0.875, 1, 1.125, 1.25, 1.5]
+  const scaleValues = [0.75, 0.875, 1, 1.125, 1.25, 1.5, 2]
 
   const neonOptionBtn = (active: boolean) => ({
-    background: active ? 'rgba(57,255,20,0.12)' : 'transparent',
-    border: `1px solid ${active ? '#39ff14' : 'rgba(57,255,20,0.25)'}`,
-    color: active ? '#39ff14' : 'rgba(57,255,20,0.5)',
+    background: active ? 'rgba(var(--vrcd-neon-raw),0.12)' : 'transparent',
+    border: `1px solid ${active ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.25)'}`,
+    color: active ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.5)',
     fontFamily: 'monospace', fontSize: '11px', padding: '4px 10px',
     borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.06em',
-    boxShadow: active ? '0 0 8px rgba(57,255,20,0.2)' : 'none'
+    boxShadow: active ? '0 0 8px rgba(var(--vrcd-neon-raw),0.2)' : 'none'
   })
 
   return (
@@ -564,8 +564,8 @@ const ExtraSystemsSettings: React.FC = () => {
       />
 
       {/* Deletion behavior */}
-      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
-        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
           Transfer List — Remove Behavior
         </span>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -575,14 +575,14 @@ const ExtraSystemsSettings: React.FC = () => {
             </button>
           ))}
         </div>
-        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           When removing a completed/errored item from the transfer list.
         </span>
       </div>
 
       {/* Concurrent downloads */}
-      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
-        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
           Concurrent Downloads — {maxConcurrent} at a time
         </span>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -592,14 +592,14 @@ const ExtraSystemsSettings: React.FC = () => {
             </button>
           ))}
         </div>
-        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           Number of games that download simultaneously. Takes effect on next queue item.
         </span>
       </div>
 
       {/* Font scale */}
-      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
-        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
           UI Font Scale — {Math.round(fontScale * 100)}%
         </span>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -609,7 +609,7 @@ const ExtraSystemsSettings: React.FC = () => {
             </button>
           ))}
         </div>
-        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           Scales the app UI text globally. Takes effect immediately.
         </span>
       </div>
@@ -699,8 +699,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ label, sectionKey, openSe
     onClick={() => onToggle(sectionKey)}
     style={{
       width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'transparent', border: 'none', borderBottom: '1px solid rgba(57,255,20,0.15)',
-      padding: '8px 4px', cursor: 'pointer', color: 'rgba(57,255,20,0.8)',
+      background: 'transparent', border: 'none', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)',
+      padding: '8px 4px', cursor: 'pointer', color: 'rgba(var(--vrcd-neon-raw),0.8)',
       fontFamily: 'monospace', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase',
       marginBottom: openSections[sectionKey] ? '8px' : '0'
     }}
@@ -740,7 +740,7 @@ const MatrixIdentitySettings: React.FC = () => {
     save({ ...prefs, custom: prefs.custom.filter((c) => c !== name) })
 
   const S = { fontFamily: 'monospace', fontSize: '12px' } as const
-  const inputStyle: React.CSSProperties = { background: 'rgba(57,255,20,0.04)', border: '1px solid rgba(57,255,20,0.3)', color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', outline: 'none' }
+  const inputStyle: React.CSSProperties = { background: 'rgba(var(--vrcd-neon-raw),0.04)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', padding: '4px 8px', borderRadius: '4px', outline: 'none' }
 
   const RATIO_OPTIONS = [
     { label: '1:1 — no preference', value: 1 },
@@ -752,18 +752,18 @@ const MatrixIdentitySettings: React.FC = () => {
 
   return (
     <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <span style={{ ...S, color: 'rgba(57,255,20,0.5)', lineHeight: 1.6 }}>
+      <span style={{ ...S, color: 'rgba(var(--vrcd-neon-raw),0.5)', lineHeight: 1.6 }}>
         Controls which username appears in the ADB Shell Matrix intro animation.{'\n'}
-        Edit <span style={{ color: '#39ff14' }}>g33kyu$3rn4m3$.json</span> in the app resources to customise the random pool.
+        Edit <span style={{ color: 'var(--vrcd-neon)' }}>g33kyu$3rn4m3$.json</span> in the app resources to customise the random pool.
       </span>
 
       {/* Mode toggle */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Username source</span>
+        <span style={{ ...S, color: 'rgba(var(--vrcd-neon-raw),0.7)' }}>Username source</span>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {(['random+custom', 'only-custom'] as const).map((m) => (
             <button key={m} onClick={() => save({ ...prefs, mode: m })}
-              style={{ ...inputStyle, cursor: 'pointer', background: prefs.mode === m ? 'rgba(57,255,20,0.12)' : 'transparent', borderColor: prefs.mode === m ? '#39ff14' : 'rgba(57,255,20,0.3)', color: prefs.mode === m ? '#39ff14' : 'rgba(57,255,20,0.5)' }}>
+              style={{ ...inputStyle, cursor: 'pointer', background: prefs.mode === m ? 'rgba(var(--vrcd-neon-raw),0.12)' : 'transparent', borderColor: prefs.mode === m ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.3)', color: prefs.mode === m ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.5)' }}>
               {m === 'random+custom' ? 'Random + Custom' : 'Custom Only'}
             </button>
           ))}
@@ -773,11 +773,11 @@ const MatrixIdentitySettings: React.FC = () => {
       {/* Ratio (only shown in random+custom mode when custom list has entries) */}
       {prefs.mode === 'random+custom' && prefs.custom.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Custom preference ratio</span>
+          <span style={{ ...S, color: 'rgba(var(--vrcd-neon-raw),0.7)' }}>Custom preference ratio</span>
           <select value={prefs.ratio} onChange={(e) => save({ ...prefs, ratio: Number(e.target.value) })}
             style={{ ...inputStyle, cursor: 'pointer' }}>
             {RATIO_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} style={{ background: '#050514', color: '#39ff14' }}>{o.label}</option>
+              <option key={o.value} value={o.value} style={{ background: '#050514', color: 'var(--vrcd-neon)' }}>{o.label}</option>
             ))}
           </select>
         </div>
@@ -785,7 +785,7 @@ const MatrixIdentitySettings: React.FC = () => {
 
       {/* Custom entries */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <span style={{ ...S, color: 'rgba(57,255,20,0.7)' }}>Custom usernames</span>
+        <span style={{ ...S, color: 'rgba(var(--vrcd-neon-raw),0.7)' }}>Custom usernames</span>
         <div style={{ display: 'flex', gap: '6px' }}>
           <input value={newEntry} onChange={(e) => setNewEntry(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addEntry()}
@@ -795,15 +795,15 @@ const MatrixIdentitySettings: React.FC = () => {
         {prefs.custom.length > 0 && (
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
             {prefs.custom.map((name) => (
-              <span key={name} style={{ ...S, background: 'rgba(57,255,20,0.06)', border: '1px solid rgba(57,255,20,0.25)', color: '#39ff14', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span key={name} style={{ ...S, background: 'rgba(var(--vrcd-neon-raw),0.06)', border: '1px solid rgba(var(--vrcd-neon-raw),0.25)', color: 'var(--vrcd-neon)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {name}
-                <button onClick={() => removeEntry(name)} style={{ background: 'none', border: 'none', color: 'rgba(168,85,247,0.8)', cursor: 'pointer', fontSize: '11px', padding: 0, lineHeight: 1 }}>✕</button>
+                <button onClick={() => removeEntry(name)} style={{ background: 'none', border: 'none', color: 'rgba(var(--vrcd-purple-raw),0.8)', cursor: 'pointer', fontSize: '11px', padding: 0, lineHeight: 1 }}>✕</button>
               </span>
             ))}
           </div>
         )}
         {prefs.custom.length === 0 && (
-          <span style={{ ...S, color: 'rgba(57,255,20,0.3)', fontStyle: 'italic' }}>no custom usernames yet</span>
+          <span style={{ ...S, color: 'rgba(var(--vrcd-neon-raw),0.3)', fontStyle: 'italic' }}>no custom usernames yet</span>
         )}
       </div>
     </div>
@@ -1132,39 +1132,39 @@ const Settings: React.FC = () => {
 
   return (
     <div className={styles.root} style={{
-      '--colorNeutralForeground1': '#39ff14',
-      '--colorNeutralForeground2': 'rgba(57,255,20,0.7)',
-      '--colorNeutralForeground3': 'rgba(57,255,20,0.45)',
-      '--colorNeutralForeground4': 'rgba(57,255,20,0.3)',
+      '--colorNeutralForeground1': 'var(--vrcd-neon)',
+      '--colorNeutralForeground2': 'rgba(var(--vrcd-neon-raw),0.7)',
+      '--colorNeutralForeground3': 'rgba(var(--vrcd-neon-raw),0.45)',
+      '--colorNeutralForeground4': 'rgba(var(--vrcd-neon-raw),0.3)',
       '--colorNeutralBackground1': '#050514',
-      '--colorNeutralBackground1Hover': 'rgba(57,255,20,0.06)',
-      '--colorNeutralBackground2': 'rgba(57,255,20,0.04)',
-      '--colorNeutralBackground3': 'rgba(57,255,20,0.08)',
-      '--colorNeutralStroke1': 'rgba(57,255,20,0.25)',
-      '--colorNeutralStroke2': 'rgba(57,255,20,0.15)',
-      '--colorNeutralStrokeAccessible': 'rgba(57,255,20,0.5)',
-      '--colorBrandBackground': '#39ff14',
-      '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)',
-      '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)',
-      '--colorCompoundBrandBackground': '#39ff14',
-      '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)',
-      '--colorBrandForeground1': '#39ff14',
-      '--colorBrandStroke1': '#39ff14',
-      '--colorBrandStroke2': 'rgba(57,255,20,0.5)',
+      '--colorNeutralBackground1Hover': 'rgba(var(--vrcd-neon-raw),0.06)',
+      '--colorNeutralBackground2': 'rgba(var(--vrcd-neon-raw),0.04)',
+      '--colorNeutralBackground3': 'rgba(var(--vrcd-neon-raw),0.08)',
+      '--colorNeutralStroke1': 'rgba(var(--vrcd-neon-raw),0.25)',
+      '--colorNeutralStroke2': 'rgba(var(--vrcd-neon-raw),0.15)',
+      '--colorNeutralStrokeAccessible': 'rgba(var(--vrcd-neon-raw),0.5)',
+      '--colorBrandBackground': 'var(--vrcd-neon)',
+      '--colorBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)',
+      '--colorBrandBackgroundPressed': 'rgba(var(--vrcd-neon-raw),0.6)',
+      '--colorCompoundBrandBackground': 'var(--vrcd-neon)',
+      '--colorCompoundBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)',
+      '--colorBrandForeground1': 'var(--vrcd-neon)',
+      '--colorBrandStroke1': 'var(--vrcd-neon)',
+      '--colorBrandStroke2': 'rgba(var(--vrcd-neon-raw),0.5)',
       '--colorNeutralForegroundOnBrand': '#050514',
     } as React.CSSProperties}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
           <span style={{ fontSize: '28px', fontWeight: 800, fontFamily: '"Courier New", monospace', letterSpacing: '0.04em' }}>
-            <span style={{ color: '#a855f7', textShadow: '0 0 12px rgba(168,85,247,0.6)' }}>VR</span>
+            <span style={{ color: 'var(--vrcd-purple)', textShadow: '0 0 12px rgba(var(--vrcd-purple-raw),0.6)' }}>VR</span>
             {' '}
-            <span style={{ color: '#39ff14', textShadow: '0 0 12px rgba(57,255,20,0.5)' }}>CyberDeck</span>
+            <span style={{ color: 'var(--vrcd-neon)', textShadow: '0 0 12px rgba(var(--vrcd-neon-raw),0.5)' }}>CyberDeck</span>
             {' '}
-            <span style={{ color: '#a855f7', textShadow: '0 0 12px rgba(168,85,247,0.6)' }}>Hacks</span>
+            <span style={{ color: 'var(--vrcd-purple)', textShadow: '0 0 12px rgba(var(--vrcd-purple-raw),0.6)' }}>Hacks</span>
           </span>
           {isLoading && <Spinner size="large" label={t('loadingSettings')} />}
         </div>
-        <span style={{ color: 'rgba(57,255,20,0.55)', fontFamily: 'monospace', fontSize: '12px', marginBottom: '8px', display: 'block' }}>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', fontFamily: 'monospace', fontSize: '12px', marginBottom: '8px', display: 'block' }}>
           {t('configurePreferences')}
           {appVersion && ` • Version ${appVersion}`}
         </span>
@@ -1309,7 +1309,7 @@ const Settings: React.FC = () => {
           {openSections.content && (
             <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
+                <div style={{ '--colorBrandBackground': 'var(--vrcd-neon)', '--colorBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)', '--colorBrandBackgroundPressed': 'rgba(var(--vrcd-neon-raw),0.6)', '--colorCompoundBrandBackground': 'var(--vrcd-neon)', '--colorCompoundBrandBackgroundHover': 'rgba(var(--vrcd-neon-raw),0.8)' } as React.CSSProperties}>
                   <Switch
                     checked={hideAdultContent}
                     onChange={(_, d) => {
@@ -1318,9 +1318,9 @@ const Settings: React.FC = () => {
                     }}
                   />
                 </div>
-                <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px' }}>Hide adult / explicit content</span>
+                <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px' }}>Hide adult / explicit content</span>
               </div>
-              <span style={{ color: 'rgba(57,255,20,0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
+              <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
                 Filters explicit-tagged titles from the library. Requires a game refresh to take effect.
               </span>
             </div>

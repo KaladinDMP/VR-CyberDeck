@@ -21,7 +21,8 @@ import {
   PauseRegular as PauseIcon,
   PlayRegular as ResumeIcon,
   FolderRegular,
-  DeleteDismissRegular
+  DeleteDismissRegular,
+  DismissCircleRegular as ClearIcon
 } from '@fluentui/react-icons'
 import { formatDistanceToNow } from 'date-fns'
 import placeholderImage from '../assets/images/game-placeholder.png'
@@ -170,6 +171,12 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
     }
   }
 
+  const handleClearCompleted = (): void => {
+    queue
+      .filter((item) => item.status === 'Completed' || item.status === 'Cancelled')
+      .forEach((item) => removeFromQueueOnly(item.releaseName))
+  }
+
   const handleScan = async (): Promise<void> => {
     setIsScanning(true)
     setScanResult(null)
@@ -206,7 +213,7 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
 
   return (
     <div className={styles.root}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
         <Button
           size="small"
           appearance="subtle"
@@ -214,12 +221,23 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
           onClick={handleScan}
           disabled={isScanning}
           title="Scan downloads folder and register any untracked completed downloads"
-          style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(57,255,20,0.8)', border: '1px solid rgba(57,255,20,0.3)' }}
+          style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(var(--vrcd-neon-raw),0.8)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)' }}
         >
           {isScanning ? 'Scanning...' : 'Scan Downloads'}
         </Button>
+        <Button
+          size="small"
+          appearance="subtle"
+          icon={<ClearIcon />}
+          onClick={handleClearCompleted}
+          disabled={!queue.some((i) => i.status === 'Completed' || i.status === 'Cancelled')}
+          title="Remove all completed and cancelled entries from the list (keeps downloaded files)"
+          style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(var(--vrcd-neon-raw),0.8)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)' }}
+        >
+          Clear Completed
+        </Button>
         {scanResult && (
-          <Text size={200} style={{ color: 'rgba(57,255,20,0.6)', fontFamily: 'monospace' }}>
+          <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace' }}>
             {scanResult}
           </Text>
         )}
