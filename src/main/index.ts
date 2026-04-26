@@ -60,7 +60,7 @@ function createWindow(): void {
   const { height: workH } = screen.getPrimaryDisplay().workAreaSize
   mainWindow = new BrowserWindow({
     width: 1200,
-    minWidth: 1000,
+    minWidth: 900,
     height: Math.min(900, workH),
     maxHeight: workH,
     show: false,
@@ -109,8 +109,10 @@ function createWindow(): void {
     }
   )
 
-  // Explicitly set minimum size to ensure constraint is enforced
-  mainWindow.setMinimumSize(1200, 900)
+  // Explicitly set minimum size to ensure constraint is enforced.
+  // Sized for ~1366x768 laptops (typical small-screen target) with the OS
+  // chrome subtracted so the window fits comfortably.
+  mainWindow.setMinimumSize(900, 640)
 
   // Crash recovery: Snagit and other screen-capture tools can crash the GPU /
   // renderer process when the window has a YouTube webview playing. Without

@@ -42,7 +42,7 @@
   animation: glitch-pulse 5s infinite, glitch-shift 5s infinite;
 }
 .title-glitch-wrap::after {
-  color: rgba(57, 255, 20, 0.55);
+  color: rgba(var(--vrcd-neon-raw), 0.55);
   animation: glitch-pulse 5s infinite, glitch-shift 5s infinite;
   animation-delay: 0.06s, 0.06s;
   transform: translate(2px, 0);

@@ -42,9 +42,9 @@
 }
 
 @keyframes targetLockPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(57,255,20,0.4), 0 0 20px rgba(57,255,20,0.15); }
-  70%  { box-shadow: 0 0 0 12px rgba(57,255,20,0), 0 0 20px rgba(57,255,20,0.15); }
-  100% { box-shadow: 0 0 0 0 rgba(57,255,20,0), 0 0 20px rgba(57,255,20,0.15); }
+  0%   { box-shadow: 0 0 0 0 rgba(var(--vrcd-neon-raw),0.4), 0 0 20px rgba(var(--vrcd-neon-raw),0.15); }
+  70%  { box-shadow: 0 0 0 12px rgba(var(--vrcd-neon-raw),0), 0 0 20px rgba(var(--vrcd-neon-raw),0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--vrcd-neon-raw),0), 0 0 20px rgba(var(--vrcd-neon-raw),0.15); }
 }
 
 @keyframes statusTypeCursor {
@@ -93,8 +93,8 @@
 
 /* Neon glow text */
 .breach-neon-green {
-  color: #39ff14;
-  text-shadow: 0 0 8px rgba(57,255,20,0.8), 0 0 20px rgba(57,255,20,0.4);
+  color: var(--vrcd-neon);
+  text-shadow: 0 0 8px rgba(var(--vrcd-neon-raw),0.8), 0 0 20px rgba(var(--vrcd-neon-raw),0.4);
 }
 .breach-neon-purple {
   color: #a855f7;
@@ -103,27 +103,27 @@
 
 /* Neon input */
 .breach-input {
-  background: rgba(57,255,20,0.04) !important;
-  border: 1px solid rgba(57,255,20,0.35) !important;
-  color: #39ff14 !important;
+  background: rgba(var(--vrcd-neon-raw),0.04) !important;
+  border: 1px solid rgba(var(--vrcd-neon-raw),0.35) !important;
+  color: var(--vrcd-neon) !important;
   font-family: 'Courier New', monospace !important;
   font-size: 12px !important;
   letter-spacing: 0.05em;
   outline: none !important;
 }
 .breach-input::placeholder {
-  color: rgba(57,255,20,0.3) !important;
+  color: rgba(var(--vrcd-neon-raw),0.3) !important;
 }
 .breach-input:focus {
-  border-color: rgba(57,255,20,0.7) !important;
-  box-shadow: 0 0 8px rgba(57,255,20,0.15) !important;
+  border-color: rgba(var(--vrcd-neon-raw),0.7) !important;
+  box-shadow: 0 0 8px rgba(var(--vrcd-neon-raw),0.15) !important;
 }
 
 /* Neon button */
 .breach-btn {
   background: transparent;
-  border: 1px solid rgba(57,255,20,0.5);
-  color: #39ff14;
+  border: 1px solid rgba(var(--vrcd-neon-raw),0.5);
+  color: var(--vrcd-neon);
   font-family: 'Courier New', monospace;
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -131,13 +131,13 @@
   padding: 7px 16px;
   border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(57,255,20,0.08);
+  box-shadow: 0 0 8px rgba(var(--vrcd-neon-raw),0.08);
   transition: border-color 0.15s, box-shadow 0.15s;
   white-space: nowrap;
 }
 .breach-btn:hover:not(:disabled) {
-  border-color: rgba(57,255,20,0.9);
-  box-shadow: 0 0 14px rgba(57,255,20,0.25);
+  border-color: rgba(var(--vrcd-neon-raw),0.9);
+  box-shadow: 0 0 14px rgba(var(--vrcd-neon-raw),0.25);
 }
 .breach-btn:disabled {
   opacity: 0.4;
@@ -153,6 +153,6 @@
   box-shadow: 0 0 14px rgba(168,85,247,0.25);
 }
 .breach-btn-primary {
-  border-color: rgba(57,255,20,0.8);
-  box-shadow: 0 0 12px rgba(57,255,20,0.2), inset 0 0 12px rgba(57,255,20,0.04);
+  border-color: rgba(var(--vrcd-neon-raw),0.8);
+  box-shadow: 0 0 12px rgba(var(--vrcd-neon-raw),0.2), inset 0 0 12px rgba(var(--vrcd-neon-raw),0.04);
 }
