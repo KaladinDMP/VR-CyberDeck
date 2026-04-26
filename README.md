@@ -20,6 +20,10 @@ VR CyberDeck is a cross-platform desktop deck for managing, sideloading, and upl
 
 ---
 
+Got ideas for features to add or bug fixes that you arent quite sure you want to make an issue for? [Discussions](https://github.com/KaladinDMP/VR-CyberDeck/discussions) are open and id love to hear from you!
+
+---
+
 ## `// FORK_NOTE`
 
 VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/apprenticeVr) by **jimzrt**. The core engine — ADB control, the download/upload pipeline, rclone integration, library connection — is theirs. Everything below the surface is a heavy rewrite of the *experience*:
