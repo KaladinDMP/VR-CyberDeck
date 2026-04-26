@@ -295,6 +295,16 @@ export const AdbProvider: React.FC<AdbProviderProps> = ({ children }) => {
     }
   }, [isConnected, selectedDevice, loadPackages, getUserName])
 
+  // Periodically refresh device info (battery + storage) while a device is connected,
+  // so the storage indicator reflects installs/uninstalls without requiring a reconnect.
+  useEffect(() => {
+    if (!isConnected || !selectedDevice) return
+    const id = setInterval(() => {
+      refreshDevices().catch(() => { /* swallow; UI keeps last-known values */ })
+    }, 60_000)
+    return () => clearInterval(id)
+  }, [isConnected, selectedDevice])
+
   // Helper function to ping WiFi devices and update their status
   const pingWifiDevices = useCallback(
     async (devicesToUpdate: ExtendedDeviceInfo[]): Promise<void> => {

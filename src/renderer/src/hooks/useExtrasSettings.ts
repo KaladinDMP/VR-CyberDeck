@@ -11,6 +11,8 @@ export const FONT_SCALE_KEY = 'vrcyberdeck:fontScale'
 export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
 export const DISABLE_SIDELOADING_KEY = 'vrcyberdeck:disableSideloading'
 export const COLORBLIND_MODE_KEY = 'vrcyberdeck:colorblindMode'
+export const NOTIFY_DOWNLOAD_COMPLETE_KEY = 'vrcyberdeck:notifyDownloadComplete'
+export const ACCENT_COLOR_KEY = 'vrcyberdeck:accentColor'
 
 export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
 
@@ -56,6 +58,41 @@ export function getColorblindMode(): boolean {
   return readBool(COLORBLIND_MODE_KEY, false)
 }
 
+export function getNotifyDownloadComplete(): boolean {
+  return readBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, true)
+}
+
+export function getAccentColor(): string | null {
+  try {
+    return localStorage.getItem(ACCENT_COLOR_KEY)
+  } catch {
+    return null
+  }
+}
+
+// Convert "#RRGGBB" → "R, G, B" raw triple for use in rgba()
+function hexToRgbRaw(hex: string): string | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return null
+  const n = parseInt(m[1], 16)
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`
+}
+
+export function applyAccentColor(hex: string | null): void {
+  try {
+    const root = document.documentElement
+    if (!hex) {
+      root.style.removeProperty('--vrcd-neon')
+      root.style.removeProperty('--vrcd-neon-raw')
+      return
+    }
+    const raw = hexToRgbRaw(hex)
+    if (!raw) return
+    root.style.setProperty('--vrcd-neon', hex)
+    root.style.setProperty('--vrcd-neon-raw', raw)
+  } catch { /* ignore */ }
+}
+
 // ─── Bootstrap helpers (called outside React, e.g. in App.tsx) ─────────────
 export function shouldShowIntro(): boolean {
   // Master disable wins
@@ -93,6 +130,8 @@ export interface ExtrasSettings {
   deleteOnRemove: DeleteOnRemove
   disableSideloading: boolean
   colorblindMode: boolean
+  notifyDownloadComplete: boolean
+  accentColor: string | null
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
   setShowMatrixShell: (v: boolean) => void
@@ -102,6 +141,8 @@ export interface ExtrasSettings {
   setDeleteOnRemove: (v: DeleteOnRemove) => void
   setDisableSideloading: (v: boolean) => void
   setColorblindMode: (v: boolean) => void
+  setNotifyDownloadComplete: (v: boolean) => void
+  setAccentColor: (v: string | null) => void
 }
 
 export function useExtrasSettings(): ExtrasSettings {
@@ -114,6 +155,8 @@ export function useExtrasSettings(): ExtrasSettings {
   const [deleteOnRemove, setDeleteOnRemoveState] = useState<DeleteOnRemove>(readDeleteOnRemove)
   const [disableSideloading, setDisableSideloadingState] = useState<boolean>(() => readBool(DISABLE_SIDELOADING_KEY, false))
   const [colorblindMode, setColorblindModeState] = useState<boolean>(() => readBool(COLORBLIND_MODE_KEY, false))
+  const [notifyDownloadComplete, setNotifyDownloadCompleteState] = useState<boolean>(() => readBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, true))
+  const [accentColor, setAccentColorState] = useState<string | null>(() => getAccentColor())
 
   const persistBool = (key: string, value: boolean): void => {
     try { localStorage.setItem(key, String(value)) } catch { /* ignore */ }
@@ -149,6 +192,18 @@ export function useExtrasSettings(): ExtrasSettings {
       else document.documentElement.classList.remove('vrcd-colorblind')
     } catch { /* ignore */ }
   }, [])
+  const setNotifyDownloadComplete = useCallback((v: boolean) => {
+    setNotifyDownloadCompleteState(v)
+    persistBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, v)
+  }, [])
+  const setAccentColor = useCallback((v: string | null) => {
+    setAccentColorState(v)
+    try {
+      if (v === null) localStorage.removeItem(ACCENT_COLOR_KEY)
+      else localStorage.setItem(ACCENT_COLOR_KEY, v)
+    } catch { /* ignore */ }
+    applyAccentColor(v)
+  }, [])
 
   // Live-apply font scale whenever it changes
   useEffect(() => {
@@ -166,8 +221,8 @@ export function useExtrasSettings(): ExtrasSettings {
   }, [colorblindMode])
 
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, notifyDownloadComplete, accentColor,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode, setNotifyDownloadComplete, setAccentColor
   }
 }
 
@@ -179,4 +234,8 @@ try {
 
 try {
   if (getColorblindMode()) document.documentElement.classList.add('vrcd-colorblind')
+} catch { /* ignore */ }
+
+try {
+  applyAccentColor(getAccentColor())
 } catch { /* ignore */ }

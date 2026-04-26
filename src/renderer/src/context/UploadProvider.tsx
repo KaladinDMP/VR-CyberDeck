@@ -126,6 +126,37 @@ export const UploadProvider: React.FC<UploadProviderProps> = ({ children }) => {
     }
   }, [])
 
+  const retryUpload = useCallback(
+    async (packageName: string): Promise<boolean> => {
+      const item = queue.find((i) => i.packageName === packageName)
+      if (!item) return false
+      try {
+        return await window.api.uploads.addToQueue(
+          item.packageName,
+          item.gameName,
+          item.versionCode,
+          item.deviceId
+        )
+      } catch (err) {
+        console.error('Error retrying upload:', err)
+        return false
+      }
+    },
+    [queue]
+  )
+
+  const clearCompleted = useCallback(() => {
+    queue
+      .filter((i) => i.status === 'Completed' || i.status === 'Cancelled')
+      .forEach((i) => {
+        try {
+          window.api.uploads.removeFromQueue(i.packageName)
+        } catch (err) {
+          console.error('Error removing completed upload:', err)
+        }
+      })
+  }, [queue])
+
   const value = useMemo<UploadContextType>(
     () => ({
       isUploading,
@@ -135,9 +166,11 @@ export const UploadProvider: React.FC<UploadProviderProps> = ({ children }) => {
       addToQueue,
       removeFromQueue,
       cancelUpload,
+      retryUpload,
+      clearCompleted,
       prepareUpload
     }),
-    [isUploading, progress, error, queue, addToQueue, removeFromQueue, cancelUpload, prepareUpload]
+    [isUploading, progress, error, queue, addToQueue, removeFromQueue, cancelUpload, retryUpload, clearCompleted, prepareUpload]
   )
 
   return <UploadContext.Provider value={value}>{children}</UploadContext.Provider>
