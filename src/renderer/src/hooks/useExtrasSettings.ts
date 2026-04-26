@@ -11,7 +11,6 @@ export const FONT_SCALE_KEY = 'vrcyberdeck:fontScale'
 export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
 export const DISABLE_SIDELOADING_KEY = 'vrcyberdeck:disableSideloading'
 export const COLORBLIND_MODE_KEY = 'vrcyberdeck:colorblindMode'
-export const NOTIFY_DOWNLOAD_COMPLETE_KEY = 'vrcyberdeck:notifyDownloadComplete'
 export const ACCENT_COLOR_KEY = 'vrcyberdeck:accentColor'
 
 export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
@@ -56,10 +55,6 @@ export function getSideloadingDisabled(): boolean {
 
 export function getColorblindMode(): boolean {
   return readBool(COLORBLIND_MODE_KEY, false)
-}
-
-export function getNotifyDownloadComplete(): boolean {
-  return readBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, true)
 }
 
 export function getAccentColor(): string | null {
@@ -130,7 +125,6 @@ export interface ExtrasSettings {
   deleteOnRemove: DeleteOnRemove
   disableSideloading: boolean
   colorblindMode: boolean
-  notifyDownloadComplete: boolean
   accentColor: string | null
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
@@ -141,7 +135,6 @@ export interface ExtrasSettings {
   setDeleteOnRemove: (v: DeleteOnRemove) => void
   setDisableSideloading: (v: boolean) => void
   setColorblindMode: (v: boolean) => void
-  setNotifyDownloadComplete: (v: boolean) => void
   setAccentColor: (v: string | null) => void
 }
 
@@ -155,7 +148,6 @@ export function useExtrasSettings(): ExtrasSettings {
   const [deleteOnRemove, setDeleteOnRemoveState] = useState<DeleteOnRemove>(readDeleteOnRemove)
   const [disableSideloading, setDisableSideloadingState] = useState<boolean>(() => readBool(DISABLE_SIDELOADING_KEY, false))
   const [colorblindMode, setColorblindModeState] = useState<boolean>(() => readBool(COLORBLIND_MODE_KEY, false))
-  const [notifyDownloadComplete, setNotifyDownloadCompleteState] = useState<boolean>(() => readBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, true))
   const [accentColor, setAccentColorState] = useState<string | null>(() => getAccentColor())
 
   const persistBool = (key: string, value: boolean): void => {
@@ -192,10 +184,6 @@ export function useExtrasSettings(): ExtrasSettings {
       if (v) document.documentElement.classList.add('vrcd-colorblind')
       else document.documentElement.classList.remove('vrcd-colorblind')
     } catch { /* ignore */ }
-  }, [])
-  const setNotifyDownloadComplete = useCallback((v: boolean) => {
-    setNotifyDownloadCompleteState(v)
-    persistBool(NOTIFY_DOWNLOAD_COMPLETE_KEY, v)
   }, [])
   const setAccentColor = useCallback((v: string | null) => {
     setAccentColorState(v)
@@ -234,8 +222,8 @@ export function useExtrasSettings(): ExtrasSettings {
   }, [colorblindMode, accentColor])
 
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, notifyDownloadComplete, accentColor,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode, setNotifyDownloadComplete, setAccentColor
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, accentColor,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode, setAccentColor
   }
 }
 

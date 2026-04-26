@@ -476,7 +476,6 @@ const ExtraSystemsSettings: React.FC = () => {
     deleteOnRemove, setDeleteOnRemove,
     disableSideloading, setDisableSideloading,
     colorblindMode, setColorblindMode,
-    notifyDownloadComplete, setNotifyDownloadComplete,
     accentColor, setAccentColor
   } = useExtrasSettings()
 
@@ -557,14 +556,6 @@ const ExtraSystemsSettings: React.FC = () => {
         description="Swaps neon green → white and purple → dark. Improves contrast for red-green color vision deficiency. Takes effect immediately."
         checked={colorblindMode}
         onChange={setColorblindMode}
-      />
-
-      {/* Notify on download complete */}
-      <ToggleRow
-        label="Notify on download complete"
-        description="Shows an OS desktop notification when a download finishes. Uses the Electron Notification API — no external service."
-        checked={notifyDownloadComplete}
-        onChange={setNotifyDownloadComplete}
       />
 
       {/* Accent color */}

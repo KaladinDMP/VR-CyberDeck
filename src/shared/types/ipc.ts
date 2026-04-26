@@ -89,7 +89,6 @@ export interface IPCChannels {
   'app:get-version': DefineChannel<[], string>
   'app:get-locale': DefineChannel<[], string>
   'app:get-system-username': DefineChannel<[], string>
-  'app:notify': DefineChannel<[title: string, body: string], void>
 
   // Update related channels
   'update:check-for-updates': DefineChannel<[], void>
@@ -165,6 +164,7 @@ export interface IPCSendChannels {
   'update:open-repository': void
   'update:start-download': void
   'update:install': void
+  'app:confirm-close': void
 }
 
 // Types for events emitted from main to renderer
@@ -190,4 +190,5 @@ export interface IPCEvents {
   'update:update-downloaded': [updateInfo: UpdateInfo]
   'mirrors:test-progress': [id: string, status: 'testing' | 'success' | 'failed', error?: string]
   'mirrors:mirrors-updated': [mirrors: Mirror[]]
+  'app:close-requested': []
 }

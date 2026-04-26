@@ -22,7 +22,8 @@ declare global {
         getLocale: () => Promise<string>
         getSystemUsername: () => Promise<string>
         setZoomFactor: (factor: number) => void
-        notify: (title: string, body: string) => Promise<void>
+        confirmClose: () => void
+        onCloseRequested: (callback: () => void) => () => void
       }
       dependency: DependencyAPIRenderer
       adb: AdbAPIRenderer
