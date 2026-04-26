@@ -388,6 +388,11 @@ app.whenReady().then(async () => {
     await downloadService.removeFromQueue(releaseName)
   })
 
+  typedIpcMain.handle('download:remove-only', async (_event, releaseName) => {
+    console.log(`[IPC] Removing from download queue (keep files): ${releaseName}`)
+    await downloadService.removeFromQueueOnly(releaseName)
+  })
+
   typedIpcMain.on('download:cancel', (_event, releaseName) =>
     downloadService.cancelUserRequest(releaseName)
   )
@@ -509,6 +514,13 @@ app.whenReady().then(async () => {
   )
   typedIpcMain.handle('settings:get-language', () => settingsService.getLanguage())
   typedIpcMain.handle('settings:set-language', (_event, lang) => settingsService.setLanguage(lang))
+
+  typedIpcMain.handle('settings:get-max-concurrent-downloads', () =>
+    settingsService.getMaxConcurrentDownloads()
+  )
+  typedIpcMain.handle('settings:set-max-concurrent-downloads', (_event, n) =>
+    settingsService.setMaxConcurrentDownloads(n)
+  )
 
   // --- Logs Handlers ---
   typedIpcMain.handle('logs:upload-current', async () => {

@@ -9,6 +9,7 @@ import {
   DialogActions
 } from '@fluentui/react-components'
 import { getMatrixUsername, isFirstLaunchToday } from '../utils/matrixUsername'
+import { shouldShowMatrixShell } from '../hooks/useExtrasSettings'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -601,12 +602,13 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
   const matrixUsername = useRef(getMatrixUsername()).current
   const firstLaunch = useRef(isFirstLaunchToday()).current
   const PHASE_2_HOLD = firstLaunch ? 4000 : 2500  // hold longer on first launch of day
+  const matrixEnabled = useRef(shouldShowMatrixShell()).current
 
   const [command, setCommand] = useState('')
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [historyIndex, setHistoryIndex] = useState(-1)
-  const [animDone, setAnimDone] = useState(false)
+  const [animDone, setAnimDone] = useState(!matrixEnabled)
   const [dialogSize, setDialogSize] = useState({ w: 700, h: 440 })
 
   const terminalRef = useRef<HTMLDivElement>(null)
@@ -622,9 +624,9 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
       setHistory([])
       setCommand('')
       setHistoryIndex(-1)
-      setAnimDone(false)
+      setAnimDone(!matrixEnabled)
     }
-  }, [isOpen])
+  }, [isOpen, matrixEnabled])
 
   // Measure container for canvas sizing
   useEffect(() => {
@@ -752,8 +754,8 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
               ref={containerRef}
               style={{ position: 'relative' }}
             >
-              {/* Matrix intro — shown until animDone */}
-              {!animDone && (
+              {/* Matrix intro — shown until animDone (skipped when disabled) */}
+              {!animDone && matrixEnabled && (
                 <MatrixIntro
                   onComplete={handleAnimComplete}
                   width={dialogSize.w}

@@ -23,7 +23,6 @@ class DownloadService extends EventEmitter implements DownloadAPI {
   private downloadsPath: string
   private isInitialized = false
   private activeCount = 0
-  private maxConcurrent = 3
   private debouncedEmitUpdate: () => void
   private queueManager: QueueManager
   private downloadProcessor: DownloadProcessor
@@ -167,10 +166,7 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     return Promise.resolve(true)
   }
 
-  public async removeFromQueue(releaseName: string): Promise<void> {
-    const item = this.queueManager.findItem(releaseName)
-    if (!item) return
-
+  private cancelActiveItem(releaseName: string, item: DownloadItem): void {
     if (item.status === 'Downloading') {
       console.log(`[Service] Requesting cancel download for ${releaseName}`)
       this.downloadProcessor.cancelDownload(releaseName, 'Cancelled')
@@ -185,9 +181,13 @@ class DownloadService extends EventEmitter implements DownloadAPI {
       })
       if (updated) this.debouncedEmitUpdate()
     }
+  }
 
+  public async removeFromQueue(releaseName: string): Promise<void> {
+    const item = this.queueManager.findItem(releaseName)
+    if (!item) return
+    this.cancelActiveItem(releaseName, item)
     await this.deleteDownloadedFiles(releaseName)
-
     const removed = this.queueManager.removeItem(releaseName)
     if (removed) {
       console.log(`[Service] Removed ${releaseName} from queue (status: ${item.status}).`)
@@ -195,9 +195,21 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     }
   }
 
+  public async removeFromQueueOnly(releaseName: string): Promise<void> {
+    const item = this.queueManager.findItem(releaseName)
+    if (!item) return
+    this.cancelActiveItem(releaseName, item)
+    const removed = this.queueManager.removeItem(releaseName)
+    if (removed) {
+      console.log(`[Service] Removed ${releaseName} from queue without deleting files (status: ${item.status}).`)
+      this.emitUpdate()
+    }
+  }
+
   private async processQueue(): Promise<void> {
+    const maxConcurrent = settingsService.getMaxConcurrentDownloads()
     // Launch as many concurrent pipelines as allowed
-    while (this.activeCount < this.maxConcurrent) {
+    while (this.activeCount < maxConcurrent) {
       const nextItem = this.queueManager.findNextQueuedItem()
       if (!nextItem) {
         if (this.activeCount === 0) {
@@ -213,14 +225,14 @@ class DownloadService extends EventEmitter implements DownloadAPI {
       // Mark as active immediately so the next loop iteration won't pick it again
       this.activeCount++
       console.log(
-        `[Service ProcessQueue] Processing: ${nextItem.releaseName} (active: ${this.activeCount}/${this.maxConcurrent})`
+        `[Service ProcessQueue] Processing: ${nextItem.releaseName} (active: ${this.activeCount}/${maxConcurrent})`
       )
 
       // Fire off the pipeline without awaiting — runs concurrently
       this.runPipeline(nextItem).finally(() => {
         this.activeCount--
         console.log(
-          `[Service ProcessQueue] Finished pipeline for ${nextItem.releaseName} (active: ${this.activeCount}/${this.maxConcurrent})`
+          `[Service ProcessQueue] Finished pipeline for ${nextItem.releaseName} (active: ${this.activeCount})`
         )
         // Try to fill the freed slot
         this.processQueue()
@@ -555,14 +567,14 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     // Track as active pipeline so concurrent limits are respected
     this.activeCount++
     console.log(
-      `[Service] Resuming pipeline for ${releaseName} (active: ${this.activeCount}/${this.maxConcurrent})`
+      `[Service] Resuming pipeline for ${releaseName} (active: ${this.activeCount}/${settingsService.getMaxConcurrentDownloads()})`
     )
 
     // Run the full pipeline (download → extraction → installation) via resume path
     this.runResumePipeline(item).finally(() => {
       this.activeCount--
       console.log(
-        `[Service] Finished resume pipeline for ${releaseName} (active: ${this.activeCount}/${this.maxConcurrent})`
+        `[Service] Finished resume pipeline for ${releaseName} (active: ${this.activeCount}/${settingsService.getMaxConcurrentDownloads()})`
       )
       this.processQueue()
     })
@@ -628,9 +640,9 @@ class DownloadService extends EventEmitter implements DownloadAPI {
       throw new Error(`Item ${releaseName} is not in 'Completed' state.`)
     }
 
-    if (this.activeCount >= this.maxConcurrent) {
+    if (this.activeCount >= settingsService.getMaxConcurrentDownloads()) {
       console.warn(
-        `[Service installFromCompleted] Queue is at max concurrency (${this.activeCount}/${this.maxConcurrent}). Installation for ${releaseName} will be handled when a slot opens.`
+        `[Service installFromCompleted] Queue is at max concurrency (${this.activeCount}/${settingsService.getMaxConcurrentDownloads()}). Installation for ${releaseName} will be handled when a slot opens.`
       )
       // Optionally, we could queue this specific action, but for now, let the main loop handle it
       // Or force a status change back to Queued? Seems counter-intuitive.

@@ -23,10 +23,7 @@ import {
   DrawerHeaderTitle,
   DrawerBody,
   TabList,
-  Tab,
-  Dialog,
-  DialogSurface,
-  DialogBody
+  Tab
 } from '@fluentui/react-components'
 import electronLogo from '../assets/icon.svg'
 import { useDependency } from '../hooks/useDependency'
@@ -406,84 +403,99 @@ const AppLayout: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Dark mode joke dialog */}
-                <Dialog open={isDarkModeJokeOpen} onOpenChange={(_, d) => setIsDarkModeJokeOpen(d.open)}>
-                  <DialogSurface style={{ background: '#030310', border: '1px solid rgba(57,255,20,0.45)', maxWidth: '480px', width: '90vw', fontFamily: 'monospace', boxShadow: '0 0 50px rgba(57,255,20,0.08), 0 0 80px rgba(168,85,247,0.06)' }}>
-                    <DialogBody style={{ padding: '24px 28px 28px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
-
-                        {/* Neon crying-laughing face */}
-                        <svg width="200" height="200" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 14px #39ff14) drop-shadow(0 0 40px rgba(57,255,20,0.55)) drop-shadow(0 0 70px rgba(57,255,20,0.2))' }}>
-                          <defs>
-                            <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur stdDeviation="4" result="b"/>
-                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                            </filter>
-                            <filter id="jk-pg" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur stdDeviation="5" result="b"/>
-                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                            </filter>
-                          </defs>
-                          {/* Face: dark fill + thick glowing ring */}
-                          <circle cx="100" cy="100" r="88" fill="#010108"/>
-                          <circle cx="100" cy="100" r="88" fill="none" stroke="#39ff14" strokeWidth="5" filter="url(#jk-g)"/>
-                          {/* Left squinting eye */}
-                          <path d="M 58,80 Q 72,68 86,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
-                          {/* Right squinting eye */}
-                          <path d="M 114,80 Q 128,68 142,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
-                          {/* Wide smile */}
-                          <path d="M 52,124 Q 100,175 148,124" fill="none" stroke="#39ff14" strokeWidth="4.5" strokeLinecap="round" filter="url(#jk-g)"/>
-                          {/* Left tear */}
-                          <path d="M 64,87 Q 52,108 58,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
-                          <ellipse cx="57" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
-                          {/* Right tear */}
-                          <path d="M 136,87 Q 148,108 142,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
-                          <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
-                        </svg>
-
-                        {/* LMAO */}
-                        <div style={{ fontSize: '52px', color: '#39ff14', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px #39ff14, 0 0 30px rgba(57,255,20,0.7), 0 0 60px rgba(57,255,20,0.3)', lineHeight: 1 }}>LMAO</div>
-
-                        {/* Purple divider */}
-                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
-                          <span style={{ color: '#a855f7', fontSize: '12px', margin: '0 10px', textShadow: '0 0 8px rgba(168,85,247,0.9)', filter: 'drop-shadow(0 0 4px #a855f7)' }}>◆</span>
-                          <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
-                        </div>
-
-                        {/* Body text — 3 centred lines */}
-                        <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(57,255,20,0.35)' }}>
-                          This is just for looks.<br />
-                          Do people actually USE<br />
-                          light mode?
-                        </div>
-
-                        {/* Single-line full-width button */}
-                        <button
-                          onClick={() => setIsDarkModeJokeOpen(false)}
-                          style={{
-                            width: '100%',
-                            background: 'transparent',
-                            border: '2px solid rgba(57,255,20,0.65)',
-                            color: '#39ff14',
-                            fontFamily: '"Courier New", monospace',
-                            fontSize: '14px',
-                            letterSpacing: '0.1em',
-                            padding: '12px 0',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontStyle: 'italic',
-                            boxShadow: '0 0 14px rgba(57,255,20,0.15), inset 0 0 14px rgba(57,255,20,0.04)',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          [ *Cries in binary ]
-                        </button>
-                      </div>
-                    </DialogBody>
-                  </DialogSurface>
-                </Dialog>
               </div>
+
+              {/* Dark mode joke dialog — custom overlay for guaranteed viewport centering */}
+              {isDarkModeJokeOpen && (
+                <div
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setIsDarkModeJokeOpen(false)
+                  }}
+                >
+                  <div
+                    style={{
+                      background: '#030310',
+                      border: '1px solid rgba(57,255,20,0.45)',
+                      maxWidth: '480px',
+                      width: '90vw',
+                      fontFamily: 'monospace',
+                      borderRadius: '8px',
+                      padding: '24px 28px 28px',
+                      boxShadow: '0 0 50px rgba(57,255,20,0.08), 0 0 80px rgba(168,85,247,0.06)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
+                      {/* Neon crying-laughing face */}
+                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ overflow: 'visible', filter: 'drop-shadow(0 0 14px #39ff14) drop-shadow(0 0 40px rgba(57,255,20,0.55)) drop-shadow(0 0 70px rgba(57,255,20,0.2))' }}>
+                        <defs>
+                          <filter id="jk-g" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="4" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                          </filter>
+                          <filter id="jk-pg" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                          </filter>
+                        </defs>
+                        <circle cx="100" cy="100" r="88" fill="#010108"/>
+                        <circle cx="100" cy="100" r="88" fill="none" stroke="#39ff14" strokeWidth="5" filter="url(#jk-g)"/>
+                        <path d="M 58,80 Q 72,68 86,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 114,80 Q 128,68 142,80" fill="none" stroke="#39ff14" strokeWidth="4" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 52,124 Q 100,175 148,124" fill="none" stroke="#39ff14" strokeWidth="4.5" strokeLinecap="round" filter="url(#jk-g)"/>
+                        <path d="M 64,87 Q 52,108 58,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                        <ellipse cx="57" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
+                        <path d="M 136,87 Q 148,108 142,128" fill="none" stroke="#a855f7" strokeWidth="3.5" strokeLinecap="round" filter="url(#jk-pg)"/>
+                        <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="#a855f7" filter="url(#jk-pg)"/>
+                      </svg>
+
+                      <div style={{ fontSize: '52px', color: '#39ff14', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px #39ff14, 0 0 30px rgba(57,255,20,0.7), 0 0 60px rgba(57,255,20,0.3)', lineHeight: 1 }}>LMAO</div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
+                        <span style={{ color: '#a855f7', fontSize: '12px', margin: '0 10px', textShadow: '0 0 8px rgba(168,85,247,0.9)', filter: 'drop-shadow(0 0 4px #a855f7)' }}>◆</span>
+                        <div style={{ flex: 1, height: '1px', background: 'rgba(168,85,247,0.6)', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }}/>
+                      </div>
+
+                      <div style={{ fontSize: '15px', color: '#39ff14', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(57,255,20,0.35)' }}>
+                        This is just for looks.<br />
+                        Do people actually USE<br />
+                        light mode?
+                      </div>
+
+                      <button
+                        onClick={() => setIsDarkModeJokeOpen(false)}
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: '2px solid rgba(57,255,20,0.65)',
+                          color: '#39ff14',
+                          fontFamily: '"Courier New", monospace',
+                          fontSize: '14px',
+                          letterSpacing: '0.1em',
+                          padding: '12px 0',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontStyle: 'italic',
+                          boxShadow: '0 0 14px rgba(57,255,20,0.15), inset 0 0 14px rgba(57,255,20,0.04)',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        [ *Cries in binary ]
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className={styles.mainContent} id="mainContent">
                 <MainContent

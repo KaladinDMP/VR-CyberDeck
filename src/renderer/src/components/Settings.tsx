@@ -11,7 +11,6 @@ import {
   tokens,
   Spinner,
   Switch,
-  Title2,
   Subtitle1,
   Dropdown,
   Option,
@@ -40,6 +39,7 @@ import { useGames } from '../hooks/useGames'
 import { useLogs } from '../hooks/useLogs'
 import { useLanguage } from '../hooks/useLanguage'
 import { useAdb } from '../hooks/useAdb'
+import { useExtrasSettings } from '../hooks/useExtrasSettings'
 
 // Supported speed units with conversion factors to KB/s
 const SPEED_UNITS = [
@@ -425,39 +425,174 @@ const LogUploadSettings: React.FC = () => {
   )
 }
 
-const INTRO_STORAGE_KEY = 'vrcyberdeck:showIntro'
+// ─── Extra Systems (consolidated) ────────────────────────────────────────────
+const switchVars = {
+  '--colorBrandBackground': '#39ff14',
+  '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)',
+  '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)',
+  '--colorCompoundBrandBackground': '#39ff14',
+  '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)'
+} as React.CSSProperties
 
-const IntroSettings: React.FC = () => {
-  const styles = useStyles()
-  const [showIntro, setShowIntro] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem(INTRO_STORAGE_KEY)
-      return stored === null || stored === 'true'
-    } catch {
-      return true
-    }
+const switchVarsPurple = {
+  '--colorBrandBackground': '#a855f7',
+  '--colorBrandBackgroundHover': 'rgba(168,85,247,0.8)',
+  '--colorBrandBackgroundPressed': 'rgba(168,85,247,0.6)',
+  '--colorCompoundBrandBackground': '#a855f7',
+  '--colorCompoundBrandBackgroundHover': 'rgba(168,85,247,0.8)'
+} as React.CSSProperties
+
+interface ToggleRowProps {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (v: boolean) => void
+  danger?: boolean
+  purple?: boolean
+}
+
+const ToggleRow: React.FC<ToggleRowProps> = ({ label, description, checked, onChange, purple }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 0', borderBottom: '1px solid rgba(57,255,20,0.06)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={purple ? switchVarsPurple : switchVars}>
+        <Switch checked={checked} onChange={(_, d) => onChange(d.checked)} />
+      </div>
+      <span style={{ color: purple ? '#a855f7' : '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>{label}</span>
+    </div>
+    <span style={{ color: 'rgba(57,255,20,0.38)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5, paddingLeft: '52px' }}>
+      {description}
+    </span>
+  </div>
+)
+
+const ExtraSystemsSettings: React.FC = () => {
+  const {
+    showIntro, setShowIntro,
+    showBreach, setShowBreach,
+    showMatrixShell, setShowMatrixShell,
+    disableAllExtras, setDisableAllExtras,
+    disableAutoUpdate, setDisableAutoUpdate,
+    fontScale, setFontScale,
+    deleteOnRemove, setDeleteOnRemove
+  } = useExtrasSettings()
+
+  const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
+  useEffect(() => {
+    window.api.settings.getMaxConcurrentDownloads().then(setMaxConcurrentState).catch(() => {/* ignore */})
+  }, [])
+  const handleSetMaxConcurrent = (n: number): void => {
+    setMaxConcurrentState(n)
+    window.api.settings.setMaxConcurrentDownloads(n).catch(() => {/* ignore */})
+  }
+
+  const scaleLabels: Record<string, string> = {
+    '0.75': '75% — compact', '0.875': '87.5% — small', '1': '100% — default',
+    '1.125': '112.5% — large', '1.25': '125% — larger', '1.5': '150% — max'
+  }
+  const scaleValues = [0.75, 0.875, 1, 1.125, 1.25, 1.5]
+
+  const neonOptionBtn = (active: boolean) => ({
+    background: active ? 'rgba(57,255,20,0.12)' : 'transparent',
+    border: `1px solid ${active ? '#39ff14' : 'rgba(57,255,20,0.25)'}`,
+    color: active ? '#39ff14' : 'rgba(57,255,20,0.5)',
+    fontFamily: 'monospace', fontSize: '11px', padding: '4px 10px',
+    borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.06em',
+    boxShadow: active ? '0 0 8px rgba(57,255,20,0.2)' : 'none'
   })
 
-  const handleToggle = useCallback((_ev: unknown, data: { checked: boolean }): void => {
-    setShowIntro(data.checked)
-    try {
-      localStorage.setItem(INTRO_STORAGE_KEY, String(data.checked))
-    } catch {
-      // ignore
-    }
-  }, [])
-
   return (
-    <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)' } as React.CSSProperties}>
-          <Switch checked={showIntro} onChange={handleToggle} />
-        </div>
-        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px' }}>Show intro animation on launch</span>
+    <div style={{ padding: '4px 4px 8px', display: 'flex', flexDirection: 'column', gap: '0' }}>
+
+      {/* Master kill-switch */}
+      <ToggleRow
+        purple
+        label="⚡ Disable ALL Extras"
+        description="Kills intro animation, breach sequence, and matrix shell in one switch. Bare-minimum mode."
+        checked={disableAllExtras}
+        onChange={setDisableAllExtras}
+      />
+
+      {/* Individual toggles */}
+      <div style={{ opacity: disableAllExtras ? 0.35 : 1, pointerEvents: disableAllExtras ? 'none' : 'auto', display: 'flex', flexDirection: 'column' }}>
+        <ToggleRow
+          label="Show intro animation on launch"
+          description="Hacker-console boot sequence shown each time the app opens. ~10 seconds."
+          checked={showIntro}
+          onChange={setShowIntro}
+        />
+        <ToggleRow
+          label="Show breach sequence on device connect"
+          description="TARGET LOCK terminal animation when connecting to a device."
+          checked={showBreach}
+          onChange={setShowBreach}
+        />
+        <ToggleRow
+          label="Show matrix intro in ADB shell"
+          description="Matrix rain + 'Follow the white rabbit' animation before the ADB shell opens."
+          checked={showMatrixShell}
+          onChange={setShowMatrixShell}
+        />
       </div>
-      <span style={{ color: 'rgba(57,255,20,0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
-        Hacker-console boot sequence shown each time the app opens. Takes ~10 seconds.
-      </span>
+
+      {/* Auto-update */}
+      <ToggleRow
+        purple
+        label="Disable auto-update check on launch"
+        description="Prevents the app from checking GitHub for updates when it starts. You can still update manually."
+        checked={disableAutoUpdate}
+        onChange={setDisableAutoUpdate}
+      />
+
+      {/* Deletion behavior */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Transfer List — Remove Behavior
+        </span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {(['ask', 'keep', 'delete'] as const).map((v) => (
+            <button key={v} onClick={() => setDeleteOnRemove(v)} style={neonOptionBtn(deleteOnRemove === v)}>
+              {v === 'ask' ? 'Ask each time' : v === 'keep' ? 'Keep files' : 'Delete files'}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          When removing a completed/errored item from the transfer list.
+        </span>
+      </div>
+
+      {/* Concurrent downloads */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Concurrent Downloads — {maxConcurrent} at a time
+        </span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <button key={n} onClick={() => handleSetMaxConcurrent(n)} style={neonOptionBtn(maxConcurrent === n)}>
+              {n}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          Number of games that download simultaneously. Takes effect on next queue item.
+        </span>
+      </div>
+
+      {/* Font scale */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          UI Font Scale — {Math.round(fontScale * 100)}%
+        </span>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {scaleValues.map((v) => (
+            <button key={v} onClick={() => setFontScale(v)} style={neonOptionBtn(Math.abs(fontScale - v) < 0.01)}>
+              {scaleLabels[String(v)] ?? `${Math.round(v * 100)}%`}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          Scales the app UI text globally. Takes effect immediately.
+        </span>
+      </div>
     </div>
   )
 }
@@ -1015,8 +1150,8 @@ const Settings: React.FC = () => {
         </span>
 
         <div>
-          <SectionHeader label="// INTRO VIDEO" sectionKey="intro" openSections={openSections} onToggle={toggleSection} />
-          {openSections.intro && <IntroSettings />}
+          <SectionHeader label="// EXTRA SYSTEMS" sectionKey="intro" openSections={openSections} onToggle={toggleSection} />
+          {openSections.intro && <ExtraSystemsSettings />}
         </div>
 
         <div>

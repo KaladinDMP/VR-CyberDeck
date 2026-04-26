@@ -263,6 +263,7 @@ export interface DownloadAPI {
   getQueue: () => Promise<DownloadItem[]>
   addToQueue: (game: GameInfo) => Promise<boolean>
   removeFromQueue: (releaseName: string) => Promise<void>
+  removeFromQueueOnly: (releaseName: string) => Promise<void>
   cancelUserRequest: (releaseName: string) => void
   retryDownload: (releaseName: string) => void
   pauseDownload: (releaseName: string) => void
@@ -341,6 +342,7 @@ export interface Settings {
   colorScheme: 'light' | 'dark'
   serverConfig: ServerConfigInfo
   language?: AppLanguage
+  maxConcurrentDownloads: number
 }
 
 export interface SettingsAPI {
@@ -356,6 +358,8 @@ export interface SettingsAPI {
   setServerConfig: (config: ServerConfigInfo) => void
   getLanguage: () => AppLanguage
   setLanguage: (lang: AppLanguage) => void
+  getMaxConcurrentDownloads: () => number
+  setMaxConcurrentDownloads: (n: number) => void
 }
 
 export interface SettingsAPIRenderer
@@ -374,6 +378,8 @@ export interface SettingsAPIRenderer
       setServerConfig: (config: ServerConfigInfo) => Promise<void>
       getLanguage: () => Promise<AppLanguage>
       setLanguage: (lang: AppLanguage) => Promise<void>
+      getMaxConcurrentDownloads: () => Promise<number>
+      setMaxConcurrentDownloads: (n: number) => Promise<void>
     }
   > {}
 
