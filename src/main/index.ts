@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session } from 'electron'
+import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session, Notification } from 'electron'
 import os from 'os'
 import { join } from 'path'
 import { exec } from 'child_process'
@@ -241,6 +241,11 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-version', () => app.getVersion())
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
+  typedIpcMain.handle('app:notify', (_, title: string, body: string) => {
+    if (Notification.isSupported()) {
+      new Notification({ title, body }).show()
+    }
+  })
 
   // --- Dependency Handlers ---
   typedIpcMain.handle('dependency:get-status', async () => dependencyService.getStatus())

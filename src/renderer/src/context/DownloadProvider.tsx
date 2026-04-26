@@ -48,14 +48,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
 
       if (newlyCompleted.length > 0 && getNotifyDownloadComplete()) {
         for (const item of newlyCompleted) {
-          try {
-            new Notification('Download complete', {
-              body: item.gameName,
-              silent: false
-            })
-          } catch (e) {
-            console.warn('Notification failed:', e)
-          }
+          window.api.app.notify('Download complete', item.gameName).catch(() => {})
         }
       }
 

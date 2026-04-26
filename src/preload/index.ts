@@ -1,4 +1,4 @@
-import { contextBridge, IpcRendererEvent, ipcRenderer } from 'electron'
+import { contextBridge, IpcRendererEvent, ipcRenderer, webFrame } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import {
   GameInfo,
@@ -32,7 +32,9 @@ const api = {
   app: {
     getVersion: (): Promise<string> => typedIpcRenderer.invoke('app:get-version'),
     getLocale: (): Promise<string> => typedIpcRenderer.invoke('app:get-locale'),
-    getSystemUsername: (): Promise<string> => typedIpcRenderer.invoke('app:get-system-username')
+    getSystemUsername: (): Promise<string> => typedIpcRenderer.invoke('app:get-system-username'),
+    setZoomFactor: (factor: number): void => webFrame.setZoomFactor(factor),
+    notify: (title: string, body: string): Promise<void> => typedIpcRenderer.invoke('app:notify', title, body)
   },
   dependency: {
     getStatus: (): Promise<DependencyStatus> => typedIpcRenderer.invoke('dependency:get-status')
