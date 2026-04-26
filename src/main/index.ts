@@ -222,13 +222,17 @@ function createWindow(): void {
 
   // Intercept window close so the renderer can warn the user when transfers
   // are still in progress. The renderer responds via 'app:confirm-close'.
-  mainWindow.on('close', (event) => {
-    if (closeConfirmed) return
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      event.preventDefault()
-      typedWebContentsSend.send(mainWindow, 'app:close-requested')
-    }
-  })
+  // On macOS the red traffic-light just hides the window while the app keeps
+  // running (and transfers continue), so we only intercept on quit there.
+  if (process.platform !== 'darwin') {
+    mainWindow.on('close', (event) => {
+      if (closeConfirmed) return
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        event.preventDefault()
+        typedWebContentsSend.send(mainWindow, 'app:close-requested')
+      }
+    })
+  }
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
@@ -267,7 +271,11 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
   typedIpcMain.on('app:confirm-close', () => {
     closeConfirmed = true
-    if (mainWindow && !mainWindow.isDestroyed()) {
+    // On macOS this is reached after a Cmd+Q that we preventDefault'd, so we
+    // need to actually quit the app (closing the window alone isn't enough).
+    if (process.platform === 'darwin') {
+      app.quit()
+    } else if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.close()
     }
   })
@@ -820,6 +828,19 @@ app.on('window-all-closed', () => {
 app.on('will-quit', () => {
   adbService.stopTrackingDevices()
 })
+
+// On macOS the window's close event doesn't terminate the app, so the
+// transfer warning has to hook quit instead (Cmd+Q, dock → Quit, etc.).
+if (process.platform === 'darwin') {
+  app.on('before-quit', (event) => {
+    if (closeConfirmed) return
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      event.preventDefault()
+      if (!mainWindow.isVisible()) mainWindow.show()
+      typedWebContentsSend.send(mainWindow, 'app:close-requested')
+    }
+  })
+}
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
