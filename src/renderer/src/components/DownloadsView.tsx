@@ -27,7 +27,7 @@ import { formatDistanceToNow } from 'date-fns'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
-import { getDeleteOnRemove } from '../hooks/useExtrasSettings'
+import { getDeleteOnRemove, getSideloadingDisabled } from '../hooks/useExtrasSettings'
 
 const useStyles = makeStyles({
   root: {
@@ -103,6 +103,8 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setDialogGame] = useGameDialog()
   const [confirmPending, setConfirmPending] = useState<string | null>(null)
+  const [scanResult, setScanResult] = useState<string | null>(null)
+  const [isScanning, setIsScanning] = useState(false)
 
   const formatAddedTime = (timestamp: number): string => {
     try {
@@ -168,6 +170,19 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
     }
   }
 
+  const handleScan = async (): Promise<void> => {
+    setIsScanning(true)
+    setScanResult(null)
+    try {
+      const { added, pruned } = await window.api.downloads.scanDownloadFolder()
+      setScanResult(`Scan complete: ${added} registered, ${pruned} pruned`)
+    } catch {
+      setScanResult('Scan failed')
+    } finally {
+      setIsScanning(false)
+    }
+  }
+
   const isInstalled = (releaseName: string): boolean => {
     return games.some((game) => game.releaseName === releaseName && game.isInstalled)
   }
@@ -187,8 +202,28 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
     )
   }
 
+  const sideloadingDisabled = getSideloadingDisabled()
+
   return (
     <div className={styles.root}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        <Button
+          size="small"
+          appearance="subtle"
+          icon={<FolderRegular />}
+          onClick={handleScan}
+          disabled={isScanning}
+          title="Scan downloads folder and register any untracked completed downloads"
+          style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(57,255,20,0.8)', border: '1px solid rgba(57,255,20,0.3)' }}
+        >
+          {isScanning ? 'Scanning...' : 'Scan Downloads'}
+        </Button>
+        {scanResult && (
+          <Text size={200} style={{ color: 'rgba(57,255,20,0.6)', fontFamily: 'monospace' }}>
+            {scanResult}
+          </Text>
+        )}
+      </div>
       {queue.length === 0 ? (
         <Text>Download queue is empty.</Text>
       ) : (
@@ -332,7 +367,7 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                   )}
 
                   {/* Install/Uninstall Buttons */}
-                  {item.status === 'Completed' && !isInstalled(item.releaseName) && (
+                  {item.status === 'Completed' && !isInstalled(item.releaseName) && !sideloadingDisabled && (
                     <Button
                       icon={<DownloadInstallIcon />}
                       aria-label="Install game"
@@ -348,7 +383,7 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                     </Button>
                   )}
 
-                  {item.status === 'Completed' && isInstalled(item.releaseName) && (
+                  {item.status === 'Completed' && isInstalled(item.releaseName) && !sideloadingDisabled && (
                     <Button
                       icon={<UninstallIcon />}
                       aria-label="Uninstall game"

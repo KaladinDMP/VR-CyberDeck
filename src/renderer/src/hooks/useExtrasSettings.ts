@@ -9,6 +9,7 @@ export const DISABLE_ALL_EXTRAS_KEY = 'vrcyberdeck:disableAllExtras'
 export const DISABLE_AUTO_UPDATE_KEY = 'vrcyberdeck:disableAutoUpdate'
 export const FONT_SCALE_KEY = 'vrcyberdeck:fontScale'
 export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
+export const DISABLE_SIDELOADING_KEY = 'vrcyberdeck:disableSideloading'
 
 export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
 
@@ -46,6 +47,10 @@ export function getDeleteOnRemove(): DeleteOnRemove {
   return readDeleteOnRemove()
 }
 
+export function getSideloadingDisabled(): boolean {
+  return readBool(DISABLE_SIDELOADING_KEY, false)
+}
+
 // ─── Bootstrap helpers (called outside React, e.g. in App.tsx) ─────────────
 export function shouldShowIntro(): boolean {
   // Master disable wins
@@ -81,6 +86,7 @@ export interface ExtrasSettings {
   disableAutoUpdate: boolean
   fontScale: number
   deleteOnRemove: DeleteOnRemove
+  disableSideloading: boolean
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
   setShowMatrixShell: (v: boolean) => void
@@ -88,6 +94,7 @@ export interface ExtrasSettings {
   setDisableAutoUpdate: (v: boolean) => void
   setFontScale: (v: number) => void
   setDeleteOnRemove: (v: DeleteOnRemove) => void
+  setDisableSideloading: (v: boolean) => void
 }
 
 export function useExtrasSettings(): ExtrasSettings {
@@ -98,6 +105,7 @@ export function useExtrasSettings(): ExtrasSettings {
   const [disableAutoUpdate, setDisableAutoUpdateState] = useState<boolean>(() => readBool(DISABLE_AUTO_UPDATE_KEY, false))
   const [fontScale, setFontScaleState] = useState<number>(() => getFontScale())
   const [deleteOnRemove, setDeleteOnRemoveState] = useState<DeleteOnRemove>(readDeleteOnRemove)
+  const [disableSideloading, setDisableSideloadingState] = useState<boolean>(() => readBool(DISABLE_SIDELOADING_KEY, false))
 
   const persistBool = (key: string, value: boolean): void => {
     try { localStorage.setItem(key, String(value)) } catch { /* ignore */ }
@@ -121,6 +129,10 @@ export function useExtrasSettings(): ExtrasSettings {
     setDeleteOnRemoveState(v)
     try { localStorage.setItem(DELETE_ON_REMOVE_KEY, v) } catch { /* ignore */ }
   }, [])
+  const setDisableSideloading = useCallback((v: boolean) => {
+    setDisableSideloadingState(v)
+    persistBool(DISABLE_SIDELOADING_KEY, v)
+  }, [])
 
   // Live-apply font scale whenever it changes
   useEffect(() => {
@@ -130,8 +142,8 @@ export function useExtrasSettings(): ExtrasSettings {
   }, [fontScale])
 
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading
   }
 }
 

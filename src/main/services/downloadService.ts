@@ -624,6 +624,72 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     }
   }
 
+  public async scanDownloadFolder(): Promise<{ added: number; pruned: number }> {
+    let subdirs: string[] = []
+    try {
+      const dirents = await fs.readdir(this.downloadsPath, { withFileTypes: true })
+      subdirs = dirents.filter((d) => d.isDirectory()).map((d) => d.name)
+    } catch {
+      return { added: 0, pruned: 0 }
+    }
+
+    const queue = this.queueManager.getQueue()
+    const queueMap = new Map(queue.map((item) => [item.releaseName, item]))
+    let added = 0
+    let pruned = 0
+
+    for (const dirName of subdirs) {
+      const existing = queueMap.get(dirName)
+      const folderPath = join(this.downloadsPath, dirName)
+      if (!existing) {
+        this.queueManager.addItem({
+          gameId: dirName,
+          releaseName: dirName,
+          packageName: '',
+          gameName: dirName,
+          status: 'Completed',
+          progress: 100,
+          extractProgress: 100,
+          addedDate: Date.now(),
+          downloadPath: folderPath
+        })
+        added++
+      } else if (
+        existing.status === 'Cancelled' ||
+        existing.status === 'Error' ||
+        existing.status === 'InstallError'
+      ) {
+        this.queueManager.updateItem(dirName, {
+          status: 'Completed',
+          progress: 100,
+          extractProgress: 100,
+          downloadPath: folderPath,
+          error: undefined
+        })
+        added++
+      }
+    }
+
+    for (const item of queue) {
+      if (
+        item.status === 'Completed' ||
+        item.status === 'Cancelled' ||
+        item.status === 'Error' ||
+        item.status === 'InstallError'
+      ) {
+        const folderPath = join(this.downloadsPath, item.releaseName)
+        if (!existsSync(folderPath)) {
+          this.queueManager.removeItem(item.releaseName)
+          pruned++
+        }
+      }
+    }
+
+    if (added > 0 || pruned > 0) this.emitUpdate()
+    console.log(`[Service scanDownloadFolder] added=${added} pruned=${pruned}`)
+    return { added, pruned }
+  }
+
   public async installFromCompleted(releaseName: string, deviceId: string): Promise<void> {
     console.log(`[Service] Request to install completed item: ${releaseName} on ${deviceId}`)
     const item = this.queueManager.findItem(releaseName)

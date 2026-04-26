@@ -473,7 +473,8 @@ const ExtraSystemsSettings: React.FC = () => {
     disableAllExtras, setDisableAllExtras,
     disableAutoUpdate, setDisableAutoUpdate,
     fontScale, setFontScale,
-    deleteOnRemove, setDeleteOnRemove
+    deleteOnRemove, setDeleteOnRemove,
+    disableSideloading, setDisableSideloading
   } = useExtrasSettings()
 
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
@@ -541,6 +542,15 @@ const ExtraSystemsSettings: React.FC = () => {
         description="Prevents the app from checking GitHub for updates when it starts. You can still update manually."
         checked={disableAutoUpdate}
         onChange={setDisableAutoUpdate}
+      />
+
+      {/* Sideloading */}
+      <ToggleRow
+        purple
+        label="Disable Sideloading"
+        description="Hides all Install/Uninstall/Reinstall/Update buttons. Downloads still work. Useful for sharing the app without install access."
+        checked={disableSideloading}
+        onChange={setDisableSideloading}
       />
 
       {/* Deletion behavior */}

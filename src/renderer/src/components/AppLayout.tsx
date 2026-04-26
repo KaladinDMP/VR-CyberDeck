@@ -317,6 +317,7 @@ const MainContent: React.FC<MainContentProps> = ({
 
 const AppLayout: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DEVICE_LIST)
+  const [appVersion, setAppVersion] = useState<string>('')
   const { colorScheme, setColorScheme } = useSettings()
   const [isTransfersOpen, setIsTransfersOpen] = useState(false)
   const [transfersTab, setTransfersTab] = useState<'downloads' | 'uploads'>('downloads')
@@ -328,6 +329,10 @@ const AppLayout: React.FC = () => {
   const { queue: downloadQueue } = useDownload()
   const { queue: uploadQueue } = useUpload()
   const { t } = useLanguage()
+
+  useEffect(() => {
+    window.api.app.getVersion().then(setAppVersion).catch(() => {})
+  }, [])
 
   const handleDeviceConnected = (): void => {
     setCurrentView(AppView.GAMES)
@@ -377,7 +382,14 @@ const AppLayout: React.FC = () => {
                           <span className="title-glitch-wrap" data-text="CYBERDECK">CYBERDECK</span>
                         </span>
                       </span>
-                      <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className={styles.titleSub}>OPERATE. DEPLOY. CONTROL.</span>
+                        {appVersion && (
+                          <span style={{ fontSize: '9px', fontFamily: 'monospace', color: 'rgba(168,85,247,0.6)', letterSpacing: '0.1em' }}>
+                            v{appVersion}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <span className={styles.titleCredit}>

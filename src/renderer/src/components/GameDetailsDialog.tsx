@@ -26,6 +26,7 @@ import {
 } from '@fluentui/react-icons'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
+import { getSideloadingDisabled } from '@renderer/hooks/useExtrasSettings'
 
 const NEON = '#39ff14'
 const PURPLE = '#a855f7'
@@ -147,6 +148,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
     const isInstallError = status === 'InstallError'
     const isErrorOrCancelled = status === 'Error' || status === 'Cancelled'
     const isInstalling = status === 'Installing'
+    const noSideload = getSideloadingDisabled()
 
     if (isInstalling) return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -167,26 +169,28 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
     if (g.isInstalled) {
       if (g.hasUpdate) return (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button appearance="primary" icon={<ArrowUpRegular />} onClick={() => onUpdate(g)} disabled={!isConnected || isBusy}>Update</Button>
-          <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>
+          {!noSideload && <Button appearance="primary" icon={<ArrowUpRegular />} onClick={() => onUpdate(g)} disabled={!isConnected || isBusy}>Update</Button>}
+          {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
+          {noSideload && <Text size={200} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
       return (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button appearance="secondary" icon={<ArrowSyncRegular />} onClick={() => onReinstall(g)} disabled={!isConnected || isBusy}>Reinstall</Button>
-          <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>
+          {!noSideload && <Button appearance="secondary" icon={<ArrowSyncRegular />} onClick={() => onReinstall(g)} disabled={!isConnected || isBusy}>Reinstall</Button>}
+          {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
+          {noSideload && <Text size={200} style={{ color: 'rgba(57,255,20,0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
     }
     if (isDownloaded) return (
       <div style={{ display: 'flex', gap: 8 }}>
-        <Button appearance="primary" icon={<CheckmarkCircleRegular />} onClick={() => onInstallFromCompleted(g)} disabled={!isConnected || isBusy}>Install</Button>
+        {!noSideload && <Button appearance="primary" icon={<CheckmarkCircleRegular />} onClick={() => onInstallFromCompleted(g)} disabled={!isConnected || isBusy}>Install</Button>}
         <Button appearance="danger" icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
       </div>
     )
     return (
       <Button appearance="primary" icon={<DownloadIcon />} onClick={() => onInstall(g)} disabled={isBusy}>
-        {isConnected ? 'Install' : 'Download'}
+        Download
       </Button>
     )
   }
