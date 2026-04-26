@@ -1,9 +1,9 @@
 import { join, basename } from 'path'
 import { promises as fs, existsSync } from 'fs'
+import { execa } from 'execa'
 import { QueueManager } from './queueManager'
 import dependencyService from '../dependencyService'
 import { DownloadItem, DownloadStatus } from '@shared/types'
-import SevenZip from 'node-7z'
 import mirrorService from '../mirrorService'
 import { getAvailableDiskSpace, getDirectorySize, formatBytes } from './utils'
 
@@ -14,7 +14,7 @@ interface VrpConfig {
 }
 
 export class ExtractionProcessor {
-  private activeExtractions: Map<string, SevenZip.ZipStream> = new Map() // Store node-7z streams
+  private activeExtractions: Map<string, () => void> = new Map() // Store cancel functions
   private queueManager: QueueManager
   private vrpConfig: VrpConfig | null = null
   private debouncedEmitUpdate: () => void
@@ -51,15 +51,12 @@ export class ExtractionProcessor {
   }
 
   public cancelExtraction(releaseName: string): void {
-    const extractionStream = this.activeExtractions.get(releaseName)
-    if (extractionStream) {
+    const cancelFn = this.activeExtractions.get(releaseName)
+    if (cancelFn) {
       console.log(`[ExtractProc] Cancelling extraction: ${releaseName}`)
       try {
-        // For node-7z streams, we try to emit an error to stop the process
-        if (extractionStream.emit) {
-          extractionStream.emit('error', new Error('Cancelled by user'))
-          console.log(`[ExtractProc] Sent cancellation signal to extraction: ${releaseName}.`)
-        }
+        cancelFn()
+        console.log(`[ExtractProc] Sent cancellation signal to extraction: ${releaseName}.`)
         this.activeExtractions.delete(releaseName)
         this.queueManager.updateItem(releaseName, { pid: undefined })
       } catch (killError) {
@@ -117,22 +114,13 @@ export class ExtractionProcessor {
         console.log(`[ExtractProc] Starting extraction for nested archive: ${nestedArchivePath}.`)
 
         try {
-          await new Promise<void>((resolve, reject) => {
-            const myStream = SevenZip.extractFull(nestedArchivePath, baseExtractPath, {
-              $bin: sevenZipPath,
-              $progress: true
-            })
-
-            myStream.on('end', function () {
-              console.log(`[ExtractProc] Nested extraction complete for ${archiveName}`)
-              resolve()
-            })
-
-            myStream.on('error', function (error) {
-              console.error(`[ExtractProc] Nested extraction error for ${archiveName}:`, error)
-              reject(error)
-            })
-          })
+          await execa(sevenZipPath, [
+            'x', nestedArchivePath,
+            '-y',
+            `-o${baseExtractPath}`,
+            '-mmt=on'
+          ], { windowsHide: true })
+          console.log(`[ExtractProc] Nested extraction complete for ${archiveName}`)
 
           try {
             await fs.unlink(nestedArchivePath)
@@ -286,62 +274,49 @@ export class ExtractionProcessor {
       return false
     }
 
+    let stderrContent = ''
     try {
-      await new Promise<void>((resolve, reject) => {
-        const myStream = SevenZip.extractFull(archivePath, downloadPath, {
-          $bin: sevenZipPath,
-          password: decodedPassword,
-          $progress: true
-        })
+      const proc = execa(sevenZipPath, [
+        'x', archivePath,
+        '-y',
+        `-o${downloadPath}`,
+        `-p${decodedPassword}`,
+        '-bsp1',
+        '-mmt=on'
+      ], { windowsHide: true, buffer: false })
 
-        if (!myStream) {
-          throw new Error('Failed to start 7zip extraction process.')
-        }
+      this.activeExtractions.set(item.releaseName, () => {
+        try { proc.kill('SIGTERM') } catch { /* noop */ }
+      })
+      console.log(`[ExtractProc] 7zip started for ${item.releaseName}`)
 
-        this.activeExtractions.set(item.releaseName, myStream)
-        console.log(`[ExtractProc] 7zip started for ${item.releaseName}`)
-
-        myStream.on('progress', (progress) => {
-          const currentItemState = this.queueManager.findItem(item.releaseName)
-          if (!currentItemState || currentItemState.status !== 'Extracting') {
-            console.warn(
-              `[ExtractProc] Extraction progress received for ${item.releaseName}, but state is ${currentItemState?.status}. Stopping progress processing.`
-            )
-            return
-          }
-
-          if (progress.percent >= (currentItemState.extractProgress ?? 0)) {
-            const updated = this.queueManager.updateItem(item.releaseName, {
-              extractProgress: progress.percent
-            })
-            if (updated) this.debouncedEmitUpdate()
-          }
-        })
-
-        myStream.on('end', () => {
-          resolve()
-        })
-
-        myStream.on('error', (error) => {
-          console.error(`[ExtractProc] Extraction error for ${item.releaseName}:`, error)
-          this.activeExtractions.delete(item.releaseName)
-
-          let errorMessage = 'Extraction failed.'
-          if (error instanceof Error) {
-            if (error.message.includes('Wrong password')) {
-              errorMessage = 'Wrong password'
-            } else if (
-              error.message.includes('Data Error') ||
-              error.message.includes('CRC Failed')
-            ) {
-              errorMessage = 'Data/CRC error'
-            } else {
-              errorMessage = error.message
+      // Parse progress from stdout (-bsp1 routes progress there)
+      let stdoutBuf = ''
+      proc.stdout?.on('data', (chunk: Buffer) => {
+        stdoutBuf += chunk.toString()
+        const parts = stdoutBuf.split(/[\r\n]+/)
+        stdoutBuf = parts.pop() || ''
+        for (const line of parts) {
+          const match = line.trim().match(/^(\d+)%/)
+          if (match) {
+            const percent = parseInt(match[1], 10)
+            const currentItemState = this.queueManager.findItem(item.releaseName)
+            if (!currentItemState || currentItemState.status !== 'Extracting') return
+            if (percent >= (currentItemState.extractProgress ?? 0)) {
+              const updated = this.queueManager.updateItem(item.releaseName, {
+                extractProgress: percent
+              })
+              if (updated) this.debouncedEmitUpdate()
             }
           }
-          reject(new Error(errorMessage))
-        })
+        }
       })
+
+      proc.stderr?.on('data', (chunk: Buffer) => {
+        stderrContent += chunk.toString()
+      })
+
+      await proc
 
       // Check final state *after* await
       const finalItemState = this.queueManager.findItem(item.releaseName)
@@ -466,23 +441,20 @@ export class ExtractionProcessor {
       const currentItemState = this.queueManager.findItem(item.releaseName)
       const statusBeforeCatch = currentItemState?.status ?? 'Unknown'
 
-      // Handle intentional termination
+      // Handle intentional termination (SIGTERM / cancelled)
+      const isExecaLike = (err: unknown): err is { isCanceled?: boolean; exitCode?: number; signal?: string } =>
+        typeof err === 'object' && err !== null && 'exitCode' in err
       if (
-        error instanceof Error &&
-        (error.message === 'killed' ||
-          error.message === 'SIGTERM' ||
-          error.message === 'SIGKILL' ||
-          error.message === 'exit code 143' || // Standard exit code for SIGTERM
-          error.message === 'exit code 137') // Standard exit code for SIGKILL
+        (isExecaLike(error) && (error.isCanceled || error.exitCode === 143 || error.signal === 'SIGTERM')) ||
+        (error instanceof Error && /killed|SIGTERM|SIGKILL|exit code 14[37]/.test(error.message))
       ) {
         console.log(
-          `[ExtractProc Catch] Ignoring termination signal (${error.message}) for ${item.releaseName}. Status: ${statusBeforeCatch}`
+          `[ExtractProc Catch] Ignoring termination signal for ${item.releaseName}. Status: ${statusBeforeCatch}`
         )
         if (this.activeExtractions.has(item.releaseName)) {
           this.activeExtractions.delete(item.releaseName)
         }
-        // Don't update status here, cancellation initiated it
-        return false // Indicate failure/cancellation
+        return false
       }
 
       // Handle unexpected errors
@@ -491,8 +463,13 @@ export class ExtractionProcessor {
         this.activeExtractions.delete(item.releaseName)
       }
 
+      // Use stderr content for specific error types
       let errorMessage = 'Extraction failed.'
-      if (error instanceof Error) {
+      if (stderrContent.toLowerCase().includes('wrong password')) {
+        errorMessage = 'Wrong password'
+      } else if (stderrContent.toLowerCase().includes('data error') || stderrContent.toLowerCase().includes('crc failed')) {
+        errorMessage = 'Data/CRC error'
+      } else if (error instanceof Error) {
         errorMessage = error.message
       } else {
         errorMessage = String(error)
