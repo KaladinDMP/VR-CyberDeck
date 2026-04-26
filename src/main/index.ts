@@ -255,8 +255,14 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
   typedIpcMain.handle('app:notify', (_, title: string, body: string) => {
-    if (Notification.isSupported()) {
-      new Notification({ title, body }).show()
+    if (!Notification.isSupported()) {
+      console.warn('[Main] Notifications not supported on this platform')
+      return
+    }
+    try {
+      new Notification({ title, body, icon }).show()
+    } catch (err) {
+      console.error('[Main] Failed to show notification:', err)
     }
   })
 
