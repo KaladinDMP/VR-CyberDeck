@@ -68,12 +68,12 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'stretch',
-    borderBottom: '1px solid rgba(57, 255, 20, 0.2)',
+    borderBottom: '1px solid rgba(var(--vrcd-neon-raw), 0.2)',
     backgroundColor: '#050514',
     backgroundImage:
-      'linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px)',
+      'linear-gradient(rgba(var(--vrcd-neon-raw), 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vrcd-neon-raw), 0.03) 1px, transparent 1px)',
     backgroundSize: '40px 40px',
-    boxShadow: '0 1px 24px 0 rgba(57, 255, 20, 0.06), inset 0 -1px 0 rgba(176, 64, 255, 0.12)',
+    boxShadow: '0 1px 24px 0 rgba(var(--vrcd-neon-raw), 0.06), inset 0 -1px 0 rgba(var(--vrcd-purple-raw), 0.12)',
     height: '110px',
     flexShrink: 0
   },
@@ -92,13 +92,13 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderLeft: '1px solid rgba(57,255,20,0.12)',
+    borderLeft: '1px solid rgba(var(--vrcd-neon-raw), 0.12)',
     flexShrink: 0
   },
   logo: {
     height: '58px',
     filter:
-      'drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 18px rgba(168, 85, 247, 0.8))'
+      'drop-shadow(0 0 8px var(--vrcd-neon)) drop-shadow(0 0 18px rgba(var(--vrcd-purple-raw), 0.8))'
   },
   headerContent: {
     display: 'flex',
@@ -122,13 +122,13 @@ const useStyles = makeStyles({
     gap: '10px'
   },
   titleVR: {
-    color: '#a855f7',
-    textShadow: '0 0 18px rgba(168,85,247,0.9), 0 0 40px rgba(168,85,247,0.4)',
+    color: 'var(--vrcd-purple)',
+    textShadow: '0 0 18px rgba(var(--vrcd-purple-raw), 0.9), 0 0 40px rgba(var(--vrcd-purple-raw), 0.4)',
     fontFamily: '"Courier New", monospace'
   },
   titleCyberdeck: {
-    color: '#39ff14',
-    textShadow: '0 0 18px rgba(57,255,20,0.8), 0 0 40px rgba(57,255,20,0.3)',
+    color: 'var(--vrcd-neon)',
+    textShadow: '0 0 18px rgba(var(--vrcd-neon-raw), 0.8), 0 0 40px rgba(var(--vrcd-neon-raw), 0.3)',
     fontFamily: '"Courier New", monospace',
     letterSpacing: '0.08em'
   },
@@ -136,14 +136,14 @@ const useStyles = makeStyles({
     fontSize: '11px',
     letterSpacing: '0.22em',
     fontFamily: 'monospace',
-    color: 'rgba(57, 255, 20, 0.7)',
+    color: 'rgba(var(--vrcd-neon-raw), 0.7)',
     lineHeight: '1.2'
   },
   titleCredit: {
     fontSize: '10px',
     letterSpacing: '0.14em',
     fontFamily: 'monospace',
-    color: 'rgba(57, 255, 20, 0.45)',
+    color: 'rgba(var(--vrcd-neon-raw), 0.45)',
     lineHeight: '1.2',
     display: 'flex',
     alignItems: 'center',
@@ -408,7 +408,7 @@ const AppLayout: React.FC = () => {
                 {/* Right: Dark mode toggle (decorative joke) */}
                 <div className={styles.headerRight}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }} onClick={() => setIsDarkModeJokeOpen(true)}>
-                    <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(57,255,20,0.6)', textTransform: 'uppercase' }}>Dark Mode</span>
+                    <span style={{ fontSize: '9px', fontFamily: 'monospace', letterSpacing: '0.12em', color: 'rgba(var(--vrcd-neon-raw), 0.6)', textTransform: 'uppercase' }}>Dark Mode</span>
                     <div style={{ '--colorBrandBackground': '#39ff14', '--colorBrandBackgroundHover': 'rgba(57,255,20,0.8)', '--colorBrandBackgroundPressed': 'rgba(57,255,20,0.6)', '--colorCompoundBrandBackground': '#39ff14', '--colorCompoundBrandBackgroundHover': 'rgba(57,255,20,0.8)', pointerEvents: 'none' } as React.CSSProperties}>
                       <Switch checked={true} readOnly />
                     </div>
