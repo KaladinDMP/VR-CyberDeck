@@ -37,7 +37,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
         justifyContent: 'center',
         backgroundColor: '#050514',
         gap: '20px',
-        fontFamily: '"Courier New", Courier, monospace',
+        fontFamily: 'var(--vrcd-font-mono)',
         padding: '40px'
       }}>
         <div style={{ fontSize: '32px', color: 'var(--vrcd-neon)', letterSpacing: '0.1em' }}>
@@ -66,7 +66,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
             background: 'transparent',
             border: '1px solid rgba(var(--vrcd-neon-raw),0.5)',
             color: 'var(--vrcd-neon)',
-            fontFamily: '"Courier New", Courier, monospace',
+            fontFamily: 'var(--vrcd-font-mono)',
             fontSize: '11px',
             letterSpacing: '0.14em',
             textTransform: 'uppercase',

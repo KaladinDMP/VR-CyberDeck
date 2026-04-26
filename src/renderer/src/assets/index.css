@@ -4,6 +4,7 @@
   --vrcd-neon-raw: 57, 255, 20;
   --vrcd-purple: #a855f7;
   --vrcd-purple-raw: 168, 85, 247;
+  --vrcd-font-mono: 'Courier New', Courier, monospace;
 }
 
 /* Colorblind mode: green→near-white, purple→orange (distinguishable for red-green color blindness) */

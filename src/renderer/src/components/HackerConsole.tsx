@@ -38,7 +38,7 @@ const HackerConsole: React.FC = () => {
       flexDirection: 'column',
       justifyContent: 'center',
       padding: '10px 16px',
-      fontFamily: '"Courier New", Courier, monospace',
+      fontFamily: 'var(--vrcd-font-mono)',
       fontSize: '12px',
       letterSpacing: '0.04em',
       lineHeight: '1.7',

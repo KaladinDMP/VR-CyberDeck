@@ -108,7 +108,7 @@ const BreachSequence: React.FC<{
     }
   }, [error])
 
-  const S = { fontFamily: '"Courier New", monospace', fontSize: '13px', letterSpacing: '0.04em' }
+  const S = { fontFamily: 'var(--vrcd-font-mono)', fontSize: '13px', letterSpacing: '0.04em' }
 
   return (
     <div style={{ padding: '20px 24px', minHeight: '200px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -199,7 +199,7 @@ const TargetCard: React.FC<TargetCardProps> = ({
   const statusBadgeColor = isConnected ? 'var(--vrcd-neon)' : connectionError ? '#ff4444' : isConnecting ? 'var(--vrcd-purple)' : isOffline ? '#666' : 'rgba(var(--vrcd-neon-raw),0.4)'
   const statusText = isConnected ? 'LINKED' : connectionError ? 'FAILED' : isConnecting ? 'BREACHING...' : isUnauth ? 'UNAUTHORIZED' : isOffline ? 'OFFLINE' : isWifiBook ? 'STANDBY' : 'DETECTED'
 
-  const S = { fontFamily: '"Courier New", monospace' }
+  const S = { fontFamily: 'var(--vrcd-font-mono)' }
 
   return (
     <div className={isConnected ? 'breach-target-card' : ''} style={{
@@ -378,7 +378,7 @@ const AddTargetForm: React.FC<{
   const [ip, setIp] = useState('')
   const [port, setPort] = useState('5555')
   const [loading, setLoading] = useState(false)
-  const S = { fontFamily: '"Courier New", monospace', fontSize: '11px' }
+  const S = { fontFamily: 'var(--vrcd-font-mono)', fontSize: '11px' }
 
   const handleAdd = async (): Promise<void> => {
     if (!ip.trim()) return
@@ -411,7 +411,7 @@ const AddTargetForm: React.FC<{
             background: 'rgba(var(--vrcd-neon-raw),0.04)',
             border: `1px solid ${ip && isValidIp ? 'rgba(var(--vrcd-neon-raw),0.6)' : ip ? 'rgba(255,68,68,0.5)' : 'rgba(var(--vrcd-neon-raw),0.3)'}`,
             color: ip && isValidIp ? 'var(--vrcd-neon)' : ip ? '#ff6666' : 'rgba(var(--vrcd-neon-raw),0.6)',
-            fontFamily: '"Courier New", monospace',
+            fontFamily: 'var(--vrcd-font-mono)',
             fontSize: '12px',
             letterSpacing: '0.05em',
             boxShadow: ip && isValidIp ? '0 0 6px rgba(var(--vrcd-neon-raw),0.1)' : 'none'
@@ -430,7 +430,7 @@ const AddTargetForm: React.FC<{
             background: 'rgba(var(--vrcd-purple-raw),0.03)',
             border: `1px solid rgba(var(--vrcd-purple-raw),0.35)`,
             color: portColor,
-            fontFamily: '"Courier New", monospace',
+            fontFamily: 'var(--vrcd-font-mono)',
             fontSize: '12px',
             letterSpacing: '0.05em'
           }}
@@ -577,7 +577,7 @@ const DeviceList: React.FC<DeviceListProps> = ({ onSkip, onConnected }) => {
   }, [disconnectDevice, disconnectTcpDevice])
 
   // ── rendering helpers ──
-  const S = { fontFamily: '"Courier New", monospace' }
+  const S = { fontFamily: 'var(--vrcd-font-mono)' }
 
   // The device currently in a breach animation
   const breachDevice = breachTargetId ? devices.find((d) => d.id === breachTargetId) : null

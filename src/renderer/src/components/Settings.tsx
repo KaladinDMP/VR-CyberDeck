@@ -39,7 +39,7 @@ import { useGames } from '../hooks/useGames'
 import { useLogs } from '../hooks/useLogs'
 import { useLanguage } from '../hooks/useLanguage'
 import { useAdb } from '../hooks/useAdb'
-import { useExtrasSettings } from '../hooks/useExtrasSettings'
+import { useExtrasSettings, FONT_FAMILY_OPTIONS, FontFamilyChoice } from '../hooks/useExtrasSettings'
 
 // Supported speed units with conversion factors to KB/s
 const SPEED_UNITS = [
@@ -51,7 +51,7 @@ const neonBtn = {
   background: 'transparent',
   border: '1px solid rgba(var(--vrcd-neon-raw),0.5)',
   color: 'var(--vrcd-neon)',
-  fontFamily: '"Courier New", monospace',
+  fontFamily: 'var(--vrcd-font-mono)',
   fontSize: '11px',
   letterSpacing: '0.12em',
   textTransform: 'uppercase' as const,
@@ -65,7 +65,7 @@ const neonInput = {
   background: 'rgba(var(--vrcd-neon-raw),0.04)',
   border: '1px solid rgba(var(--vrcd-neon-raw),0.3)',
   color: 'var(--vrcd-neon)',
-  fontFamily: '"Courier New", monospace',
+  fontFamily: 'var(--vrcd-font-mono)',
   fontSize: '12px'
 }
 
@@ -91,7 +91,7 @@ const useStyles = makeStyles({
   headerTitle: {
     marginBottom: tokens.spacingVerticalXS,
     color: 'var(--vrcd-neon)',
-    fontFamily: '"Courier New", monospace',
+    fontFamily: 'var(--vrcd-font-mono)',
     letterSpacing: '0.04em'
   },
   headerSubtitle: {
@@ -476,7 +476,8 @@ const ExtraSystemsSettings: React.FC = () => {
     deleteOnRemove, setDeleteOnRemove,
     disableSideloading, setDisableSideloading,
     colorblindMode, setColorblindMode,
-    accentColor, setAccentColor
+    accentColor, setAccentColor,
+    fontFamily, setFontFamily
   } = useExtrasSettings()
 
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
@@ -584,6 +585,50 @@ const ExtraSystemsSettings: React.FC = () => {
         </div>
         <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           Changes the neon accent color across the whole UI. Takes effect immediately.
+        </span>
+      </div>
+
+      {/* Font family */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'var(--vrcd-font-mono)', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Font
+        </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {(Object.keys(FONT_FAMILY_OPTIONS) as FontFamilyChoice[]).map((key) => {
+            const opt = FONT_FAMILY_OPTIONS[key]
+            const active = fontFamily === key
+            return (
+              <button
+                key={key}
+                onClick={() => setFontFamily(key)}
+                title={opt.hint}
+                style={{
+                  background: active ? 'rgba(var(--vrcd-neon-raw),0.12)' : 'transparent',
+                  border: `1px solid ${active ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.25)'}`,
+                  color: active ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.7)',
+                  fontFamily: opt.stack,
+                  fontSize: '12px',
+                  padding: '8px 14px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  letterSpacing: '0.04em',
+                  boxShadow: active ? '0 0 8px rgba(var(--vrcd-neon-raw),0.2)' : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: '2px',
+                  minWidth: '140px',
+                  textAlign: 'left'
+                }}
+              >
+                <span style={{ fontWeight: 700, letterSpacing: '0.06em' }}>{opt.label}</span>
+                <span style={{ fontSize: '10px', opacity: 0.7 }}>The quick brown fox</span>
+              </button>
+            )
+          })}
+        </div>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          Switch the monospace font used across the app. Pick something easier to read if Courier New is hard on your eyes.
         </span>
       </div>
 
@@ -1180,7 +1225,7 @@ const Settings: React.FC = () => {
     } as React.CSSProperties}>
       <div className={styles.contentContainer}>
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
-          <span style={{ fontSize: '28px', fontWeight: 800, fontFamily: '"Courier New", monospace', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '28px', fontWeight: 800, fontFamily: 'var(--vrcd-font-mono)', letterSpacing: '0.04em' }}>
             <span style={{ color: 'var(--vrcd-purple)', textShadow: '0 0 12px rgba(var(--vrcd-purple-raw),0.6)' }}>VR</span>
             {' '}
             <span style={{ color: 'var(--vrcd-neon)', textShadow: '0 0 12px rgba(var(--vrcd-neon-raw),0.5)' }}>CyberDeck</span>

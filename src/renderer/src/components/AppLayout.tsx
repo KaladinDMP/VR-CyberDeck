@@ -111,7 +111,7 @@ const useStyles = makeStyles({
     background: '#02020a',
     borderBottom: '1px solid rgba(var(--vrcd-neon-raw), 0.12)',
     overflow: 'hidden',
-    fontFamily: '"Courier New", monospace',
+    fontFamily: 'var(--vrcd-font-mono)',
     fontSize: '11px',
     letterSpacing: '0.04em'
   },
@@ -139,12 +139,12 @@ const useStyles = makeStyles({
   titleVR: {
     color: 'var(--vrcd-purple)',
     textShadow: '0 0 18px rgba(var(--vrcd-purple-raw), 0.9), 0 0 40px rgba(var(--vrcd-purple-raw), 0.4)',
-    fontFamily: '"Courier New", monospace'
+    fontFamily: 'var(--vrcd-font-mono)'
   },
   titleCyberdeck: {
     color: 'var(--vrcd-neon)',
     textShadow: '0 0 18px rgba(var(--vrcd-neon-raw), 0.8), 0 0 40px rgba(var(--vrcd-neon-raw), 0.3)',
-    fontFamily: '"Courier New", monospace',
+    fontFamily: 'var(--vrcd-font-mono)',
     letterSpacing: '0.08em'
   },
   titleSub: {
@@ -520,7 +520,7 @@ const AppLayout: React.FC = () => {
                         <ellipse cx="143" cy="132" rx="5.5" ry="8" fill="var(--vrcd-purple)" filter="url(#jk-pg)"/>
                       </svg>
 
-                      <div style={{ fontSize: '52px', color: 'var(--vrcd-neon)', letterSpacing: '0.2em', fontWeight: 900, fontFamily: '"Courier New", monospace', textShadow: '0 0 10px var(--vrcd-neon), 0 0 30px rgba(var(--vrcd-neon-raw),0.7), 0 0 60px rgba(var(--vrcd-neon-raw),0.3)', lineHeight: 1 }}>LMAO</div>
+                      <div style={{ fontSize: '52px', color: 'var(--vrcd-neon)', letterSpacing: '0.2em', fontWeight: 900, fontFamily: 'var(--vrcd-font-mono)', textShadow: '0 0 10px var(--vrcd-neon), 0 0 30px rgba(var(--vrcd-neon-raw),0.7), 0 0 60px rgba(var(--vrcd-neon-raw),0.3)', lineHeight: 1 }}>LMAO</div>
 
                       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <div style={{ flex: 1, height: '1px', background: 'rgba(var(--vrcd-purple-raw),0.6)', boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.4)' }}/>
@@ -528,7 +528,7 @@ const AppLayout: React.FC = () => {
                         <div style={{ flex: 1, height: '1px', background: 'rgba(var(--vrcd-purple-raw),0.6)', boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.4)' }}/>
                       </div>
 
-                      <div style={{ fontSize: '15px', color: 'var(--vrcd-neon)', lineHeight: 2, fontFamily: '"Courier New", monospace', textShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.35)' }}>
+                      <div style={{ fontSize: '15px', color: 'var(--vrcd-neon)', lineHeight: 2, fontFamily: 'var(--vrcd-font-mono)', textShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.35)' }}>
                         This is just for looks.<br />
                         Do people actually USE<br />
                         light mode?
@@ -541,7 +541,7 @@ const AppLayout: React.FC = () => {
                           background: 'transparent',
                           border: '2px solid rgba(var(--vrcd-neon-raw),0.65)',
                           color: 'var(--vrcd-neon)',
-                          fontFamily: '"Courier New", monospace',
+                          fontFamily: 'var(--vrcd-font-mono)',
                           fontSize: '14px',
                           letterSpacing: '0.1em',
                           padding: '12px 0',
@@ -660,7 +660,7 @@ const AppLayout: React.FC = () => {
                       border: '1px solid rgba(var(--vrcd-neon-raw),0.45)',
                       maxWidth: '520px',
                       width: '90vw',
-                      fontFamily: '"Courier New", monospace',
+                      fontFamily: 'var(--vrcd-font-mono)',
                       borderRadius: '8px',
                       padding: '28px 32px',
                       boxShadow:
@@ -706,7 +706,7 @@ const AppLayout: React.FC = () => {
                           background: 'transparent',
                           border: '2px solid rgba(var(--vrcd-neon-raw),0.65)',
                           color: 'var(--vrcd-neon)',
-                          fontFamily: '"Courier New", monospace',
+                          fontFamily: 'var(--vrcd-font-mono)',
                           fontSize: '13px',
                           letterSpacing: '0.1em',
                           padding: '12px 0',
@@ -729,7 +729,7 @@ const AppLayout: React.FC = () => {
                           background: 'transparent',
                           border: '2px solid rgba(var(--vrcd-purple-raw),0.7)',
                           color: 'var(--vrcd-purple)',
-                          fontFamily: '"Courier New", monospace',
+                          fontFamily: 'var(--vrcd-font-mono)',
                           fontSize: '13px',
                           letterSpacing: '0.1em',
                           padding: '12px 0',
