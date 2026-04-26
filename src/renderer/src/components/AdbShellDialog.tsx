@@ -10,6 +10,7 @@ import {
 } from '@fluentui/react-components'
 import { getMatrixUsername, isFirstLaunchToday } from '../utils/matrixUsername'
 import { shouldShowMatrixShell } from '../hooks/useExtrasSettings'
+import AdbShortcuts from './AdbShortcuts'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -205,8 +206,8 @@ const S = {
   surface: {
     background: BG_SURFACE,
     border: `1px solid rgba(var(--vrcd-neon-raw),0.4)`,
-    minWidth: '700px',
-    maxWidth: '1000px',
+    minWidth: '760px',
+    maxWidth: '1100px',
     padding: '0',
     boxShadow: '0 0 40px rgba(var(--vrcd-neon-raw),0.08), 0 0 80px rgba(var(--vrcd-neon-raw),0.04)',
     borderRadius: '6px',
@@ -662,12 +663,12 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
     setAnimDone(true)
   }, [])
 
-  const runCommand = async (): Promise<void> => {
-    const cmd = command.trim()
+  const runCommand = async (cmdOverride?: string): Promise<void> => {
+    const cmd = (cmdOverride ?? command).trim()
     if (!cmd || isRunning || !animDone) return
 
     setIsRunning(true)
-    setCommand('')
+    if (cmdOverride === undefined) setCommand('')
     setHistoryIndex(-1)
 
     let output: string | null = null
@@ -748,6 +749,12 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
 
           {/* ── Content ── */}
           <DialogContent style={S.content}>
+
+            {/* Quick command shortcuts — only after the matrix animation finishes
+                so they don't appear over the intro */}
+            {animDone && (
+              <AdbShortcuts onRun={(cmd) => runCommand(cmd)} disabled={isRunning} />
+            )}
 
             {/* Terminal area — wraps both the animation overlay and the terminal output */}
             <div
