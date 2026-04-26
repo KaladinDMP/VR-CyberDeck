@@ -4,11 +4,10 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import os from 'os'
 import { LogsAPI } from '@shared/types'
 
-// Rentry.co validates the slug before the content, so a "slug taken" response
-// means the content was never checked. On the retry (random slug), content is
-// validated and rentry returns status 400 if the POST body is too large.
-// 300 KB raw becomes ~500 KB URL-encoded after rentry markup — keep well under limit.
-const MAX_LOG_BYTES = 150 * 1024 // 150 KB raw → ~250 KB URL-encoded
+// Rentry caps POST body size. Log files with lots of brackets, colons, slashes
+// encode to 2-3x their raw size as application/x-www-form-urlencoded.
+// Keep raw content small enough that the encoded payload stays under the limit.
+const MAX_LOG_BYTES = 60 * 1024 // 60 KB raw → ~120 KB URL-encoded, well under limit
 
 // ─── Error-line highlighting ──────────────────────────────────────────────────
 
@@ -138,11 +137,13 @@ class LogsService implements LogsAPI {
       // Truncate to last MAX_LOG_BYTES if the file is too large
       const trimmed =
         Buffer.byteLength(raw, 'utf-8') > MAX_LOG_BYTES
-          ? `[...truncated — showing last ~300 KB...]\n\n${raw.slice(-MAX_LOG_BYTES)}`
+          ? `[...truncated — showing last ~60 KB...]\n\n${raw.slice(-MAX_LOG_BYTES)}`
           : raw
 
       // Annotate real error lines with rentry red colour markup
       const content = annotateErrors(trimmed)
+      // Plain version used for the random-slug retry (no annotation markup overhead)
+      const plainContent = trimmed
 
       // Step 1: Retrieve CSRF token from rentry.co
       const initResponse = await fetch('https://rentry.co/', {
@@ -253,7 +254,7 @@ class LogsService implements LogsAPI {
 
           const retryForm = new URLSearchParams()
           retryForm.append('csrfmiddlewaretoken', retryCsrf)
-          retryForm.append('text', content)
+          retryForm.append('text', plainContent) // plain text — no annotation markup overhead
 
           const retryResponse = await fetch('https://rentry.co/api/new', {
             method: 'POST',
