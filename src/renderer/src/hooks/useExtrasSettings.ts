@@ -213,13 +213,25 @@ export function useExtrasSettings(): ExtrasSettings {
     } catch { /* ignore */ }
   }, [fontScale])
 
-  // Keep html class in sync with state
+  // Keep html class in sync with state and override inline CSS vars so the
+  // colorblind palette wins over any accent-color inline styles.
   useEffect(() => {
     try {
-      if (colorblindMode) document.documentElement.classList.add('vrcd-colorblind')
-      else document.documentElement.classList.remove('vrcd-colorblind')
+      const root = document.documentElement
+      if (colorblindMode) {
+        root.classList.add('vrcd-colorblind')
+        root.style.setProperty('--vrcd-neon', '#f0f0f0')
+        root.style.setProperty('--vrcd-neon-raw', '240, 240, 240')
+        root.style.setProperty('--vrcd-purple', '#ff8c00')
+        root.style.setProperty('--vrcd-purple-raw', '255, 140, 0')
+      } else {
+        root.classList.remove('vrcd-colorblind')
+        root.style.removeProperty('--vrcd-purple')
+        root.style.removeProperty('--vrcd-purple-raw')
+        applyAccentColor(accentColor)
+      }
     } catch { /* ignore */ }
-  }, [colorblindMode])
+  }, [colorblindMode, accentColor])
 
   return {
     showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, notifyDownloadComplete, accentColor,
@@ -235,7 +247,14 @@ try {
 } catch { /* ignore */ }
 
 try {
-  if (getColorblindMode()) document.documentElement.classList.add('vrcd-colorblind')
+  if (getColorblindMode()) {
+    const root = document.documentElement
+    root.classList.add('vrcd-colorblind')
+    root.style.setProperty('--vrcd-neon', '#f0f0f0')
+    root.style.setProperty('--vrcd-neon-raw', '240, 240, 240')
+    root.style.setProperty('--vrcd-purple', '#ff8c00')
+    root.style.setProperty('--vrcd-purple-raw', '255, 140, 0')
+  }
 } catch { /* ignore */ }
 
 try {

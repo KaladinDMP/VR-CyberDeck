@@ -6,12 +6,12 @@
   --vrcd-purple-raw: 168, 85, 247;
 }
 
-/* Colorblind mode: green→white, purple→near-black */
+/* Colorblind mode: green→near-white, purple→orange (distinguishable for red-green color blindness) */
 html.vrcd-colorblind {
-  --vrcd-neon: #ffffff;
-  --vrcd-neon-raw: 255, 255, 255;
-  --vrcd-purple: #1a1a1a;
-  --vrcd-purple-raw: 26, 26, 26;
+  --vrcd-neon: #f0f0f0;
+  --vrcd-neon-raw: 240, 240, 240;
+  --vrcd-purple: #ff8c00;
+  --vrcd-purple-raw: 255, 140, 0;
 }
 
 html,

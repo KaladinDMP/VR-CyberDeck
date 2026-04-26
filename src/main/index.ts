@@ -111,6 +111,19 @@ function createWindow(): void {
   // Explicitly set minimum size to ensure constraint is enforced
   mainWindow.setMinimumSize(1200, 900)
 
+  // Crash recovery: Snagit and other screen-capture tools can crash the GPU /
+  // renderer process when the window has a YouTube webview playing. Without
+  // these handlers Electron silently terminates the entire app.
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    console.error('[Main] Renderer process gone:', details.reason, details.exitCode)
+    if (details.reason !== 'clean-exit' && mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.reload()
+    }
+  })
+  app.on('child-process-gone', (_event, details) => {
+    console.error('[Main] Child process gone:', details.type, details.reason, details.exitCode)
+  })
+
   mainWindow.on('ready-to-show', async () => {
     if (mainWindow) {
       mainWindow.show()
@@ -242,8 +255,14 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
   typedIpcMain.handle('app:notify', (_, title: string, body: string) => {
-    if (Notification.isSupported()) {
-      new Notification({ title, body }).show()
+    if (!Notification.isSupported()) {
+      console.warn('[Main] Notifications not supported on this platform')
+      return
+    }
+    try {
+      new Notification({ title, body, icon }).show()
+    } catch (err) {
+      console.error('[Main] Failed to show notification:', err)
     }
   })
 

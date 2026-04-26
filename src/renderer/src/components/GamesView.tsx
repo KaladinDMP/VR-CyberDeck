@@ -24,6 +24,7 @@ import {
   tokens,
   shorthands,
   makeStyles,
+  mergeClasses,
   Text,
   Input,
   Badge,
@@ -286,7 +287,7 @@ const useStyles = makeStyles({
   sidebarToggleBtn: {
     position: 'absolute',
     top: '8px',
-    right: '-14px',
+    right: '4px',
     zIndex: 20,
     width: '28px',
     height: '28px',
@@ -1438,7 +1439,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
           </button>
         )}
 
-        <div className={`${styles.sidebar} ${!sidebarOpen ? styles.sidebarCollapsed : ''}`}>
+        <div className={mergeClasses(styles.sidebar, !sidebarOpen && styles.sidebarCollapsed)}>
           {/* Collapse toggle — sits on the right edge of the sidebar */}
           <button
             className={styles.sidebarToggleBtn}
@@ -1569,7 +1570,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
           </div>
 
           {/* ── SIDEBAR FOOTER — outside scroll so always visible ── */}
-          <div style={{ flexShrink: 0, borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+          <div style={{ flexShrink: 0, borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM} 10px`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
             {appVersion && (
               <Text size={100} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace', letterSpacing: '0.12em' }}>
                 v{appVersion}

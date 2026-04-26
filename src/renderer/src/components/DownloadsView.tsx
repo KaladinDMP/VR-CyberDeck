@@ -325,7 +325,19 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                     </>
                   )}
                   {item.status === 'Installing' && (
-                    <Text className={styles.statusText}>Installing...</Text>
+                    <>
+                      {(item.progress || 0) < 50 ? (
+                        <ProgressBar className={styles.progressBar} />
+                      ) : (
+                        <ProgressBar
+                          value={(item.progress || 0) / 100}
+                          className={styles.progressBar}
+                        />
+                      )}
+                      <Text className={styles.statusText}>
+                        {(item.progress || 0) < 50 ? 'Installing APK...' : 'Copying OBB...'}
+                      </Text>
+                    </>
                   )}
                   {item.status === 'Queued' && <Text className={styles.statusText}>Queued</Text>}
                   {item.status === 'Completed' && (
