@@ -104,6 +104,22 @@ const parseSizeBytes = (s: string): number => {
   return n * ({ B: 1, KB: 1024, MB: 1048576, GB: 1073741824 }[u] ?? 1)
 }
 
+const NEW_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000   // 30 days
+const UPDATED_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000  // 7 days
+
+function getGameBadge(game: GameInfo): 'new' | 'updated' | null {
+  const now = Date.now()
+  if (game.firstSeen) {
+    const age = now - new Date(game.firstSeen).getTime()
+    if (age <= NEW_THRESHOLD_MS) return 'new'
+  }
+  if (game.lastUpdated) {
+    const age = now - new Date(game.lastUpdated).getTime()
+    if (age <= UPDATED_THRESHOLD_MS) return 'updated'
+  }
+  return null
+}
+
 const filterGameNameAndPackage: FilterFn<GameInfo> = (row, _columnId, filterValue) => {
   const searchStr = String(filterValue).toLowerCase()
   const gameName = String(row.original.name ?? '').toLowerCase()
@@ -717,6 +733,22 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalXS }}
               >
+                {(() => {
+                  const badge = getGameBadge(game)
+                  if (badge === 'new') return (
+                    <Badge shape="rounded" color="success" appearance="filled" size="small"
+                      style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      NEW
+                    </Badge>
+                  )
+                  if (badge === 'updated') return (
+                    <Badge shape="rounded" color="warning" appearance="filled" size="small"
+                      style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      UPDATED
+                    </Badge>
+                  )
+                  return null
+                })()}
                 {isQueued && (
                   <Badge shape="rounded" color="informative" appearance="outline">
                     {t('queued')}
@@ -1737,11 +1769,16 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                         >
                           <div className="game-card-thumbnail-wrap">
                             <img src={game.thumbnailPath ? `file://${game.thumbnailPath}` : placeholderImage} alt={game.name} />
-                            {game.isInstalled && (
+                            {game.isInstalled ? (
                               <span className={`game-card-badge ${game.hasUpdate ? 'update' : 'installed'}`}>
                                 {game.hasUpdate ? 'Update' : 'Installed'}
                               </span>
-                            )}
+                            ) : (() => {
+                              const badge = getGameBadge(game)
+                              if (badge === 'new') return <span className="game-card-badge new-game">NEW</span>
+                              if (badge === 'updated') return <span className="game-card-badge updated-game">UPDATED</span>
+                              return null
+                            })()}
                           </div>
                           <div className="game-card-body">
                             <div className="game-card-title">{game.name}</div>

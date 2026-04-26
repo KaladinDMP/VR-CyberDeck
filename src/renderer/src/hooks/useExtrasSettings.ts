@@ -8,6 +8,9 @@ export const MATRIX_SHELL_STORAGE_KEY = 'vrcyberdeck:showMatrixShell'
 export const DISABLE_ALL_EXTRAS_KEY = 'vrcyberdeck:disableAllExtras'
 export const DISABLE_AUTO_UPDATE_KEY = 'vrcyberdeck:disableAutoUpdate'
 export const FONT_SCALE_KEY = 'vrcyberdeck:fontScale'
+export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
+
+export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
 
 // ─── Readers (safe defaults) ────────────────────────────────────────────────
 function readBool(key: string, defaultTrue = true): boolean {
@@ -29,6 +32,18 @@ function readNumber(key: string, fallback: number): number {
   } catch {
     return fallback
   }
+}
+
+function readDeleteOnRemove(): DeleteOnRemove {
+  try {
+    const v = localStorage.getItem(DELETE_ON_REMOVE_KEY)
+    if (v === 'delete' || v === 'keep' || v === 'ask') return v
+  } catch { /* ignore */ }
+  return 'ask'
+}
+
+export function getDeleteOnRemove(): DeleteOnRemove {
+  return readDeleteOnRemove()
 }
 
 // ─── Bootstrap helpers (called outside React, e.g. in App.tsx) ─────────────
@@ -65,12 +80,14 @@ export interface ExtrasSettings {
   disableAllExtras: boolean
   disableAutoUpdate: boolean
   fontScale: number
+  deleteOnRemove: DeleteOnRemove
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
   setShowMatrixShell: (v: boolean) => void
   setDisableAllExtras: (v: boolean) => void
   setDisableAutoUpdate: (v: boolean) => void
   setFontScale: (v: number) => void
+  setDeleteOnRemove: (v: DeleteOnRemove) => void
 }
 
 export function useExtrasSettings(): ExtrasSettings {
@@ -80,6 +97,7 @@ export function useExtrasSettings(): ExtrasSettings {
   const [disableAllExtras, setDisableAllExtrasState] = useState<boolean>(() => readBool(DISABLE_ALL_EXTRAS_KEY, false))
   const [disableAutoUpdate, setDisableAutoUpdateState] = useState<boolean>(() => readBool(DISABLE_AUTO_UPDATE_KEY, false))
   const [fontScale, setFontScaleState] = useState<number>(() => getFontScale())
+  const [deleteOnRemove, setDeleteOnRemoveState] = useState<DeleteOnRemove>(readDeleteOnRemove)
 
   const persistBool = (key: string, value: boolean): void => {
     try { localStorage.setItem(key, String(value)) } catch { /* ignore */ }
@@ -99,6 +117,10 @@ export function useExtrasSettings(): ExtrasSettings {
     setFontScaleState(clamped)
     persistNumber(FONT_SCALE_KEY, clamped)
   }, [])
+  const setDeleteOnRemove = useCallback((v: DeleteOnRemove) => {
+    setDeleteOnRemoveState(v)
+    try { localStorage.setItem(DELETE_ON_REMOVE_KEY, v) } catch { /* ignore */ }
+  }, [])
 
   // Live-apply font scale whenever it changes
   useEffect(() => {
@@ -108,8 +130,8 @@ export function useExtrasSettings(): ExtrasSettings {
   }, [fontScale])
 
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove
   }
 }
 

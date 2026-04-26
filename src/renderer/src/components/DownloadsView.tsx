@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDownload } from '../hooks/useDownload'
 import { useAdb } from '../hooks/useAdb'
 import { DownloadItem } from '@shared/types'
@@ -19,12 +19,15 @@ import {
   ArrowDownloadRegular as DownloadInstallIcon,
   BroomRegular as UninstallIcon,
   PauseRegular as PauseIcon,
-  PlayRegular as ResumeIcon
+  PlayRegular as ResumeIcon,
+  FolderRegular,
+  DeleteDismissRegular
 } from '@fluentui/react-icons'
 import { formatDistanceToNow } from 'date-fns'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
+import { getDeleteOnRemove } from '../hooks/useExtrasSettings'
 
 const useStyles = makeStyles({
   root: {
@@ -94,11 +97,12 @@ interface DownloadsViewProps {
 
 const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
   const styles = useStyles()
-  const { queue, isLoading, error, removeFromQueue, cancelDownload, retryDownload, pauseDownload, resumeDownload } = useDownload()
+  const { queue, isLoading, error, removeFromQueue, removeFromQueueOnly, cancelDownload, retryDownload, pauseDownload, resumeDownload } = useDownload()
   const { selectedDevice, isConnected, loadPackages } = useAdb()
   const { games } = useGames()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setDialogGame] = useGameDialog()
+  const [confirmPending, setConfirmPending] = useState<string | null>(null)
 
   const formatAddedTime = (timestamp: number): string => {
     try {
@@ -149,6 +153,18 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
         console.error('Error during uninstall:', err)
         window.alert('An error occurred during uninstallation.')
       }
+    }
+  }
+
+  const handleDeleteButton = (releaseName: string): void => {
+    const behavior = getDeleteOnRemove()
+    if (behavior === 'delete') {
+      removeFromQueue(releaseName)
+    } else if (behavior === 'keep') {
+      removeFromQueueOnly(releaseName)
+    } else {
+      // 'ask' — show inline confirmation
+      setConfirmPending(releaseName)
     }
   }
 
@@ -412,14 +428,44 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                     item.status === 'Error' ||
                     item.status === 'InstallError' ||
                     item.status === 'Queued') && (
-                    <Button
-                      icon={<DeleteRegular />}
-                      aria-label="Remove from list and delete files"
-                      size="small"
-                      appearance="subtle"
-                      onClick={async () => await removeFromQueue(item.releaseName)}
-                      title="Remove from list and delete files"
-                    />
+                    confirmPending === item.releaseName ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                        <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>Delete files too?</Text>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <Button
+                            icon={<FolderRegular />}
+                            size="small"
+                            appearance="subtle"
+                            title="Remove from list, keep files"
+                            onClick={() => { setConfirmPending(null); removeFromQueueOnly(item.releaseName) }}
+                          >Keep</Button>
+                          <Button
+                            icon={<DeleteDismissRegular />}
+                            size="small"
+                            appearance="subtle"
+                            title="Remove and delete downloaded files"
+                            style={{ color: tokens.colorPaletteRedForeground1 }}
+                            onClick={() => { setConfirmPending(null); removeFromQueue(item.releaseName) }}
+                          >Delete</Button>
+                          <Button
+                            icon={<CloseIcon />}
+                            size="small"
+                            appearance="subtle"
+                            title="Cancel"
+                            onClick={() => setConfirmPending(null)}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        icon={<DeleteRegular />}
+                        aria-label="Remove from list"
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => handleDeleteButton(item.releaseName)}
+                        title="Remove from list"
+                      />
+                    )
                   )}
                 </div>
               </div>

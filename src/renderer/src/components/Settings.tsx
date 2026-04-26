@@ -472,14 +472,33 @@ const ExtraSystemsSettings: React.FC = () => {
     showMatrixShell, setShowMatrixShell,
     disableAllExtras, setDisableAllExtras,
     disableAutoUpdate, setDisableAutoUpdate,
-    fontScale, setFontScale
+    fontScale, setFontScale,
+    deleteOnRemove, setDeleteOnRemove
   } = useExtrasSettings()
+
+  const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
+  useEffect(() => {
+    window.api.settings.getMaxConcurrentDownloads().then(setMaxConcurrentState).catch(() => {/* ignore */})
+  }, [])
+  const handleSetMaxConcurrent = (n: number): void => {
+    setMaxConcurrentState(n)
+    window.api.settings.setMaxConcurrentDownloads(n).catch(() => {/* ignore */})
+  }
 
   const scaleLabels: Record<string, string> = {
     '0.75': '75% — compact', '0.875': '87.5% — small', '1': '100% — default',
     '1.125': '112.5% — large', '1.25': '125% — larger', '1.5': '150% — max'
   }
   const scaleValues = [0.75, 0.875, 1, 1.125, 1.25, 1.5]
+
+  const neonOptionBtn = (active: boolean) => ({
+    background: active ? 'rgba(57,255,20,0.12)' : 'transparent',
+    border: `1px solid ${active ? '#39ff14' : 'rgba(57,255,20,0.25)'}`,
+    color: active ? '#39ff14' : 'rgba(57,255,20,0.5)',
+    fontFamily: 'monospace', fontSize: '11px', padding: '4px 10px',
+    borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.06em',
+    boxShadow: active ? '0 0 8px rgba(57,255,20,0.2)' : 'none'
+  })
 
   return (
     <div style={{ padding: '4px 4px 8px', display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -524,25 +543,48 @@ const ExtraSystemsSettings: React.FC = () => {
         onChange={setDisableAutoUpdate}
       />
 
+      {/* Deletion behavior */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Transfer List — Remove Behavior
+        </span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {(['ask', 'keep', 'delete'] as const).map((v) => (
+            <button key={v} onClick={() => setDeleteOnRemove(v)} style={neonOptionBtn(deleteOnRemove === v)}>
+              {v === 'ask' ? 'Ask each time' : v === 'keep' ? 'Keep files' : 'Delete files'}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          When removing a completed/errored item from the transfer list.
+        </span>
+      </div>
+
+      {/* Concurrent downloads */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
+        <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Concurrent Downloads — {maxConcurrent} at a time
+        </span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <button key={n} onClick={() => handleSetMaxConcurrent(n)} style={neonOptionBtn(maxConcurrent === n)}>
+              {n}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(57,255,20,0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          Number of games that download simultaneously. Takes effect on next queue item.
+        </span>
+      </div>
+
       {/* Font scale */}
-      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(57,255,20,0.1)', marginTop: '6px' }}>
         <span style={{ color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
           UI Font Scale — {Math.round(fontScale * 100)}%
         </span>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {scaleValues.map((v) => (
-            <button
-              key={v}
-              onClick={() => setFontScale(v)}
-              style={{
-                background: Math.abs(fontScale - v) < 0.01 ? 'rgba(57,255,20,0.12)' : 'transparent',
-                border: `1px solid ${Math.abs(fontScale - v) < 0.01 ? '#39ff14' : 'rgba(57,255,20,0.25)'}`,
-                color: Math.abs(fontScale - v) < 0.01 ? '#39ff14' : 'rgba(57,255,20,0.5)',
-                fontFamily: 'monospace', fontSize: '11px', padding: '4px 10px',
-                borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.06em',
-                boxShadow: Math.abs(fontScale - v) < 0.01 ? '0 0 8px rgba(57,255,20,0.2)' : 'none'
-              }}
-            >
+            <button key={v} onClick={() => setFontScale(v)} style={neonOptionBtn(Math.abs(fontScale - v) < 0.01)}>
               {scaleLabels[String(v)] ?? `${Math.round(v * 100)}%`}
             </button>
           ))}

@@ -31,7 +31,8 @@ class SettingsService extends EventEmitter implements SettingsAPI {
       hideAdultContent: true,
       colorScheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
       serverConfig: { baseUri: '', password: '' },
-      language: defaultLanguage
+      language: defaultLanguage,
+      maxConcurrentDownloads: 3
     }
 
     // Load settings from disk
@@ -106,6 +107,17 @@ class SettingsService extends EventEmitter implements SettingsAPI {
     this.settings.language = lang
     this.saveSettings()
     this.emit('language-changed', lang)
+  }
+
+  getMaxConcurrentDownloads(): number {
+    const n = this.settings.maxConcurrentDownloads ?? 3
+    return Math.max(1, Math.min(6, n))
+  }
+
+  setMaxConcurrentDownloads(n: number): void {
+    this.settings.maxConcurrentDownloads = Math.max(1, Math.min(6, n))
+    this.saveSettings()
+    this.emit('max-concurrent-downloads-changed', this.settings.maxConcurrentDownloads)
   }
 
   private loadSettings(): void {

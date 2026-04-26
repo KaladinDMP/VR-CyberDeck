@@ -68,6 +68,7 @@ export interface IPCChannels {
   'download:get-queue': DefineChannel<[], DownloadItem[]>
   'download:add': DefineChannel<[game: GameInfo], boolean>
   'download:remove': DefineChannel<[releaseName: string], void>
+  'download:remove-only': DefineChannel<[releaseName: string], void>
   'download:delete-files': DefineChannel<[releaseName: string], boolean>
   'download:install-from-completed': DefineChannel<[releaseName: string, deviceId: string], void>
 
@@ -104,6 +105,8 @@ export interface IPCChannels {
   'settings:set-server-config': DefineChannel<[config: ServerConfigInfo], void>
   'settings:get-language': DefineChannel<[], AppLanguage>
   'settings:set-language': DefineChannel<[lang: AppLanguage], void>
+  'settings:get-max-concurrent-downloads': DefineChannel<[], number>
+  'settings:set-max-concurrent-downloads': DefineChannel<[n: number], void>
 
   // Log upload related channels
   'logs:upload-current': DefineChannel<[], { url: string; password: string; slug: string } | null>

@@ -65,14 +65,21 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
 
   const removeFromQueue = useCallback(async (releaseName: string): Promise<void> => {
     console.log(`Context: Removing ${releaseName} from queue...`)
-    // Optimistic update? Maybe not necessary as main process handles it
-    // setQueue(prev => prev.filter(item => item.releaseName !== releaseName));
     try {
       await window.api.downloads.removeFromQueue(releaseName)
     } catch (err) {
       console.error('Error removing game from download queue via IPC:', err)
       setError(`Failed to remove item from queue.`)
-      // May need to refetch queue here if optimistic update was used
+    }
+  }, [])
+
+  const removeFromQueueOnly = useCallback(async (releaseName: string): Promise<void> => {
+    console.log(`Context: Removing ${releaseName} from queue (keep files)...`)
+    try {
+      await window.api.downloads.removeFromQueueOnly(releaseName)
+    } catch (err) {
+      console.error('Error removing game from download queue (keep files) via IPC:', err)
+      setError(`Failed to remove item from queue.`)
     }
   }, [])
 
@@ -139,13 +146,14 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       error,
       addToQueue,
       removeFromQueue,
+      removeFromQueueOnly,
       cancelDownload,
       retryDownload,
       pauseDownload,
       resumeDownload,
       deleteFiles
     }),
-    [queue, isLoading, error, addToQueue, removeFromQueue, cancelDownload, retryDownload, pauseDownload, resumeDownload, deleteFiles]
+    [queue, isLoading, error, addToQueue, removeFromQueue, removeFromQueueOnly, cancelDownload, retryDownload, pauseDownload, resumeDownload, deleteFiles]
   )
 
   return <DownloadContext.Provider value={value}>{children}</DownloadContext.Provider>

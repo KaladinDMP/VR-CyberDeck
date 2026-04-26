@@ -119,6 +119,8 @@ const api = {
     addToQueue: (game: GameInfo): Promise<boolean> => typedIpcRenderer.invoke('download:add', game),
     removeFromQueue: (releaseName: string): Promise<void> =>
       typedIpcRenderer.invoke('download:remove', releaseName),
+    removeFromQueueOnly: (releaseName: string): Promise<void> =>
+      typedIpcRenderer.invoke('download:remove-only', releaseName),
     cancelUserRequest: (releaseName: string): void =>
       typedIpcRenderer.send('download:cancel', releaseName),
     retryDownload: (releaseName: string): void =>
@@ -237,7 +239,11 @@ const api = {
       typedIpcRenderer.invoke('settings:set-server-config', config),
     getLanguage: (): Promise<AppLanguage> => typedIpcRenderer.invoke('settings:get-language'),
     setLanguage: (lang: AppLanguage): Promise<void> =>
-      typedIpcRenderer.invoke('settings:set-language', lang)
+      typedIpcRenderer.invoke('settings:set-language', lang),
+    getMaxConcurrentDownloads: (): Promise<number> =>
+      typedIpcRenderer.invoke('settings:get-max-concurrent-downloads'),
+    setMaxConcurrentDownloads: (n: number): Promise<void> =>
+      typedIpcRenderer.invoke('settings:set-max-concurrent-downloads', n)
   } satisfies SettingsAPIRenderer,
   // Logs APIs
   logs: {

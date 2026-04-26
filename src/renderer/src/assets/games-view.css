@@ -467,6 +467,18 @@
   font-family: monospace;
 }
 
+.game-card-badge.new-game {
+  background: rgba(57, 255, 20, 0.9);
+  color: #050514;
+  font-family: monospace;
+}
+
+.game-card-badge.updated-game {
+  background: rgba(255, 165, 0, 0.9);
+  color: #050514;
+  font-family: monospace;
+}
+
 .game-card-body {
   padding: 8px 10px 10px;
   display: flex;
