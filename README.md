@@ -26,7 +26,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 
 | | ApprenticeVR | VR CyberDeck |
 |---|---|---|
-| **Theme** | Stock Fluent UI | Full cyberpunk / neon-terminal rebrand |
+| **Theme** | Stock Fluent UI | Full optional cyberpunk / neon-terminal rebrand |
 | **Onboarding** | Configure server before use | Bundled server defaults — works on first launch |
 | **Intro** | None | `UNAUTHORIZED → AUTHORIZED` glitch boot |
 | **Identity** | None | Matrix-style random `g33ky_u$3rn4m3$` per session |
@@ -69,7 +69,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 **`[ INTERFACE ]`**
 - Glitch boot intro, neon Hacker Console, themed dialogs top to bottom
 - Dark mode done right (no half-themed popups)
-- Accent color picker, tab memory, in-app notifications
+- Accent color picker, tab memory
 - Colorblind mode + font scale up to 200%
 - One-click log upload from Settings → Log Upload
 
