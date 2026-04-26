@@ -173,7 +173,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     backgroundColor: phase === 'unauthorized' ? '#0c0000' : '#000000',
     opacity: fading ? 0 : 1,
     transition: fading ? 'opacity 1.5s ease-in-out' : phase === 'unauthorized' ? 'background-color 0.1s' : 'none',
-    fontFamily: '"Courier New", Courier, monospace',
+    fontFamily: 'var(--vrcd-font-mono)',
     fontSize: '17px',
     color: '#39ff14',
     overflow: 'hidden',
@@ -185,7 +185,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
     fontSize: '62px',
     fontWeight: 900,
     letterSpacing: '0.08em',
-    fontFamily: '"Courier New", Courier, monospace'
+    fontFamily: 'var(--vrcd-font-mono)'
   }
 
   const unauthorizedStyle: React.CSSProperties = {
@@ -243,7 +243,7 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
             fontSize: '13px',
             letterSpacing: '0.3em',
             color: 'rgba(255,60,60,0.55)',
-            fontFamily: '"Courier New", Courier, monospace'
+            fontFamily: 'var(--vrcd-font-mono)'
           }}>
             ACCESS DENIED — AUTHENTICATION FAILED
           </div>

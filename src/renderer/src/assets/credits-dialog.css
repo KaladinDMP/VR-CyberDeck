@@ -83,7 +83,7 @@
 .credits-terminal-title {
   flex: 1;
   text-align: center;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   font-size: 11px;
   color: rgba(0, 212, 255, 0.45);
   letter-spacing: 0.12em;
@@ -109,7 +109,7 @@
 .credits-body {
   padding: 22px 26px 26px;
   overflow-y: auto;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--vrcd-font-mono);
   color: rgba(0, 212, 255, 0.85);
   line-height: 1.7;
 }
@@ -246,7 +246,7 @@
   border: 1px solid rgba(0, 212, 255, 0.35);
   border-radius: 50%;
   color: rgba(0, 212, 255, 0.6);
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   font-size: 10px;
   line-height: 1;
   width: 15px;
@@ -274,7 +274,7 @@
   border: 1px solid rgba(0, 212, 255, 0.25);
   background: linear-gradient(135deg, rgba(0, 212, 255, 0.03) 0%, rgba(var(--vrcd-purple-raw), 0.05) 100%);
   text-align: center;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   position: relative;
   overflow: hidden;
 }
@@ -319,7 +319,7 @@
   border: 1px solid rgba(0, 212, 255, 0.45);
   border-radius: 50%;
   color: rgba(0, 212, 255, 0.7);
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   font-size: 13px;
   line-height: 1;
   width: 22px;

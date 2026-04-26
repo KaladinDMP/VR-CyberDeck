@@ -89,7 +89,7 @@ function useMatrixCanvas(
       ctx.fillStyle = 'rgba(0,0,8,0.18)'
       ctx.fillRect(0, 0, W, H)
 
-      ctx.font = `${fontSize}px 'Courier New', monospace`
+      ctx.font = `${fontSize}px ${getComputedStyle(document.documentElement).getPropertyValue('--vrcd-font-mono').trim() || "'Courier New', monospace"}`
 
       for (const col of columns) {
         // bright head char
@@ -231,7 +231,7 @@ const S = {
   } as React.CSSProperties,
 
   titleText: {
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--vrcd-font-mono)",
     fontSize: '13px',
     color: NEON,
     letterSpacing: '0.08em',
@@ -250,7 +250,7 @@ const S = {
     background: BG_TERMINAL,
     border: `1px solid ${NEON_DIM}`,
     borderRadius: '4px',
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--vrcd-font-mono)",
     fontSize: '13px',
     color: NEON,
     padding: '12px 14px',
@@ -279,7 +279,7 @@ const S = {
   emptyHint: {
     color: 'rgba(var(--vrcd-neon-raw),0.4)',
     fontStyle: 'italic' as const,
-    fontFamily: "'Courier New', monospace"
+    fontFamily: "var(--vrcd-font-mono)"
   } as React.CSSProperties,
 
   prompt: {
@@ -316,7 +316,7 @@ const S = {
     background: 'transparent',
     border: `1px solid ${NEON_DIM}`,
     color: NEON,
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--vrcd-font-mono)",
     fontSize: '12px',
     letterSpacing: '0.06em',
     cursor: 'pointer',
@@ -450,7 +450,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
             bottom: '40px',
             left: '50%',
             transform: 'translateX(-50%)',
-            fontFamily: "'Courier New', monospace",
+            fontFamily: "var(--vrcd-font-mono)",
             fontSize: '12px',
             letterSpacing: '0.25em',
             color: 'rgba(var(--vrcd-neon-raw),0.7)',
@@ -477,7 +477,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
-            fontFamily: "'Courier New', monospace",
+            fontFamily: "var(--vrcd-font-mono)",
             userSelect: 'none',
             flexDirection: 'column',
             gap: '12px'
@@ -510,7 +510,7 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
               fontSize: '13px',
               letterSpacing: '0.15em',
               color: 'rgba(var(--vrcd-neon-raw),0.55)',
-              fontFamily: "'Courier New', monospace",
+              fontFamily: "var(--vrcd-font-mono)",
               animation: 'matrixFadeIn 0.6s ease-out 0.2s both'
             }}
           >
@@ -578,7 +578,7 @@ function FlashInput({ value, onChange, onKeyDown, disabled, inputRef }: FlashInp
           background: 'transparent',
           border: 'none',
           outline: 'none',
-          fontFamily: "'Courier New', monospace",
+          fontFamily: "var(--vrcd-font-mono)",
           fontSize: '13px',
           color: NEON,
           caretColor: NEON,
@@ -736,7 +736,7 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
             <div style={S.titleBar}>
               <span style={S.titleText}>[ADB SHELL — {deviceId}]</span>
               <span style={{
-                fontFamily: "'Courier New', monospace",
+                fontFamily: "var(--vrcd-font-mono)",
                 fontSize: '10px',
                 letterSpacing: '0.15em',
                 color: 'rgba(var(--vrcd-neon-raw),0.35)',
@@ -806,7 +806,7 @@ export function AdbShellDialog({ deviceId, isOpen, onDismiss }: AdbShellDialogPr
                 {isRunning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={S.prompt}>{promptLabel}</span>
-                    <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: "'Courier New', monospace" }}>
+                    <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: "var(--vrcd-font-mono)" }}>
                       executing...
                     </span>
                   </div>

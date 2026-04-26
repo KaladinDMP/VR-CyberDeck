@@ -37,7 +37,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 | **Uploads** | Headset-only | Headset **or** local PC files (folders + ZIPs) |
 | **Quit safety** | None | Confirmation prompt when transfers are in flight |
 | **Settings** | Flat panel | Collapsible sections, accent color, tab memory |
-| **A11y** | Limited | Full colorblind theming, font scale to 200%, 900x640 min size |
+| **A11y** | Limited | Full colorblind theming, font picker, font scale to 200%, 900x640 min size |
 | **Updates** | Manual | In-app auto-updater on every platform |
 
 ---
@@ -84,6 +84,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 - Compact laptop-friendly header — drops down to a 900x640 min window
 - Dark mode done right (no half-themed popups)
 - Accent color picker, tab memory
+- **Font picker** — swap Courier New for Console / Terminal / System Mono if the default is hard to read
 - Colorblind mode now covers the whole UI — version subtitles, filter counters, Transfers button, battery pill, breach animation all swap palette
 - Font scale up to 200%
 - One-click log upload from Settings → Log Upload

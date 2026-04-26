@@ -12,8 +12,40 @@ export const DELETE_ON_REMOVE_KEY = 'vrcyberdeck:deleteOnRemove'
 export const DISABLE_SIDELOADING_KEY = 'vrcyberdeck:disableSideloading'
 export const COLORBLIND_MODE_KEY = 'vrcyberdeck:colorblindMode'
 export const ACCENT_COLOR_KEY = 'vrcyberdeck:accentColor'
+export const FONT_FAMILY_KEY = 'vrcyberdeck:fontFamily'
 
 export type DeleteOnRemove = 'ask' | 'delete' | 'keep'
+
+// ─── Font family options ─────────────────────────────────────────────────────
+export type FontFamilyChoice = 'cyberpunk' | 'console' | 'terminal' | 'system'
+
+export const FONT_FAMILY_OPTIONS: Record<
+  FontFamilyChoice,
+  { label: string; stack: string; hint: string }
+> = {
+  cyberpunk: {
+    label: 'Cyberpunk',
+    stack: "'Courier New', Courier, monospace",
+    hint: 'Default — classic terminal feel'
+  },
+  console: {
+    label: 'Console',
+    stack: "Consolas, Monaco, 'DejaVu Sans Mono', monospace",
+    hint: 'Cleaner monospace, easier on the eyes'
+  },
+  terminal: {
+    label: 'Terminal',
+    stack: "'Lucida Console', 'SF Mono', Menlo, monospace",
+    hint: 'Wider letterforms — most readable'
+  },
+  system: {
+    label: 'System Mono',
+    stack: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
+    hint: 'Whatever your OS uses for code'
+  }
+}
+
+const DEFAULT_FONT_FAMILY: FontFamilyChoice = 'cyberpunk'
 
 // ─── Readers (safe defaults) ────────────────────────────────────────────────
 function readBool(key: string, defaultTrue = true): boolean {
@@ -63,6 +95,21 @@ export function getAccentColor(): string | null {
   } catch {
     return null
   }
+}
+
+export function getFontFamilyChoice(): FontFamilyChoice {
+  try {
+    const v = localStorage.getItem(FONT_FAMILY_KEY)
+    if (v && v in FONT_FAMILY_OPTIONS) return v as FontFamilyChoice
+  } catch { /* ignore */ }
+  return DEFAULT_FONT_FAMILY
+}
+
+export function applyFontFamily(choice: FontFamilyChoice): void {
+  try {
+    const stack = FONT_FAMILY_OPTIONS[choice]?.stack ?? FONT_FAMILY_OPTIONS[DEFAULT_FONT_FAMILY].stack
+    document.documentElement.style.setProperty('--vrcd-font-mono', stack)
+  } catch { /* ignore */ }
 }
 
 // Convert "#RRGGBB" → "R, G, B" raw triple for use in rgba()
@@ -126,6 +173,7 @@ export interface ExtrasSettings {
   disableSideloading: boolean
   colorblindMode: boolean
   accentColor: string | null
+  fontFamily: FontFamilyChoice
   setShowIntro: (v: boolean) => void
   setShowBreach: (v: boolean) => void
   setShowMatrixShell: (v: boolean) => void
@@ -136,6 +184,7 @@ export interface ExtrasSettings {
   setDisableSideloading: (v: boolean) => void
   setColorblindMode: (v: boolean) => void
   setAccentColor: (v: string | null) => void
+  setFontFamily: (v: FontFamilyChoice) => void
 }
 
 export function useExtrasSettings(): ExtrasSettings {
@@ -149,6 +198,7 @@ export function useExtrasSettings(): ExtrasSettings {
   const [disableSideloading, setDisableSideloadingState] = useState<boolean>(() => readBool(DISABLE_SIDELOADING_KEY, false))
   const [colorblindMode, setColorblindModeState] = useState<boolean>(() => readBool(COLORBLIND_MODE_KEY, false))
   const [accentColor, setAccentColorState] = useState<string | null>(() => getAccentColor())
+  const [fontFamily, setFontFamilyState] = useState<FontFamilyChoice>(() => getFontFamilyChoice())
 
   const persistBool = (key: string, value: boolean): void => {
     try { localStorage.setItem(key, String(value)) } catch { /* ignore */ }
@@ -193,6 +243,11 @@ export function useExtrasSettings(): ExtrasSettings {
     } catch { /* ignore */ }
     applyAccentColor(v)
   }, [])
+  const setFontFamily = useCallback((v: FontFamilyChoice) => {
+    setFontFamilyState(v)
+    try { localStorage.setItem(FONT_FAMILY_KEY, v) } catch { /* ignore */ }
+    applyFontFamily(v)
+  }, [])
 
   // Live-apply font scale whenever it changes
   useEffect(() => {
@@ -222,8 +277,8 @@ export function useExtrasSettings(): ExtrasSettings {
   }, [colorblindMode, accentColor])
 
   return {
-    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, accentColor,
-    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode, setAccentColor
+    showIntro, showBreach, showMatrixShell, disableAllExtras, disableAutoUpdate, fontScale, deleteOnRemove, disableSideloading, colorblindMode, accentColor, fontFamily,
+    setShowIntro, setShowBreach, setShowMatrixShell, setDisableAllExtras, setDisableAutoUpdate, setFontScale, setDeleteOnRemove, setDisableSideloading, setColorblindMode, setAccentColor, setFontFamily
   }
 }
 
@@ -243,6 +298,10 @@ try {
     root.style.setProperty('--vrcd-purple', '#ff8c00')
     root.style.setProperty('--vrcd-purple-raw', '255, 140, 0')
   }
+} catch { /* ignore */ }
+
+try {
+  applyFontFamily(getFontFamilyChoice())
 } catch { /* ignore */ }
 
 try {

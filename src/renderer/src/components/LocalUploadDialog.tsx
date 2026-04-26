@@ -148,7 +148,7 @@ const LocalUploadDialog: React.FC = () => {
         size="small"
         onClick={() => setIsOpen(true)}
         style={{
-          fontFamily: '"Courier New", monospace',
+          fontFamily: 'var(--vrcd-font-mono)',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           fontSize: '11px',

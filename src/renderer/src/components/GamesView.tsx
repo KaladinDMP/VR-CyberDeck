@@ -1404,7 +1404,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     color: 'var(--vrcd-neon)',
     width: '100%',
     justifyContent: 'center',
-    fontFamily: '"Courier New", Courier, monospace',
+    fontFamily: 'var(--vrcd-font-mono)',
     fontSize: '11px',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',

@@ -160,7 +160,7 @@ const Pill: React.FC<PillProps> = ({ children, onClick, onContextMenu, title, di
         background: hovered && !disabled ? `rgba(${colorRaw},0.12)` : 'transparent',
         border: `1px ${dashed ? 'dashed' : 'solid'} ${hovered && !disabled ? color : `rgba(${colorRaw},0.4)`}`,
         color: hovered && !disabled ? color : `rgba(${colorRaw},0.8)`,
-        fontFamily: "'Courier New', monospace",
+        fontFamily: "var(--vrcd-font-mono)",
         fontSize: '11px',
         letterSpacing: '0.06em',
         padding: '4px 10px',
@@ -193,7 +193,7 @@ const ShortcutEditor: React.FC<ShortcutEditorProps> = ({ initial, onSave, onCanc
     background: '#000008',
     border: `1px solid ${NEON_DIM}`,
     color: NEON,
-    fontFamily: "'Courier New', monospace",
+    fontFamily: "var(--vrcd-font-mono)",
     fontSize: '12px',
     padding: '6px 10px',
     borderRadius: '3px',
@@ -227,7 +227,7 @@ const ShortcutEditor: React.FC<ShortcutEditorProps> = ({ initial, onSave, onCanc
           padding: '20px 22px',
           width: '440px',
           maxWidth: '90vw',
-          fontFamily: "'Courier New', monospace",
+          fontFamily: "var(--vrcd-font-mono)",
           boxShadow: '0 0 40px rgba(var(--vrcd-neon-raw),0.1)'
         }}
       >
@@ -348,7 +348,7 @@ const AdbShortcuts: React.FC<AdbShortcutsProps> = ({ onRun, disabled }) => {
           border: `1px solid ${NEON_DIM}`,
           borderRadius: '4px',
           background: 'rgba(0,0,8,0.5)',
-          fontFamily: "'Courier New', monospace"
+          fontFamily: "var(--vrcd-font-mono)"
         }}
       >
         {/* Header bar */}

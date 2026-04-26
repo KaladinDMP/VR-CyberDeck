@@ -106,7 +106,7 @@
   background: rgba(var(--vrcd-neon-raw),0.04) !important;
   border: 1px solid rgba(var(--vrcd-neon-raw),0.35) !important;
   color: var(--vrcd-neon) !important;
-  font-family: 'Courier New', monospace !important;
+  font-family: var(--vrcd-font-mono) !important;
   font-size: 12px !important;
   letter-spacing: 0.05em;
   outline: none !important;
@@ -124,7 +124,7 @@
   background: transparent;
   border: 1px solid rgba(var(--vrcd-neon-raw),0.5);
   color: var(--vrcd-neon);
-  font-family: 'Courier New', monospace;
+  font-family: var(--vrcd-font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;

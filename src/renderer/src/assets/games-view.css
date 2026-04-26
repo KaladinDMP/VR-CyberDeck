@@ -60,7 +60,7 @@
 .game-count {
   color: rgba(var(--vrcd-neon-raw), 0.7);
   font-size: 0.9em;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .loading-indicator {
@@ -231,7 +231,7 @@
 .game-package-sub {
   font-size: 11px;
   color: rgba(var(--vrcd-purple-raw),0.85);
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -278,7 +278,7 @@
 .filter-buttons button {
   padding: 3px 10px;
   font-size: 0.75em;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -380,7 +380,7 @@
 .installed-version-info {
   font-size: 11px;
   color: rgba(168, 85, 247, 0.85);
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -459,25 +459,25 @@
 .game-card-badge.installed {
   background: rgba(var(--vrcd-neon-raw), 0.85);
   color: #050514;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .game-card-badge.update {
   background: rgba(var(--vrcd-purple-raw), 0.9);
   color: #fff;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .game-card-badge.new-game {
   background: rgba(var(--vrcd-neon-raw), 0.9);
   color: #050514;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .game-card-badge.updated-game {
   background: rgba(255, 165, 0, 0.9);
   color: #050514;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .game-card-body {
@@ -502,7 +502,7 @@
 .game-card-meta {
   font-size: 11px;
   color: rgba(var(--vrcd-purple-raw), 0.85);
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 .game-card-progress {
@@ -514,14 +514,14 @@
   font-weight: 500;
   color: var(--vrcd-neon);
   margin-top: 2px;
-  font-family: monospace;
+  font-family: var(--vrcd-font-mono);
 }
 
 /* ── Neon-themed search Input ──────────────────────────────────────────────── */
 .search-wrap .fui-Input {
   background-color: #050514;
   border-color: rgba(var(--vrcd-neon-raw), 0.3);
-  font-family: "Courier New", Courier, monospace;
+  font-family: var(--vrcd-font-mono);
 }
 .search-wrap .fui-Input:hover {
   border-color: rgba(var(--vrcd-neon-raw), 0.55);
