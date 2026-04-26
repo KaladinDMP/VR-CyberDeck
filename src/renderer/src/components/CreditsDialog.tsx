@@ -69,6 +69,11 @@ const CreditsDialog: React.FC<CreditsDialogProps> = ({ open, onClose, variant = 
             HFP — for teaching me so much even though we aren&apos;t tight anymore.
             <br />
             i probably would be doing something a lot more boring if it wasn&apos;t for him.
+            <br />
+            <br />
+            Rod — my crazy friend who believes in megalodons on Mars
+            <br />
+            and gave me such good feedback on VR CyberDeck.
           </div>
 
           <div className="credits-sep">{SEP_FWD}</div>

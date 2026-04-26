@@ -47,6 +47,7 @@ import { LanguageProvider } from '@renderer/context/LanguageProvider'
 import { useLanguage } from '@renderer/hooks/useLanguage'
 import CreditsDialog from './CreditsDialog'
 import HackerConsole from './HackerConsole'
+import TransferStrip from './TransferStrip'
 import { ErrorBoundary } from './ErrorBoundary'
 import '../assets/credits-dialog.css'
 
@@ -75,7 +76,7 @@ const useStyles = makeStyles({
       'linear-gradient(rgba(var(--vrcd-neon-raw), 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vrcd-neon-raw), 0.03) 1px, transparent 1px)',
     backgroundSize: '40px 40px',
     boxShadow: '0 1px 24px 0 rgba(var(--vrcd-neon-raw), 0.06), inset 0 -1px 0 rgba(var(--vrcd-purple-raw), 0.12)',
-    height: '110px',
+    height: '88px',
     flexShrink: 0
   },
   headerCenter: {
@@ -84,12 +85,12 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '4px',
-    padding: `${tokens.spacingVerticalS} 0`
+    gap: '2px',
+    padding: '4px 0'
   },
   headerRight: {
-    width: '190px',
-    minWidth: '190px',
+    width: '210px',
+    minWidth: '210px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -97,9 +98,22 @@ const useStyles = makeStyles({
     flexShrink: 0
   },
   logo: {
-    height: '58px',
+    height: '48px',
     filter:
       'drop-shadow(0 0 8px var(--vrcd-neon)) drop-shadow(0 0 18px rgba(var(--vrcd-purple-raw), 0.8))'
+  },
+  transferStrip: {
+    height: '32px',
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 16px',
+    background: '#02020a',
+    borderBottom: '1px solid rgba(var(--vrcd-neon-raw), 0.12)',
+    overflow: 'hidden',
+    fontFamily: '"Courier New", monospace',
+    fontSize: '11px',
+    letterSpacing: '0.04em'
   },
   headerContent: {
     display: 'flex',
@@ -114,10 +128,10 @@ const useStyles = makeStyles({
     gap: '2px'
   },
   titleMain: {
-    fontSize: '32px',
+    fontSize: '26px',
     fontWeight: '800',
     letterSpacing: '0.06em',
-    lineHeight: '1.1',
+    lineHeight: '1.05',
     display: 'flex',
     alignItems: 'baseline',
     gap: '10px'
@@ -154,11 +168,11 @@ const useStyles = makeStyles({
     textTransform: 'uppercase'
   },
   mainContent: {
-    flexGrow: 1,
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    height: 'calc(100vh - 110px)',
     position: 'relative'
   },
   loadingOrErrorContainer: {
@@ -544,6 +558,10 @@ const AppLayout: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              <div className={styles.transferStrip}>
+                <TransferStrip />
+              </div>
 
               <div className={styles.mainContent} id="mainContent">
                 <MainContent

@@ -1412,9 +1412,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   }
   const CBP: React.CSSProperties = {
     ...CB,
-    border: '1px solid rgba(176,64,255,0.5)',
-    color: '#b040ff',
-    boxShadow: '0 0 6px rgba(176,64,255,0.18)'
+    border: '1px solid rgba(var(--vrcd-purple-raw),0.5)',
+    color: 'var(--vrcd-purple)',
+    boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.18)'
   }
   const CBR: React.CSSProperties = {
     ...CB,
@@ -1480,9 +1480,24 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                   {/* Battery badge centered */}
                   {selectedDeviceDetails.batteryLevel !== null && (
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <Badge appearance="outline" color={selectedDeviceDetails.batteryLevel > 20 ? 'success' : 'danger'} icon={<BatteryChargeRegular />}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          fontFamily: 'monospace',
+                          fontSize: '12px',
+                          letterSpacing: '0.04em',
+                          border: `1px solid ${selectedDeviceDetails.batteryLevel > 20 ? 'rgba(var(--vrcd-neon-raw),0.55)' : 'rgba(255,68,68,0.6)'}`,
+                          color: selectedDeviceDetails.batteryLevel > 20 ? 'var(--vrcd-neon)' : '#ff4444',
+                          background: selectedDeviceDetails.batteryLevel > 20 ? 'rgba(var(--vrcd-neon-raw),0.06)' : 'rgba(255,68,68,0.08)'
+                        }}
+                      >
+                        <BatteryChargeRegular />
                         {selectedDeviceDetails.batteryLevel}%
-                      </Badge>
+                      </span>
                     </div>
                   )}
 

@@ -39,6 +39,6 @@ body {
 /* ── Green scrollbars ─────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
-::-webkit-scrollbar-thumb { background: rgba(57, 255, 20, 0.45); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(57, 255, 20, 0.75); }
+::-webkit-scrollbar-thumb { background: rgba(var(--vrcd-neon-raw), 0.45); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--vrcd-neon-raw), 0.75); }
 ::-webkit-scrollbar-corner { background: transparent; }
