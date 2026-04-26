@@ -175,6 +175,7 @@ export function useExtrasSettings(): ExtrasSettings {
     const clamped = Math.max(0.75, Math.min(2.0, v))
     setFontScaleState(clamped)
     persistNumber(FONT_SCALE_KEY, clamped)
+    try { window.api.app.setZoomFactor(clamped) } catch { /* ignore */ }
   }, [])
   const setDeleteOnRemove = useCallback((v: DeleteOnRemove) => {
     setDeleteOnRemoveState(v)
@@ -230,6 +231,7 @@ export function useExtrasSettings(): ExtrasSettings {
 try {
   const initial = getFontScale()
   document.documentElement.style.setProperty('--vrcd-font-scale', String(initial))
+  window.api.app.setZoomFactor(initial)
 } catch { /* ignore */ }
 
 try {

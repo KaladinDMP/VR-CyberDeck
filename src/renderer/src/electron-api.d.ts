@@ -20,6 +20,9 @@ declare global {
       app: {
         getVersion: () => Promise<string>
         getLocale: () => Promise<string>
+        getSystemUsername: () => Promise<string>
+        setZoomFactor: (factor: number) => void
+        notify: (title: string, body: string) => Promise<void>
       }
       dependency: DependencyAPIRenderer
       adb: AdbAPIRenderer

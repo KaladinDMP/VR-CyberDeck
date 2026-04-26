@@ -698,6 +698,22 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
         accessorKey: 'name',
         header: () => t('namePackage'),
         size: nameColumnWidth > 0 ? nameColumnWidth : COLUMN_WIDTHS.MIN_NAME_PACKAGE,
+        sortingFn: (rowA, rowB) => {
+          const a = (rowA.original.name ?? '').toLowerCase()
+          const b = (rowB.original.name ?? '').toLowerCase()
+          for (let i = 0; i < Math.max(a.length, b.length); i++) {
+            if (i >= a.length) return -1
+            if (i >= b.length) return 1
+            const ca = a[i], cb = b[i]
+            if (ca === cb) continue
+            // priority: _ (0) → 0-9 (1) → everything else (2)
+            const p = (c: string) => c === '_' ? 0 : c >= '0' && c <= '9' ? 1 : 2
+            const pa = p(ca), pb = p(cb)
+            if (pa !== pb) return pa - pb
+            return ca < cb ? -1 : 1
+          }
+          return 0
+        },
         cell: ({ row }) => {
           const game = row.original
           const downloadInfo = game.releaseName
