@@ -332,6 +332,7 @@ const AppLayout: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
   const [isDarkModeJokeOpen, setIsDarkModeJokeOpen] = useState(false)
+  const [isCloseConfirmOpen, setIsCloseConfirmOpen] = useState(false)
   const mountNodeRef = useRef<HTMLDivElement>(null)
   const styles = useStyles()
   const { queue: downloadQueue } = useDownload()
@@ -340,6 +341,33 @@ const AppLayout: React.FC = () => {
 
   useEffect(() => {
     window.api.app.getVersion().then(setAppVersion).catch(() => {})
+  }, [])
+
+  const hasActiveTransfers = useMemo(() => {
+    const activeDownload = downloadQueue.some((i) =>
+      ['Queued', 'Downloading', 'Extracting', 'Installing'].includes(i.status)
+    )
+    const activeUpload = uploadQueue.some((i) =>
+      ['Queued', 'Preparing', 'Uploading'].includes(i.status)
+    )
+    return activeDownload || activeUpload
+  }, [downloadQueue, uploadQueue])
+
+  // Keep a ref so the close-requested listener always sees the latest value
+  // without needing to resubscribe (which would race with main-process events).
+  const hasActiveTransfersRef = useRef(hasActiveTransfers)
+  useEffect(() => {
+    hasActiveTransfersRef.current = hasActiveTransfers
+  }, [hasActiveTransfers])
+
+  useEffect(() => {
+    return window.api.app.onCloseRequested(() => {
+      if (hasActiveTransfersRef.current) {
+        setIsCloseConfirmOpen(true)
+      } else {
+        window.api.app.confirmClose()
+      }
+    })
   }, [])
 
   const handleDeviceConnected = (): void => {
@@ -590,6 +618,116 @@ const AppLayout: React.FC = () => {
                   </div>
                 </DrawerBody>
               </Drawer>
+
+              {/* Close confirmation when transfers are still in progress */}
+              {isCloseConfirmOpen && (
+                <div
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 1200,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(0,0,0,0.78)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setIsCloseConfirmOpen(false)
+                  }}
+                >
+                  <div
+                    style={{
+                      background: '#030310',
+                      border: '1px solid rgba(var(--vrcd-neon-raw),0.45)',
+                      maxWidth: '520px',
+                      width: '90vw',
+                      fontFamily: '"Courier New", monospace',
+                      borderRadius: '8px',
+                      padding: '28px 32px',
+                      boxShadow:
+                        '0 0 50px rgba(var(--vrcd-neon-raw),0.10), 0 0 80px rgba(var(--vrcd-purple-raw),0.08)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '20px',
+                        color: 'var(--vrcd-purple)',
+                        letterSpacing: '0.1em',
+                        fontWeight: 700,
+                        textAlign: 'center',
+                        textShadow:
+                          '0 0 10px rgba(var(--vrcd-purple-raw),0.7), 0 0 24px rgba(var(--vrcd-purple-raw),0.3)',
+                        marginBottom: '14px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      [ TRANSFERS IN PROGRESS ]
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '14px',
+                        color: 'var(--vrcd-neon)',
+                        lineHeight: 1.7,
+                        textAlign: 'center',
+                        textShadow: '0 0 6px rgba(var(--vrcd-neon-raw),0.35)',
+                        marginBottom: '24px'
+                      }}
+                    >
+                      Are you sure you want to leave the CyberDeck?
+                      <br />
+                      Transfers are still happening. Leaving will stop these
+                      <br />
+                      and make you restart them.
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button
+                        onClick={() => setIsCloseConfirmOpen(false)}
+                        style={{
+                          flex: 1,
+                          background: 'transparent',
+                          border: '2px solid rgba(var(--vrcd-neon-raw),0.65)',
+                          color: 'var(--vrcd-neon)',
+                          fontFamily: '"Courier New", monospace',
+                          fontSize: '13px',
+                          letterSpacing: '0.1em',
+                          padding: '12px 0',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                          boxShadow:
+                            '0 0 14px rgba(var(--vrcd-neon-raw),0.15), inset 0 0 14px rgba(var(--vrcd-neon-raw),0.04)'
+                        }}
+                      >
+                        Stay Jacked In
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsCloseConfirmOpen(false)
+                          window.api.app.confirmClose()
+                        }}
+                        style={{
+                          flex: 1,
+                          background: 'transparent',
+                          border: '2px solid rgba(var(--vrcd-purple-raw),0.7)',
+                          color: 'var(--vrcd-purple)',
+                          fontFamily: '"Courier New", monospace',
+                          fontSize: '13px',
+                          letterSpacing: '0.1em',
+                          padding: '12px 0',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                          boxShadow:
+                            '0 0 14px rgba(var(--vrcd-purple-raw),0.18), inset 0 0 14px rgba(var(--vrcd-purple-raw),0.05)'
+                        }}
+                      >
+                        Leave Anyway
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Settings modal — custom overlay bypasses Fluent Dialog width constraints */}
               {isSettingsOpen && (

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session, Notification } from 'electron'
+import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session } from 'electron'
 import os from 'os'
 import { join } from 'path'
 import { exec } from 'child_process'
@@ -32,6 +32,7 @@ Object.assign(console, log.functions)
 app.commandLine.appendSwitch('gtk-version', '3')
 
 let mainWindow: BrowserWindow | null = null
+let closeConfirmed = false
 
 // Listener for download service events to forward to renderer
 downloadService.on('installation:success', (deviceId) => {
@@ -219,6 +220,16 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  // Intercept window close so the renderer can warn the user when transfers
+  // are still in progress. The renderer responds via 'app:confirm-close'.
+  mainWindow.on('close', (event) => {
+    if (closeConfirmed) return
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      event.preventDefault()
+      typedWebContentsSend.send(mainWindow, 'app:close-requested')
+    }
+  })
+
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -254,15 +265,10 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-version', () => app.getVersion())
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
-  typedIpcMain.handle('app:notify', (_, title: string, body: string) => {
-    if (!Notification.isSupported()) {
-      console.warn('[Main] Notifications not supported on this platform')
-      return
-    }
-    try {
-      new Notification({ title, body, icon }).show()
-    } catch (err) {
-      console.error('[Main] Failed to show notification:', err)
+  typedIpcMain.on('app:confirm-close', () => {
+    closeConfirmed = true
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.close()
     }
   })
 

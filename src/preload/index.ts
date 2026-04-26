@@ -34,7 +34,12 @@ const api = {
     getLocale: (): Promise<string> => typedIpcRenderer.invoke('app:get-locale'),
     getSystemUsername: (): Promise<string> => typedIpcRenderer.invoke('app:get-system-username'),
     setZoomFactor: (factor: number): void => webFrame.setZoomFactor(factor),
-    notify: (title: string, body: string): Promise<void> => typedIpcRenderer.invoke('app:notify', title, body)
+    confirmClose: (): void => typedIpcRenderer.send('app:confirm-close'),
+    onCloseRequested: (callback: () => void): (() => void) => {
+      const listener = (): void => callback()
+      typedIpcRenderer.on('app:close-requested', listener)
+      return () => typedIpcRenderer.removeListener('app:close-requested', listener)
+    }
   },
   dependency: {
     getStatus: (): Promise<DependencyStatus> => typedIpcRenderer.invoke('dependency:get-status')
