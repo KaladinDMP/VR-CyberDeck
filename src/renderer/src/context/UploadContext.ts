@@ -14,6 +14,8 @@ export interface UploadContextType {
   ) => Promise<boolean>
   removeFromQueue: (packageName: string) => void
   cancelUpload: (packageName: string) => void
+  retryUpload: (packageName: string) => Promise<boolean>
+  clearCompleted: () => void
   prepareUpload: (
     packageName: string,
     gameName: string,

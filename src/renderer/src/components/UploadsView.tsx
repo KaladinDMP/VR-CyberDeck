@@ -14,7 +14,7 @@ import {
 import { useUpload } from '../hooks/useUpload'
 import { useLanguage } from '../hooks/useLanguage'
 import { UploadItem } from '@shared/types'
-import { DismissRegular, DeleteRegular, ArrowCounterclockwiseRegular } from '@fluentui/react-icons'
+import { DismissRegular, DeleteRegular, ArrowCounterclockwiseRegular, DismissCircleRegular } from '@fluentui/react-icons'
 
 const useStyles = makeStyles({
   wrapper: {
@@ -39,7 +39,7 @@ const useStyles = makeStyles({
 
 const UploadRow: React.FC<{ item: UploadItem }> = ({ item }) => {
   const styles = useStyles()
-  const { removeFromQueue, cancelUpload } = useUpload()
+  const { removeFromQueue, cancelUpload, retryUpload } = useUpload()
   const { t } = useLanguage()
 
   let statusElement = <Text>{item.status}</Text>
@@ -107,12 +107,21 @@ const UploadRow: React.FC<{ item: UploadItem }> = ({ item }) => {
         </>
       )
       actions = (
-        <Button
-          icon={<DeleteRegular />}
-          appearance="subtle"
-          onClick={() => removeFromQueue(item.packageName)}
-          aria-label={t('removeFromQueue')}
-        />
+        <>
+          <Button
+            icon={<ArrowCounterclockwiseRegular />}
+            appearance="subtle"
+            onClick={() => retryUpload(item.packageName)}
+            aria-label={t('retryUpload')}
+            title={t('retryUpload')}
+          />
+          <Button
+            icon={<DeleteRegular />}
+            appearance="subtle"
+            onClick={() => removeFromQueue(item.packageName)}
+            aria-label={t('removeFromQueue')}
+          />
+        </>
       )
       break
 
@@ -123,8 +132,9 @@ const UploadRow: React.FC<{ item: UploadItem }> = ({ item }) => {
           <Button
             icon={<ArrowCounterclockwiseRegular />}
             appearance="subtle"
-            onClick={() => removeFromQueue(item.packageName)}
+            onClick={() => retryUpload(item.packageName)}
             aria-label={t('retryUpload')}
+            title={t('retryUpload')}
           />
           <Button
             icon={<DeleteRegular />}
@@ -152,11 +162,26 @@ const UploadRow: React.FC<{ item: UploadItem }> = ({ item }) => {
 
 const UploadsView: React.FC = () => {
   const styles = useStyles()
-  const { queue } = useUpload()
+  const { queue, clearCompleted } = useUpload()
   const { t } = useLanguage()
+
+  const hasClearable = queue.some((i) => i.status === 'Completed' || i.status === 'Cancelled')
 
   return (
     <div className={styles.wrapper}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <Button
+          size="small"
+          appearance="subtle"
+          icon={<DismissCircleRegular />}
+          onClick={clearCompleted}
+          disabled={!hasClearable}
+          title="Remove all completed and cancelled entries from the list"
+          style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(var(--vrcd-neon-raw),0.8)', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)' }}
+        >
+          Clear Completed
+        </Button>
+      </div>
       {queue.length === 0 ? (
         <div className={styles.emptyState}>
           <Text size={200} weight="semibold">

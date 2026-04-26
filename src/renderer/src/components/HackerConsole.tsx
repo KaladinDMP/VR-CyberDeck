@@ -22,8 +22,8 @@ const HackerConsole: React.FC = () => {
 
   const line = (label: string, value: string, ok?: boolean): React.JSX.Element => (
     <div style={{ display: 'flex', gap: '4px' }}>
-      <span style={{ color: 'rgba(57,255,20,0.35)', minWidth: '36px' }}>{label}</span>
-      <span style={{ color: ok === false ? 'rgba(255,68,68,0.85)' : ok === true ? '#39ff14' : 'rgba(57,255,20,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', minWidth: '36px' }}>{label}</span>
+      <span style={{ color: ok === false ? 'rgba(255,68,68,0.85)' : ok === true ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {value}
       </span>
     </div>
@@ -42,10 +42,10 @@ const HackerConsole: React.FC = () => {
       fontSize: '10px',
       letterSpacing: '0.05em',
       lineHeight: '1.7',
-      borderRight: '1px solid rgba(57,255,20,0.12)',
+      borderRight: '1px solid rgba(var(--vrcd-neon-raw),0.12)',
       flexShrink: 0
     }}>
-      <div style={{ color: 'rgba(57,255,20,0.3)', fontSize: '9px', letterSpacing: '0.12em', marginBottom: '4px' }}>
+      <div style={{ color: 'rgba(var(--vrcd-neon-raw),0.3)', fontSize: '9px', letterSpacing: '0.12em', marginBottom: '4px' }}>
         // SYS_STATUS
       </div>
       {line('SRV', hasServer ? 'ONLINE' : 'NO_SRC', hasServer)}
@@ -53,7 +53,7 @@ const HackerConsole: React.FC = () => {
       {line('LIB', totalGames ? `${totalGames} TITLES` : 'EMPTY')}
       {installedGames > 0 && line('INST', String(installedGames))}
       {updatesAvailable > 0 && line('UPD', `${updatesAvailable} READY`, true)}
-      <div style={{ color: 'rgba(57,255,20,0.25)', marginTop: '4px', fontSize: '9px' }}>
+      <div style={{ color: 'rgba(var(--vrcd-neon-raw),0.25)', marginTop: '4px', fontSize: '9px' }}>
         {cursor ? '█' : ' '}_
       </div>
     </div>

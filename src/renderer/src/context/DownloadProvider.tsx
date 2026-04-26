@@ -1,6 +1,7 @@
-import React, { ReactNode, useEffect, useState, useCallback, useMemo } from 'react'
+import React, { ReactNode, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { DownloadContext, DownloadContextType } from './DownloadContext'
 import { DownloadItem, GameInfo } from '@shared/types'
+import { getNotifyDownloadComplete } from '../hooks/useExtrasSettings'
 
 interface DownloadProviderProps {
   children: ReactNode
@@ -10,6 +11,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
   const [queue, setQueue] = useState<DownloadItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true) // Start loading initially
   const [error, setError] = useState<string | null>(null)
+  const prevQueueRef = useRef<DownloadItem[]>([])
 
   useEffect(() => {
     let isMounted = true
@@ -20,6 +22,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       .getQueue()
       .then((initialQueue) => {
         if (isMounted) {
+          prevQueueRef.current = initialQueue
           setQueue(initialQueue)
         }
       })
@@ -36,6 +39,27 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       })
 
     const removeUpdateListener = window.api.downloads.onQueueUpdated((updatedQueue) => {
+      const prev = prevQueueRef.current
+      const newlyCompleted = updatedQueue.filter((item) => {
+        if (item.status !== 'Completed') return false
+        const prevItem = prev.find((p) => p.releaseName === item.releaseName)
+        return prevItem && prevItem.status !== 'Completed'
+      })
+
+      if (newlyCompleted.length > 0 && getNotifyDownloadComplete()) {
+        for (const item of newlyCompleted) {
+          try {
+            new Notification('Download complete', {
+              body: item.gameName,
+              silent: false
+            })
+          } catch (e) {
+            console.warn('Notification failed:', e)
+          }
+        }
+      }
+
+      prevQueueRef.current = updatedQueue
       setQueue(updatedQueue)
       setError(null)
     })

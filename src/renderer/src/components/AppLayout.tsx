@@ -321,7 +321,14 @@ const AppLayout: React.FC = () => {
   const [appVersion, setAppVersion] = useState<string>('')
   const { colorScheme, setColorScheme } = useSettings()
   const [isTransfersOpen, setIsTransfersOpen] = useState(false)
-  const [transfersTab, setTransfersTab] = useState<'downloads' | 'uploads'>('downloads')
+  const [transfersTab, setTransfersTab] = useState<'downloads' | 'uploads'>(() => {
+    try {
+      const v = localStorage.getItem('vrcyberdeck:transfersTab')
+      return v === 'uploads' ? 'uploads' : 'downloads'
+    } catch {
+      return 'downloads'
+    }
+  })
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isCreditsOpen, setIsCreditsOpen] = useState(false)
   const [isDarkModeJokeOpen, setIsDarkModeJokeOpen] = useState(false)
@@ -553,7 +560,11 @@ const AppLayout: React.FC = () => {
                 <DrawerBody style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0, background: '#050514' }}>
                   <TabList
                     selectedValue={transfersTab}
-                    onTabSelect={(_, d) => setTransfersTab(d.value as 'downloads' | 'uploads')}
+                    onTabSelect={(_, d) => {
+                      const tab = d.value as 'downloads' | 'uploads'
+                      setTransfersTab(tab)
+                      try { localStorage.setItem('vrcyberdeck:transfersTab', tab) } catch { /* ignore */ }
+                    }}
                     style={{ padding: '0 16px', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)', flexShrink: 0 }}
                   >
                     <Tab value="downloads" icon={<DownloadIcon />}>{t('downloads')}</Tab>

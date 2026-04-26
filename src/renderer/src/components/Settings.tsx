@@ -475,7 +475,9 @@ const ExtraSystemsSettings: React.FC = () => {
     fontScale, setFontScale,
     deleteOnRemove, setDeleteOnRemove,
     disableSideloading, setDisableSideloading,
-    colorblindMode, setColorblindMode
+    colorblindMode, setColorblindMode,
+    notifyDownloadComplete, setNotifyDownloadComplete,
+    accentColor, setAccentColor
   } = useExtrasSettings()
 
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
@@ -562,6 +564,43 @@ const ExtraSystemsSettings: React.FC = () => {
         checked={colorblindMode}
         onChange={setColorblindMode}
       />
+
+      {/* Notify on download complete */}
+      <ToggleRow
+        label="Notify on download complete"
+        description="Shows an OS desktop notification when a download finishes. Uses the Electron Notification API — no external service."
+        checked={notifyDownloadComplete}
+        onChange={setNotifyDownloadComplete}
+      />
+
+      {/* Accent color */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Accent Color
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="color"
+            value={accentColor ?? '#39ff14'}
+            onChange={(e) => setAccentColor(e.target.value)}
+            style={{ width: '36px', height: '28px', padding: '2px', border: '1px solid rgba(var(--vrcd-neon-raw),0.4)', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}
+          />
+          <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.7)', fontFamily: 'monospace', fontSize: '11px' }}>
+            {accentColor ?? '#39ff14 (default)'}
+          </span>
+          {accentColor && (
+            <button
+              onClick={() => setAccentColor(null)}
+              style={{ background: 'transparent', border: '1px solid rgba(var(--vrcd-neon-raw),0.3)', color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace', fontSize: '10px', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            >
+              reset
+            </button>
+          )}
+        </div>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
+          Changes the neon accent color across the whole UI. Takes effect immediately.
+        </span>
+      </div>
 
       {/* Deletion behavior */}
       <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
