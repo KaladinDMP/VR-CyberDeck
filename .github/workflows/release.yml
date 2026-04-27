@@ -226,7 +226,10 @@ jobs:
           # If the release already exists from a failed previous run, recreate it.
           if gh release view "$TAG" --repo "$REPO" &>/dev/null; then
             echo "Release $TAG already exists — deleting and recreating as draft."
-            gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag
+            gh release delete "$TAG" --repo "$REPO" --yes
+            # Tag may or may not exist (softprops can create the release row
+            # without the tag); delete it separately and ignore failure.
+            gh api -X DELETE "repos/$REPO/git/refs/tags/$TAG" 2>/dev/null || true
           fi
 
           gh release create "$TAG" \
