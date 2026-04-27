@@ -1,7 +1,6 @@
-import { join } from 'path'
-import { promises as fs, readdirSync, createWriteStream } from 'fs'
+import { join, dirname } from 'path'
+import { promises as fs, readdirSync } from 'fs'
 import { execa } from 'execa'
-import axios from 'axios'
 import { app, BrowserWindow, dialog } from 'electron'
 import { existsSync } from 'fs'
 import dependencyService from './dependencyService'
@@ -325,11 +324,14 @@ class GameService extends EventEmitter implements GamesAPI {
           // Fall back to public endpoint logic below
         } else {
           try {
-            // Use mirror with direct config file reference
+            // Use mirror with direct config file reference.
+            // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern
+            // and avoids the HEAD stat that `copyto` issues (some CDN redirectors
+            // 403 HEAD even when GET works fine).
             rcloneArgs = [
-              'copyto',
+              'sync',
               `${remoteName}:/Quest Games/meta.7z`,
-              destination,
+              dirname(destination),
               '--config',
               configFilePath,
               '--tpslimit',
@@ -404,53 +406,80 @@ class GameService extends EventEmitter implements GamesAPI {
         }
       }
 
-      // Fall back to public endpoint if no mirror or mirror failed.
-      // Use axios (plain GET) instead of rclone so we never trigger a HEAD
-      // stat request, which some CDN redirectors reject with 403.
+      // Fall back to public endpoint if no mirror or mirror failed
       console.log('Using public endpoint for meta.7z download')
 
-      const metaUrl = baseUri.endsWith('/') ? `${baseUri}meta.7z` : `${baseUri}/meta.7z`
-      console.log(`Downloading meta.7z via HTTP: ${metaUrl}`)
+      // Get the appropriate null config path based on platform
+      const nullConfigPath = process.platform === 'win32' ? 'NUL' : '/dev/null'
 
-      const response = await axios.get<NodeJS.ReadableStream>(metaUrl, {
-        responseType: 'stream',
-        maxRedirects: 10,
-        timeout: 60_000,
-        headers: { 'User-Agent': `VRCyberDeck/${app.getVersion()}` }
-      })
-
-      const totalBytes = parseInt(response.headers['content-length'] || '0', 10)
-      let downloadedBytes = 0
-      let lastEmitTime = Date.now()
-
-      const writer = createWriteStream(destination)
-
-      response.data.on('data', (chunk: Buffer) => {
-        downloadedBytes += chunk.length
-        const now = Date.now()
-        if (now - lastEmitTime >= 400) {
-          const pct = totalBytes > 0 ? (downloadedBytes / totalBytes) * 100 : 0
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            typedWebContentsSend.send(mainWindow, 'games:download-progress', {
-              packageName: 'meta',
-              stage: 'download',
-              progress: Math.min(Math.round(pct), 99)
-            })
-          }
-          lastEmitTime = now
+      // Execute rclone using execa with progress reporting.
+      // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern.
+      // Using `copyto` here breaks because rclone copyto issues a HEAD stat
+      // first, which the public CDN redirector blocks with 403.
+      const rcloneProcess = execa(
+        rclonePath,
+        [
+          'sync',
+          `:http:/meta.7z`,
+          dirname(destination),
+          '--config',
+          nullConfigPath,
+          '--http-url',
+          baseUri,
+          '--tpslimit',
+          '1.0',
+          '--tpslimit-burst',
+          '3',
+          '--no-check-certificate',
+          '--progress'
+        ],
+        {
+          stdio: ['ignore', 'pipe', 'pipe']
         }
-      })
+      )
 
-      response.data.pipe(writer)
+      // Process stdout for progress information
+      if (rcloneProcess.stdout) {
+        rcloneProcess.stdout.on('data', (data) => {
+          const output = data.toString()
 
-      await new Promise<void>((resolve, reject) => {
-        writer.on('finish', resolve)
-        writer.on('error', reject)
-        response.data.on('error', reject)
-      })
+          // Try to parse progress information from rclone output
+          // Example pattern: "Transferred: 5.584M / 10.000 MBytes, 56%, 1.000 MBytes/s, ETA 0s"
+          const progressPattern = /Transferred:.*?(\d+)%/
+          const match = output.match(progressPattern)
+
+          if (match && match[1]) {
+            const progressPercentage = parseInt(match[1], 10)
+
+            // Send progress to renderer process if we have a valid window
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              typedWebContentsSend.send(mainWindow, 'games:download-progress', {
+                packageName: 'meta',
+                stage: 'download',
+                progress: progressPercentage
+              })
+            }
+          }
+        })
+      }
+
+      // Process stderr for errors
+      if (rcloneProcess.stderr) {
+        rcloneProcess.stderr.on('data', (data) => {
+          console.error('Rclone error:', data.toString())
+        })
+      }
+
+      // Wait for process to complete
+      const result = await rcloneProcess
+
+      if (result.exitCode !== 0) {
+        throw new Error(`Rclone failed with exit code ${result.exitCode}: ${result.stderr}`)
+      }
 
       console.log('Download complete')
 
+      // Send 100% progress on completion
       if (mainWindow && !mainWindow.isDestroyed()) {
         typedWebContentsSend.send(mainWindow, 'games:download-progress', {
           packageName: 'meta',
