@@ -1,4 +1,4 @@
-import { Settings, SettingsAPI, ServerConfigInfo, AppLanguage } from '@shared/types'
+import { Settings, SettingsAPI, ServerConfigInfo, AppLanguage, ExistingDownloadAction } from '@shared/types'
 import { app, nativeTheme } from 'electron'
 import { join } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
@@ -32,7 +32,8 @@ class SettingsService extends EventEmitter implements SettingsAPI {
       colorScheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
       serverConfig: { baseUri: '', password: '' },
       language: defaultLanguage,
-      maxConcurrentDownloads: 3
+      maxConcurrentDownloads: 3,
+      existingDownloadAction: 'ask'
     }
 
     // Load settings from disk
@@ -118,6 +119,16 @@ class SettingsService extends EventEmitter implements SettingsAPI {
     this.settings.maxConcurrentDownloads = Math.max(1, Math.min(6, n))
     this.saveSettings()
     this.emit('max-concurrent-downloads-changed', this.settings.maxConcurrentDownloads)
+  }
+
+  getExistingDownloadAction(): ExistingDownloadAction {
+    return this.settings.existingDownloadAction ?? 'ask'
+  }
+
+  setExistingDownloadAction(v: ExistingDownloadAction): void {
+    this.settings.existingDownloadAction = v
+    this.saveSettings()
+    this.emit('existing-download-action-changed', v)
   }
 
   private loadSettings(): void {

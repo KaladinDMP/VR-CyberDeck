@@ -15,7 +15,9 @@ import {
   ServerConfigInfo,
   WiFiBookmark,
   LocalUploadError,
-  AppLanguage
+  AppLanguage,
+  ExistingDownloadAction,
+  AddToQueueResult
 } from './index'
 
 // Define types for all IPC channels between renderer and main
@@ -67,7 +69,11 @@ export interface IPCChannels {
 
   // Download related channels
   'download:get-queue': DefineChannel<[], DownloadItem[]>
-  'download:add': DefineChannel<[game: GameInfo], boolean>
+  'download:add': DefineChannel<[game: GameInfo], AddToQueueResult>
+  'download:add-resolve-existing': DefineChannel<
+    [game: GameInfo, action: 'reinstall' | 'redownload'],
+    AddToQueueResult
+  >
   'download:remove': DefineChannel<[releaseName: string], void>
   'download:remove-only': DefineChannel<[releaseName: string], void>
   'download:scan': DefineChannel<[], { added: number; pruned: number }>
@@ -110,6 +116,8 @@ export interface IPCChannels {
   'settings:set-language': DefineChannel<[lang: AppLanguage], void>
   'settings:get-max-concurrent-downloads': DefineChannel<[], number>
   'settings:set-max-concurrent-downloads': DefineChannel<[n: number], void>
+  'settings:get-existing-download-action': DefineChannel<[], ExistingDownloadAction>
+  'settings:set-existing-download-action': DefineChannel<[v: ExistingDownloadAction], void>
 
   // Log upload related channels
   'logs:upload-current': DefineChannel<[], { url: string; password: string; slug: string } | null>
