@@ -126,11 +126,31 @@ class UpdateService extends EventEmitter {
     }
 
     if (platform === 'linux') {
+      // electron-builder names Linux artifacts with format-specific arch tags
+      // that DO NOT match Node's process.arch:
+      //   AppImage:  x64 → "x86_64", arm64 → "arm64", ia32 → "i386"
+      //   deb:       x64 → "amd64",  arm64 → "arm64", ia32 → "i386"
+      // Without this mapping, an x64 user would never match an "x86_64"
+      // AppImage and would silently fall through to whatever AppImage
+      // appeared first — e.g. the arm64 build.
+      const appImageTags: string[] =
+        arch === 'x64' ? ['x86_64', 'x64']
+        : arch === 'arm64' ? ['arm64', 'aarch64']
+        : arch === 'ia32' ? ['i386']
+        : [arch]
+
+      const debTags: string[] =
+        arch === 'x64' ? ['amd64', 'x64']
+        : arch === 'arm64' ? ['arm64', 'aarch64']
+        : arch === 'ia32' ? ['i386']
+        : [arch]
+
+      const matchesTag = (name: string, tags: string[]): boolean =>
+        tags.some((t) => name.includes(`-${t}.`) || name.includes(`_${t}.`))
+
       return (
-        find((a) => a.name.endsWith('.AppImage') && a.name.includes(arch)) ??
-        find((a) => a.name.endsWith('.AppImage')) ??
-        find((a) => a.name.endsWith('.deb') && a.name.includes(arch)) ??
-        find((a) => a.name.endsWith('.deb')) ??
+        find((a) => a.name.endsWith('.AppImage') && matchesTag(a.name, appImageTags)) ??
+        find((a) => a.name.endsWith('.deb') && matchesTag(a.name, debTags)) ??
         null
       )
     }
