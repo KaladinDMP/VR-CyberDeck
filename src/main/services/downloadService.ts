@@ -4,6 +4,7 @@ import { join, basename } from 'path'
 import SevenZip from 'node-7z'
 import adbService from './adbService'
 import dependencyService from './dependencyService'
+import gameService from './gameService'
 import { EventEmitter } from 'events'
 import { debounce } from './download/utils'
 import { QueueManager } from './download/queueManager'
@@ -745,6 +746,32 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     }
   }
 
+  /**
+   * Returns true if `folderPath` looks like a real Quest game payload.
+   * Accepts: a top-level .apk, or one in any immediate subdirectory.
+   * Skips deeper recursion to keep scans fast on large download folders.
+   */
+  private async folderContainsApk(folderPath: string): Promise<boolean> {
+    try {
+      const entries = await fs.readdir(folderPath, { withFileTypes: true })
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.toLowerCase().endsWith('.apk')) return true
+      }
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue
+        try {
+          const inner = await fs.readdir(join(folderPath, entry.name), { withFileTypes: true })
+          if (inner.some((e) => e.isFile() && e.name.toLowerCase().endsWith('.apk'))) return true
+        } catch {
+          // ignore unreadable subdirs
+        }
+      }
+    } catch {
+      return false
+    }
+    return false
+  }
+
   public async scanDownloadFolder(): Promise<{ added: number; pruned: number }> {
     let subdirs: string[] = []
     try {
@@ -754,15 +781,33 @@ class DownloadService extends EventEmitter implements DownloadAPI {
       return { added: 0, pruned: 0 }
     }
 
+    // Pull the catalog so we can prefer folders that match a known release.
+    let knownReleases = new Set<string>()
+    try {
+      const games = await gameService.getGames()
+      knownReleases = new Set(games.map((g) => g.releaseName).filter(Boolean))
+    } catch {
+      // Catalog not loaded — we'll fall through to APK detection only.
+    }
+
     const queue = this.queueManager.getQueue()
     const queueMap = new Map(queue.map((item) => [item.releaseName, item]))
     let added = 0
     let pruned = 0
+    let skipped = 0
 
     for (const dirName of subdirs) {
-      const existing = queueMap.get(dirName)
       const folderPath = join(this.downloadsPath, dirName)
+      const existing = queueMap.get(dirName)
+
+      // Already in the queue → leave it alone (or revive it below).
       if (!existing) {
+        const matchesCatalog = knownReleases.has(dirName)
+        const hasApk = matchesCatalog ? true : await this.folderContainsApk(folderPath)
+        if (!matchesCatalog && !hasApk) {
+          skipped++
+          continue
+        }
         this.queueManager.addItem({
           gameId: dirName,
           releaseName: dirName,
@@ -807,7 +852,9 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     }
 
     if (added > 0 || pruned > 0) this.emitUpdate()
-    console.log(`[Service scanDownloadFolder] added=${added} pruned=${pruned}`)
+    console.log(
+      `[Service scanDownloadFolder] added=${added} pruned=${pruned} skipped=${skipped}`
+    )
     return { added, pruned }
   }
 
