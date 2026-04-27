@@ -294,7 +294,10 @@ export class DownloadProcessor {
           .createHash('md5')
           .update(item.releaseName + '\n')
           .digest('hex')
-        source = `:http:/${gameNameHash}`
+        // Trailing slash matters: rclone's HTTP backend treats `:http:/<hash>`
+        // as a file lookup and `:http:/<hash>/` as a directory listing.
+        // The release is a directory of split 7z parts, so we need the slash.
+        source = `:http:/${gameNameHash}/`
         console.log(`[DownProc] Using public endpoint rclone copy: ${source}`)
 
         copyArgs = [
