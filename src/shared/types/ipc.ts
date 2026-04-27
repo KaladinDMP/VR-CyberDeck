@@ -52,6 +52,7 @@ export interface IPCChannels {
     { reachable: boolean; responseTime?: number }
   >
   'adb:run-shell-command': DefineChannel<[serial: string, command: string], string | null>
+  'adb:run-local-adb-command': DefineChannel<[args: string], string>
 
   // Game related channels
   'games:get-games': DefineChannel<[], GameInfo[]>

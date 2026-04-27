@@ -2,6 +2,7 @@ import { Adb, DeviceClient } from '@devicefarmer/adbkit'
 import Tracker from '@devicefarmer/adbkit/dist/src/adb/tracker'
 import { BrowserWindow } from 'electron'
 import { EventEmitter } from 'events'
+import { exec } from 'child_process'
 import dependencyService from './dependencyService'
 import fs, { Dirent } from 'fs'
 import path from 'path'
@@ -211,9 +212,10 @@ class AdbService extends EventEmitter implements AdbAPI {
 
     this.isTracking = true
 
-    this.deviceTracker = await this.client.trackDevices()
+    const tracker = await this.client.trackDevices()
+    this.deviceTracker = tracker
 
-    this.deviceTracker.on('add', async (device: DeviceInfo) => {
+    tracker.on('add', async (device: DeviceInfo) => {
       console.log('Device added:', device)
       if (device.type === 'device' || device.type === 'emulator') {
         const details = await this.getDeviceDetails(device.id)
@@ -254,7 +256,7 @@ class AdbService extends EventEmitter implements AdbAPI {
       }
     })
 
-    this.deviceTracker.on('remove', (device) => {
+    tracker.on('remove', (device) => {
       console.log('Device removed:', device)
 
       // Send a basic device object, details aren't relevant for removal
@@ -276,7 +278,7 @@ class AdbService extends EventEmitter implements AdbAPI {
       }
     })
 
-    this.deviceTracker.on('change', async (device: DeviceInfo) => {
+    tracker.on('change', async (device: DeviceInfo) => {
       console.log('Device changed:', device)
       // This event typically signifies a device coming online (e.g., from 'offline' to 'device')
       // or a device's properties changing.
@@ -317,7 +319,7 @@ class AdbService extends EventEmitter implements AdbAPI {
       }
     })
 
-    this.deviceTracker.on('error', (error) => {
+    tracker.on('error', (error) => {
       console.error('Device tracker error:', error)
       this.emit('tracker-error', error.message)
       if (mainWindow) {
@@ -638,6 +640,20 @@ class AdbService extends EventEmitter implements AdbAPI {
       )
       return null
     }
+  }
+
+  /**
+   * Run a raw `adb` command using the bundled adb binary, separate from the
+   * adbkit client. Used by the in-app shell when the user types `adb …`
+   * (e.g. `adb tcpip 5555`). Returns combined stdout+stderr.
+   */
+  async runLocalAdbCommand(args: string): Promise<string> {
+    const adbPath = dependencyService.getAdbPath()
+    return new Promise<string>((resolve) => {
+      exec(`"${adbPath}" ${args}`, { timeout: 15000 }, (err, stdout, stderr) => {
+        resolve((stdout || '') + (stderr || '') || (err?.message ?? '(no output)'))
+      })
+    })
   }
 
   private async _pushDirectoryRecursive(

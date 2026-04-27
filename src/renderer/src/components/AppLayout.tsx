@@ -35,8 +35,6 @@ import { useDownload } from '../hooks/useDownload'
 import {
   ArrowDownloadRegular as DownloadIcon,
   DismissRegular as CloseIcon,
-  DesktopRegular,
-  SettingsRegular,
   ArrowUploadRegular as UploadIcon
 } from '@fluentui/react-icons'
 import { UploadProvider } from '@renderer/context/UploadProvider'
@@ -56,9 +54,6 @@ enum AppView {
   DEVICE_LIST,
   GAMES
 }
-
-// Type for app tab navigation
-type ActiveTab = 'games' | 'settings'
 
 const useStyles = makeStyles({
   root: {

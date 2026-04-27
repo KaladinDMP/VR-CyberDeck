@@ -49,14 +49,12 @@ import {
 } from '@fluentui/react-components'
 import {
   ArrowClockwiseRegular,
-  DismissRegular,
   PlugDisconnectedRegular,
   CheckmarkCircleRegular,
   DesktopRegular,
   BatteryChargeRegular,
   FolderAddRegular,
   DocumentRegular,
-  ChevronDownRegular,
   CopyRegular,
   WindowConsoleRegular,
   OptionsRegular,
@@ -65,7 +63,6 @@ import {
   SettingsRegular,
   ArrowSyncRegular
 } from '@fluentui/react-icons'
-import { ArrowLeftRegular } from '@fluentui/react-icons'
 import GameDetailsDialog from './GameDetailsDialog'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
 import MirrorManagement from './MirrorManagement'
@@ -1416,13 +1413,6 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
     color: 'var(--vrcd-purple)',
     boxShadow: '0 0 6px rgba(var(--vrcd-purple-raw),0.18)'
   }
-  const CBR: React.CSSProperties = {
-    ...CB,
-    border: '1px solid rgba(255,50,50,0.5)',
-    color: '#ff5555',
-    boxShadow: '0 0 6px rgba(255,50,50,0.12)'
-  }
-
   return (
     <div className={styles.root} style={{ '--colorNeutralBackground1': '#050514', '--colorNeutralBackground2': '#060615', '--colorNeutralBackground3': '#060615', '--colorNeutralForeground1': 'var(--vrcd-neon)', '--colorNeutralForeground2': 'rgba(var(--vrcd-neon-raw),0.75)', '--colorNeutralStroke1': 'rgba(var(--vrcd-neon-raw),0.2)', '--colorNeutralStrokeAccessible': 'rgba(var(--vrcd-neon-raw),0.3)', '--colorBrandBackground': 'var(--vrcd-neon)', '--colorNeutralForegroundOnBrand': '#050514' } as React.CSSProperties}>
       <div className={styles.layout}>

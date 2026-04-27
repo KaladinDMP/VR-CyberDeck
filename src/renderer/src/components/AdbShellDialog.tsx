@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  Button,
   Dialog,
   DialogBody,
   DialogContent,
@@ -41,7 +40,6 @@ const BG_TERMINAL = '#000008'
 const CHAR_POOL = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF'
 
 const PHASE_1_END = 1500  // ms — rain + "INITIALIZING..."
-const PHASE_2_END = 2500  // ms — "FOLLOW THE WHITE RABBIT..."
 // Phase 3 starts at 2500ms — terminal revealed
 // USERNAME_PREFS_KEY exported from matrixUsername utility
 
