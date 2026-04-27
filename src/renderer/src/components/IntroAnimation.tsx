@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { getMatrixUsername } from '../utils/matrixUsername'
-import { playSound } from '../hooks/useSoundEffects'
+import { playSoundOnce } from '../hooks/useSoundEffects'
 
 const TYPO_CHARS = 'asdfjkl;qwertyuiop'
 
@@ -60,6 +60,10 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
       if (dead.current) return
       setPhase('typing')
 
+      // Fire the typing sound once for the whole sequence (the audio clip
+      // is itself a multi-second loop of keystrokes), instead of per-char.
+      playSoundOnce('type')
+
       // ── Phase 2: type username ───────────────────────────────────
       const userPrompt = '$USER: '
       let typed = ''
@@ -77,7 +81,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
           const wrongChar = TYPO_CHARS[rand(0, TYPO_CHARS.length - 1)]
           typed += wrongChar
           setActiveLine(userPrompt + typed)
-          playSound('type')
           await sleep(rand(250, 450))
           typed = typed.slice(0, -1)
           setActiveLine(userPrompt + typed)
@@ -86,7 +89,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
 
         typed += username[i]
         setActiveLine(userPrompt + typed)
-        playSound('type')
       }
 
       await sleep(rand(300, 500))
@@ -108,7 +110,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         await sleep(rand(100, 180))
         stars += '*'
         setActiveLine(passPrompt + stars)
-        playSound('type')
       }
 
       const backCount = rand(2, Math.min(4, stars.length - 1))
@@ -124,7 +125,6 @@ const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
         await sleep(rand(100, 180))
         stars += '*'
         setActiveLine(passPrompt + stars)
-        playSound('type')
       }
 
       await sleep(rand(350, 550))

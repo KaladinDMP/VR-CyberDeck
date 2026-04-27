@@ -473,7 +473,7 @@ const ExtraSystemsSettings: React.FC = () => {
     fontFamily, setFontFamily
   } = useExtrasSettings()
 
-  const { enabled: soundEnabled, volume: soundVolume, loaded: soundLoaded, setEnabled: setSoundEnabled, setVolume: setSoundVolume, play: playSfx } = useSoundEffects()
+  const { enabled: soundEnabled, volume: soundVolume, loaded: soundLoaded, perName: soundPerName, setEnabled: setSoundEnabled, setVolume: setSoundVolume, setPerName: setSoundPerName, play: playSfx } = useSoundEffects()
   const anySoundLoaded = SOUND_NAMES.some((n) => soundLoaded[n])
 
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
@@ -670,13 +670,40 @@ const ExtraSystemsSettings: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', padding: '8px 12px', background: 'rgba(var(--vrcd-neon-raw),0.04)', border: '1px solid rgba(var(--vrcd-neon-raw),0.15)', borderRadius: '4px', fontFamily: 'monospace', fontSize: '11px' }}>
-          <div style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', letterSpacing: '0.1em', marginBottom: '2px' }}>// LOADED FILES</div>
-          {SOUND_NAMES.map((name) => (
-            <div key={name} style={{ display: 'flex', justifyContent: 'space-between', color: soundLoaded[name] ? 'var(--vrcd-neon)' : 'rgba(255,68,68,0.7)' }}>
-              <span>{name}.{`{wav,mp3,ogg}`}</span>
-              <span>{soundLoaded[name] ? '✓ READY' : '— missing'}</span>
-            </div>
-          ))}
+          <div style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', letterSpacing: '0.1em', marginBottom: '4px' }}>// LOADED FILES</div>
+          {SOUND_NAMES.map((name) => {
+            const isLoaded = !!soundLoaded[name]
+            const isEnabled = soundPerName[name] !== false
+            return (
+              <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  disabled={!soundEnabled || !isLoaded}
+                  onClick={() => setSoundPerName(name, !isEnabled)}
+                  title={isEnabled ? `Disable ${name}` : `Enable ${name}`}
+                  style={{
+                    width: '32px', height: '16px', borderRadius: '8px', border: 'none', cursor: !soundEnabled || !isLoaded ? 'not-allowed' : 'pointer',
+                    background: isEnabled && soundEnabled && isLoaded ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.2)',
+                    opacity: !soundEnabled ? 0.4 : 1,
+                    flexShrink: 0, transition: 'background 0.2s',
+                    position: 'relative'
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute', top: '2px',
+                    left: isEnabled && soundEnabled && isLoaded ? '18px' : '2px',
+                    width: '12px', height: '12px', borderRadius: '50%',
+                    background: '#000', transition: 'left 0.2s', display: 'block'
+                  }} />
+                </button>
+                <span style={{ flex: 1, color: isLoaded ? (isEnabled ? 'var(--vrcd-neon)' : 'rgba(var(--vrcd-neon-raw),0.4)') : 'rgba(255,68,68,0.7)' }}>
+                  {name}.{`{wav,mp3,ogg}`}
+                </span>
+                <span style={{ color: isLoaded ? (isEnabled ? 'rgba(var(--vrcd-neon-raw),0.6)' : 'rgba(var(--vrcd-neon-raw),0.3)') : 'rgba(255,68,68,0.5)', minWidth: '70px', textAlign: 'right' }}>
+                  {isLoaded ? (isEnabled ? '✓ enabled' : '— disabled') : '— missing'}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
         <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
