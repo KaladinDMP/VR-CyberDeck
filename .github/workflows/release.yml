@@ -211,21 +211,53 @@ jobs:
           echo "Contents of artifacts directory:"
           ls -laR artifacts || true
 
-      - name: Create Release and Upload Assets
-        uses: softprops/action-gh-release@v2.2.2
+      - name: Create draft release and upload assets
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ needs.bump-version.outputs.version }}
-          name: Release v${{ needs.bump-version.outputs.version }}
-          draft: true
-          prerelease: false
-          generate_release_notes: true
-          fail_on_unmatched_files: false
-          files: |
-            artifacts/build-artifact-windows-latest/*
-            artifacts/build-artifact-macos-latest/*
-            artifacts/build-artifact-ubuntu-latest/*
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.bump-version.outputs.version }}
+          TARGET_SHA: ${{ needs.bump-version.outputs.sha }}
+        run: |
+          TAG="v${VERSION}"
+          REPO="KaladinDMP/vr-cyberdeck"
+
+          # Create the draft release (also creates the git tag at TARGET_SHA).
+          # --generate-notes pulls the commit list since the previous tag.
+          # If the release already exists from a failed previous run, recreate it.
+          if gh release view "$TAG" --repo "$REPO" &>/dev/null; then
+            echo "Release $TAG already exists — deleting and recreating as draft."
+            gh release delete "$TAG" --repo "$REPO" --yes --cleanup-tag
+          fi
+
+          gh release create "$TAG" \
+            --repo "$REPO" \
+            --title "Release $TAG" \
+            --draft \
+            --generate-notes \
+            --target "${TARGET_SHA}"
+
+          echo "Draft release $TAG created."
+
+          # Upload every artifact file, skipping dirs that don't exist or are empty.
+          for DIR in \
+            artifacts/build-artifact-windows-latest \
+            artifacts/build-artifact-macos-latest \
+            artifacts/build-artifact-ubuntu-latest; do
+            if [ -d "$DIR" ]; then
+              FILES=$(find "$DIR" -maxdepth 1 -type f)
+              if [ -n "$FILES" ]; then
+                echo "Uploading from $DIR …"
+                # shellcheck disable=SC2086
+                gh release upload "$TAG" $FILES --repo "$REPO" --clobber
+              else
+                echo "No files in $DIR, skipping."
+              fi
+            else
+              echo "$DIR not found, skipping."
+            fi
+          done
+
+          echo "Done. Release: $(gh release view "$TAG" --repo "$REPO" --json url -q .url)"
 
   mac:
     name: Build macOS DMG
