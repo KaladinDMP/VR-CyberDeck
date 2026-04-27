@@ -6,6 +6,9 @@ import axios, { AxiosProgressEvent } from 'axios'
 import SevenZip from 'node-7z'
 import { ServiceStatus } from '@shared/types'
 
+// Pinned rclone version. See getRcloneDownloadUrl for the rationale.
+const RCLONE_PINNED_VERSION = 'v1.72.1'
+
 type ProgressCallback = (
   status: DependencyStatus,
   progress: { name: string; percentage: number }
@@ -253,16 +256,45 @@ class DependencyService {
     return join(this.binDir, `rclone${exeSuffix}`)
   }
 
+  /** Reads the numeric version string from `rclone version`, e.g. "1.72.1". */
+  private readRcloneVersion(rclonePath: string): string | null {
+    try {
+      const output = execSync(`"${rclonePath}" version`, { timeout: 5000, encoding: 'utf-8' })
+      // First line looks like: "rclone v1.72.1"
+      const match = output.match(/rclone\s+v(\d+\.\d+\.\d+(?:[-.]\S+)?)/i)
+      return match ? match[1] : null
+    } catch (err) {
+      console.warn(`Failed to read rclone version:`, err)
+      return null
+    }
+  }
+
   private async checkOrDownloadRclone(progressCallback?: ProgressCallback): Promise<void> {
     const expectedPath = this.getRclonePath()
     this.status.rclone.path = expectedPath
 
     if (existsSync(expectedPath)) {
-      console.log(`rclone found at ${expectedPath}`)
-      this.status.rclone.ready = true
-      this.status.rclone.downloading = false
-      this.status.rclone.error = null
-      return
+      // Verify it's the pinned version. Older installs may have grabbed
+      // whatever was `latest` at the time, and newer rclone breaks our
+      // HTTP-backend usage. Replace it if it doesn't match.
+      const installedVersion = this.readRcloneVersion(expectedPath)
+      const pinnedNumeric = RCLONE_PINNED_VERSION.replace(/^v/, '')
+      if (installedVersion === pinnedNumeric) {
+        console.log(`rclone found at ${expectedPath} (v${installedVersion}, matches pin)`)
+        this.status.rclone.ready = true
+        this.status.rclone.downloading = false
+        this.status.rclone.error = null
+        return
+      }
+      console.log(
+        `rclone at ${expectedPath} is v${installedVersion ?? 'unknown'}, ` +
+          `replacing with pinned ${RCLONE_PINNED_VERSION}`
+      )
+      try {
+        await fsPromises.unlink(expectedPath)
+      } catch (err) {
+        console.warn(`Failed to remove stale rclone binary, will overwrite:`, err)
+      }
     }
 
     console.log(`rclone not found at ${expectedPath}, attempting download.`)
@@ -417,8 +449,12 @@ class DependencyService {
 
   private async getRcloneDownloadUrl(): Promise<string | null> {
     const repo = 'rclone/rclone'
-    const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`
-    console.log(`Fetching latest rclone release info from ${apiUrl}`)
+    // Pinned to match the version Rookie sideloader ships against the same
+    // public VRP endpoint. Newer rclone releases tightened HTTP backend URL
+    // handling and `sync` argument validation in ways that broke us, while
+    // 1.72.1 is known-working. Bump deliberately, not automatically.
+    const apiUrl = `https://api.github.com/repos/${repo}/releases/tags/${RCLONE_PINNED_VERSION}`
+    console.log(`Fetching pinned rclone ${RCLONE_PINNED_VERSION} release info from ${apiUrl}`)
 
     try {
       const response = await axios.get(apiUrl, { timeout: 15000 })
