@@ -15,6 +15,7 @@ Everything I shipped in `0.x` was technically a prerelease — bug-hunting build
 - Onboarding works on first launch (bundled server defaults, no JSON, no rclone setup).
 - The whole download → install → metadata → upload pipeline is stable.
 - The UI no longer has the half-themed popups and missing colorblind paths it had in early 0.x.
+- Code quality pass right before launch took the project from **39 typecheck errors → 0** across both renderer and main, plus a Fluent UI v9 prop-migration sweep so nothing's silently broken at the type level.
 - Auto-updater is wired up on every platform, so 1.0.x and beyond just update in-app.
 
 ---
@@ -51,11 +52,17 @@ Everything I shipped in `0.x` was technically a prerelease — bug-hunting build
 - **Custom user macros** — define your own labelled pill for any command you spam (right-click to edit/delete, persisted across sessions)
 - Disable-sideloading toggle for safety
 
+### `[ TRAILERS ]`
+- Switched from the full `youtube.com/watch` page to the locked-down `youtube-nocookie.com/embed/` player
+- **No ads, no suggested videos, no subscribe buttons, no comments, no end-screen "Watch next" grid** — just the trailer, then it stops
+- Autoplays as soon as you open the trailer drawer
+
 ### `[ INTERFACE ]`
 - Glitch `UNAUTHORIZED → AUTHORIZED` boot intro
 - Matrix-style random `g33ky_u$3rn4m3$` per session
-- Neon Hacker Console in the header (live SYS_STATUS readout)
+- Neon Hacker Console in the header (live SYS_STATUS readout — now properly fits the 88px header without clipping)
 - **Font picker** — swap Courier New for Console / Terminal / System Mono if the default is hard to read
+- **Optional sound effects (drop-in)** — drop `click.wav`, `type.wav`, or `matrix.wav` into your user-data `sounds/` folder (no rebuild) or `resources/sounds/` (bundled), and the UI plays them on button clicks, the boot-intro typing, and the ADB shell matrix load. Settings has a master toggle, volume slider, TEST button, and a per-file "✓ READY / — missing" status readout. Lookup order: user data → bundled, so you can override bundled sounds without recompiling.
 - **Colorblind mode** now covers the whole UI — version subtitles, filter counters, Transfers button, battery pill, breach animation all swap palette
 - Accent color picker, font scale up to 200%, tab memory
 - Compact, **laptop-friendly** layout (900x640 minimum window)
@@ -100,7 +107,14 @@ Already on a 0.x build? It will auto-update.
 3. Allow USB Debugging on the headset
 4. Browse the library and hit download
 
-That's it. No server config, no rclone setup, no JSON to edit. Power-user knobs (custom servers, mirrors, rclone configs, PC uploads, ADB macros) all live in **Settings**.
+That's it. No server config, no rclone setup, no JSON to edit. Power-user knobs (custom servers, mirrors, rclone configs, PC uploads, ADB macros, sound effects) all live in **Settings**.
+
+---
+
+## `// FEEDBACK`
+
+- 🐛 [Open an issue](https://github.com/KaladinDMP/VR-CyberDeck/issues/new) for bugs — include a log from **Settings → Log Upload** if possible.
+- 💬 [Start a Discussion](https://github.com/KaladinDMP/VR-CyberDeck/discussions) for ideas, questions, custom ADB macros worth sharing, or sound-effect clips you'd like bundled in a future build.
 
 ---
 
