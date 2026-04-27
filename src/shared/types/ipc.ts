@@ -89,6 +89,7 @@ export interface IPCChannels {
   'app:get-version': DefineChannel<[], string>
   'app:get-locale': DefineChannel<[], string>
   'app:get-system-username': DefineChannel<[], string>
+  'app:get-sound': DefineChannel<[name: string], string | null>
 
   // Update related channels
   'update:check-for-updates': DefineChannel<[], void>

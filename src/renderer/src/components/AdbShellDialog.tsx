@@ -10,6 +10,7 @@ import {
 } from '@fluentui/react-components'
 import { getMatrixUsername, isFirstLaunchToday } from '../utils/matrixUsername'
 import { shouldShowMatrixShell } from '../hooks/useExtrasSettings'
+import { playSound } from '../hooks/useSoundEffects'
 import AdbShortcuts from './AdbShortcuts'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -386,6 +387,12 @@ function MatrixIntro({ onComplete, width, height, holdMs, username }: MatrixIntr
   useEffect(() => {
     const t = setTimeout(() => setInitOpacity(1), 300)
     return () => clearTimeout(t)
+  }, [])
+
+  // Cue the matrix sound once the rain starts (best-effort — silent if no
+  // matrix.{wav,mp3,ogg} is dropped into the sounds folder).
+  useEffect(() => {
+    playSound('matrix')
   }, [])
 
   // Transition to phase 2 at 1500ms

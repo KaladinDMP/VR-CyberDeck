@@ -89,6 +89,7 @@ VR CyberDeck started as a fork of [**ApprenticeVR**](https://github.com/jimzrt/a
 - Dark mode done right (no half-themed popups)
 - Accent color picker, tab memory
 - **Font picker** — swap Courier New for Console / Terminal / System Mono if the default is hard to read
+- **Optional sound effects** — drop `click.wav`, `type.wav`, or `matrix.wav` into your user-data `sounds/` folder (or `resources/sounds/` for bundled), and the UI plays them on button clicks, the boot intro typing, and the ADB shell matrix load. Toggle + volume in Settings.
 - Colorblind mode now covers the whole UI — version subtitles, filter counters, Transfers button, battery pill, breach animation all swap palette
 - Font scale up to 200%
 - One-click log upload from Settings → Log Upload

@@ -83,28 +83,15 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
       executeJavaScript: (code: string) => Promise<unknown>
     }
     if (!wv) return
+    // Belt-and-suspenders: the youtube-nocookie embed URL we use already
+    // strips most of the page chrome, but YouTube has a habit of slipping
+    // an end-screen "More videos" grid in once playback finishes. Hide it.
     wv.insertCSS(`
-      #masthead-container, #top-row, #bottom-row, ytd-watch-metadata, #related,
-      #comments, #secondary, #below, ytd-masthead, #guide-button,
-      ytd-mini-guide-renderer, #chat-container, .ytp-chrome-top,
-      #info-contents, #meta-contents, ytd-merch-shelf-renderer,
-      tp-yt-app-drawer, #guide-wrapper, .ytd-watch-flexy #menu,
-      #subscribe-button, .ytd-watch-flexy #actions,
-      ytd-watch-next-secondary-results-renderer, #description, #header,
-      ytd-engagement-panel-section-list-renderer, #panels,
-      ytd-compact-video-renderer, .ytp-endscreen-content,
-      .ytp-ce-element, .ytp-pause-overlay { display: none !important; }
-      body { overflow: hidden !important; background: #000 !important; }
-      #page-manager, ytd-watch-flexy, #player-container-outer,
-      #player-container-inner, #player, #ytd-player,
-      .html5-video-player, video {
-        position: fixed !important; top: 0 !important; left: 0 !important;
-        width: 100vw !important; height: 100vh !important;
-        max-width: 100vw !important; max-height: 100vh !important;
-        margin: 0 !important; padding: 0 !important;
-      }
+      .ytp-endscreen-content, .ytp-ce-element, .ytp-pause-overlay,
+      .ytp-suggested-action, .ytp-suggested-action-badge,
+      .ytp-watermark, .ytp-show-cards-title, .ytp-cards-button,
+      .ytp-paid-content-overlay { display: none !important; }
     `)
-    wv.executeJavaScript(`const v=document.querySelector('video');if(v&&v.paused)v.play()`)
   }, [])
 
   useEffect(() => {
@@ -336,9 +323,8 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
                 <webview
                   ref={webviewRef}
                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' } as React.CSSProperties}
-                  src={`https://www.youtube.com/watch?v=${videoId}`}
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&iv_load_policy=3&fs=1&playsinline=1&disablekb=0&autoplay=1&color=white`}
                   partition="persist:youtube"
-                  allowpopups="true"
                   title="Game Trailer"
                 />
               </div>

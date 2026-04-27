@@ -49,6 +49,7 @@ import CreditsDialog from './CreditsDialog'
 import HackerConsole from './HackerConsole'
 import TransferStrip from './TransferStrip'
 import { ErrorBoundary } from './ErrorBoundary'
+import { playSound } from '../hooks/useSoundEffects'
 import '../assets/credits-dialog.css'
 
 enum AppView {
@@ -355,6 +356,26 @@ const AppLayout: React.FC = () => {
 
   useEffect(() => {
     window.api.app.getVersion().then(setAppVersion).catch(() => {})
+  }, [])
+
+  // Global "click sound" — fires whenever the user clicks any button-like
+  // control. Uses capture so disabled buttons (which swallow click events)
+  // and Fluent UI components are still covered. The sound itself is a no-op
+  // unless the user dropped a click.{wav,mp3,ogg} into resources/sounds/ or
+  // <userData>/sounds/.
+  useEffect(() => {
+    const handler = (e: MouseEvent): void => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      const btn = target.closest(
+        'button, [role="button"], [role="tab"], [role="menuitem"], [role="option"], summary, a[href]'
+      )
+      if (!btn) return
+      if (btn instanceof HTMLButtonElement && btn.disabled) return
+      playSound('click')
+    }
+    document.addEventListener('click', handler, true)
+    return () => document.removeEventListener('click', handler, true)
   }, [])
 
   const hasActiveTransfers = useMemo(() => {
