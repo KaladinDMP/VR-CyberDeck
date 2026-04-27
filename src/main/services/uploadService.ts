@@ -381,7 +381,7 @@ class UploadService extends EventEmitter {
       await new Promise<void>((resolve, reject) => {
         const stream = SevenZip.extractFull(apkPath, tmpDir, {
           $bin: sevenZipPath,
-          $cherryPick: 'AndroidManifest.xml'
+          $cherryPick: ['AndroidManifest.xml']
         })
         stream.on('end', resolve)
         stream.on('error', reject)

@@ -16,6 +16,7 @@ import {
   DialogActions,
   MessageBar,
   MessageBarBody,
+  MessageBarActions,
   Spinner,
   tokens,
   makeStyles,
@@ -33,7 +34,8 @@ import {
   DocumentRegular,
   CloudRegular,
   ChevronDownRegular,
-  ChevronUpRegular
+  ChevronUpRegular,
+  DismissRegular
 } from '@fluentui/react-icons'
 import { useMirrors } from '../hooks/useMirrors'
 import { useSettings } from '../hooks/useSettings'
@@ -301,8 +303,18 @@ const MirrorManagement: React.FC = () => {
       </Card>
 
       {error && (
-        <MessageBar intent="error" onDismiss={clearError}>
+        <MessageBar intent="error">
           <MessageBarBody>{error}</MessageBarBody>
+          <MessageBarActions
+            containerAction={
+              <Button
+                appearance="transparent"
+                icon={<DismissRegular />}
+                onClick={clearError}
+                aria-label="Dismiss"
+              />
+            }
+          />
         </MessageBar>
       )}
 

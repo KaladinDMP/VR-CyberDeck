@@ -62,14 +62,6 @@ const neonBtn = {
   boxShadow: '0 0 8px rgba(var(--vrcd-neon-raw),0.12)'
 }
 
-const neonInput = {
-  background: 'rgba(var(--vrcd-neon-raw),0.04)',
-  border: '1px solid rgba(var(--vrcd-neon-raw),0.3)',
-  color: 'var(--vrcd-neon)',
-  fontFamily: 'var(--vrcd-font-mono)',
-  fontSize: '12px'
-}
-
 const useStyles = makeStyles({
   root: {
     display: 'flex',
@@ -232,7 +224,7 @@ const BlacklistSettings: React.FC = () => {
 
   return (
     <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">{t('blacklistedGames')}</Subtitle1>} />
+      <CardHeader description={<Subtitle1>{t('blacklistedGames')}</Subtitle1>} />
       <div className={styles.cardContent}>
         <Text>{t('blacklistedGamesDesc')}</Text>
 
@@ -327,7 +319,7 @@ const LogUploadSettings: React.FC = () => {
 
   return (
     <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">{t('logUpload')}</Subtitle1>} />
+      <CardHeader description={<Subtitle1>{t('logUpload')}</Subtitle1>} />
       <div className={styles.cardContent}>
         <Text>{t('logUploadDesc')}</Text>
 
@@ -771,7 +763,7 @@ const MpUsernameSettings: React.FC = () => {
 
   return (
     <Card className={styles.card}>
-      <CardHeader description={<Subtitle1 weight="semibold">Multiplayer Username</Subtitle1>} />
+      <CardHeader description={<Subtitle1>Multiplayer Username</Subtitle1>} />
       <div className={styles.cardContent}>
         <Text>Your display name in VR multiplayer games.</Text>
         {!isConnected && (
@@ -1314,7 +1306,7 @@ const Settings: React.FC = () => {
 
         <SectionHeader label="// DOWNLOAD + SPEED" sectionKey="download" openSections={openSections} onToggle={toggleSection} />
         {openSections.download && <Card className={styles.card}>
-          <CardHeader description={<Subtitle1 weight="semibold">{t('downloadSettings')}</Subtitle1>} />
+          <CardHeader description={<Subtitle1>{t('downloadSettings')}</Subtitle1>} />
           <div className={styles.cardContent}>
             <Text>{t('downloadSettingsDesc')}</Text>
 
@@ -1352,7 +1344,7 @@ const Settings: React.FC = () => {
                     <Dropdown
                       className={styles.unitDropdown}
                       value={SPEED_UNITS.find((u) => u.value === downloadSpeedUnit)?.label}
-                      label="Download Speed Limit Unit"
+                      aria-label="Download Speed Limit Unit"
                       selectedOptions={[downloadSpeedUnit]}
                       onOptionSelect={(_, data) => {
                         if (data.optionValue) {

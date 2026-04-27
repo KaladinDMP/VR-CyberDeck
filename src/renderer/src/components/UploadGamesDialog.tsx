@@ -135,8 +135,7 @@ const UploadGamesDialog: React.FC = () => {
                 <TableRow>
                   <TableHeaderCell style={{ width: '80px' }}>
                     <Checkbox
-                      checked={headerCheckboxState.checked}
-                      indeterminate={headerCheckboxState.indeterminate}
+                      checked={headerCheckboxState.indeterminate ? 'mixed' : headerCheckboxState.checked}
                       onChange={(_e, data) => handleSelectAll(!!data.checked)}
                     />
                     {t('uploadColumn')}

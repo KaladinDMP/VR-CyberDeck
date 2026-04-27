@@ -456,7 +456,7 @@ const DeviceList: React.FC<DeviceListProps> = ({ onSkip, onConnected }) => {
     refreshDevices, disconnectDevice
   } = useAdb()
 
-  const [tcpIpAddress, setTcpIpAddress] = useState('')
+  const [tcpIpAddress] = useState('')
   const [connectingDeviceId, setConnectingDeviceId] = useState<string | null>(null)
   const [connectionErrorId, setConnectionErrorId] = useState<string | null>(null)
   const [shellDialogDeviceId, setShellDialogDeviceId] = useState<string | null>(null)

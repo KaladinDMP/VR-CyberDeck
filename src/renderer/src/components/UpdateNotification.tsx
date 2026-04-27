@@ -268,13 +268,13 @@ export function UpdateNotification(): React.ReactElement | null {
     dialogContent = (
       <div className={styles.updateContent}>
         <div className={styles.releaseInfo}>
-          <Text size="large">
+          <Text size={500}>
             Version{' '}
             <span className={styles.highlightVersion}>{updateAvailable.version}</span> is available.
           </Text>
 
           {updateAvailable.releaseDate && (
-            <Text size="small">
+            <Text size={200}>
               Released: {new Date(updateAvailable.releaseDate).toLocaleDateString()}
             </Text>
           )}
@@ -296,7 +296,7 @@ export function UpdateNotification(): React.ReactElement | null {
                 </div>
                 <ProgressBar value={downloadProgress ? downloadProgress.percent / 100 : 0} />
                 {downloadProgress && (
-                  <Text size="small" style={{ color: tokens.colorNeutralForeground3 }}>
+                  <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
                     {formatBytes(downloadProgress.transferred)}
                     {downloadProgress.total > 0 ? ` / ${formatBytes(downloadProgress.total)}` : ''}
                     {downloadProgress.bytesPerSecond > 0
@@ -387,7 +387,7 @@ export function UpdateNotification(): React.ReactElement | null {
         {/* Fallback link when no direct asset available */}
         {!hasAsset && (
           <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #e0e0e0' }}>
-            <Text size="small" style={{ color: '#666' }}>
+            <Text size={200} style={{ color: '#666' }}>
               No direct download found for your platform. Visit the{' '}
               <Button
                 appearance="transparent"

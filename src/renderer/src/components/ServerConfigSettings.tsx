@@ -96,7 +96,6 @@ const ServerConfigSettings: React.FC = () => {
     }
   }
 
-  const hasConfig = serverConfig.baseUri.length > 0
 
   return (
     <Dialog open={open} onOpenChange={(_, data) => setOpen(data.open)}>

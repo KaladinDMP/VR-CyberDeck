@@ -547,7 +547,10 @@ export class DownloadProcessor {
         errorMessage = `Insufficient disk space. The drive ran out of space during download.${avail !== null ? ` Available: ${formatBytes(avail)}` : ''} Free up space and retry.`
       }
 
-      if (statusBeforeCatch !== 'Cancelled' && statusBeforeCatch !== 'Error') {
+      // Paused/Cancelled were already handled by the early return above, so
+      // the only redundant case left to guard against is an item that was
+      // already marked Error (e.g. by another step in the pipeline).
+      if (statusBeforeCatch !== 'Error') {
         this.updateItemStatus(
           item.releaseName,
           'Error',

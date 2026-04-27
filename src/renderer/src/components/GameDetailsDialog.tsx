@@ -143,28 +143,28 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
       </div>
     )
     if (canCancel) return (
-      <Button appearance="danger" icon={<DismissRegular />} onClick={() => onCancelDownload(g)} disabled={isBusy}>
+      <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<DismissRegular />} onClick={() => onCancelDownload(g)} disabled={isBusy}>
         Cancel Download
       </Button>
     )
     if (isInstallError || isErrorOrCancelled) return (
       <div style={{ display: 'flex', gap: 8 }}>
         <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => onRetry(g)} disabled={isBusy}>Retry</Button>
-        <Button appearance="danger" icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
+        <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
       </div>
     )
     if (g.isInstalled) {
       if (g.hasUpdate) return (
         <div style={{ display: 'flex', gap: 8 }}>
           {!noSideload && <Button appearance="primary" icon={<ArrowUpRegular />} onClick={() => onUpdate(g)} disabled={!isConnected || isBusy}>Update</Button>}
-          {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
+          {!noSideload && <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
           {noSideload && <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
       return (
         <div style={{ display: 'flex', gap: 8 }}>
           {!noSideload && <Button appearance="secondary" icon={<ArrowSyncRegular />} onClick={() => onReinstall(g)} disabled={!isConnected || isBusy}>Reinstall</Button>}
-          {!noSideload && <Button appearance="danger" icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
+          {!noSideload && <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<UninstallIcon />} onClick={() => onUninstall(g)} disabled={!isConnected || isBusy}>Uninstall</Button>}
           {noSideload && <Text size={200} style={{ color: 'rgba(var(--vrcd-neon-raw),0.5)', fontFamily: 'monospace' }}>Sideloading disabled</Text>}
         </div>
       )
@@ -172,7 +172,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
     if (isDownloaded) return (
       <div style={{ display: 'flex', gap: 8 }}>
         {!noSideload && <Button appearance="primary" icon={<CheckmarkCircleRegular />} onClick={() => onInstallFromCompleted(g)} disabled={!isConnected || isBusy}>Install</Button>}
-        <Button appearance="danger" icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
+        <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
       </div>
     )
     return (

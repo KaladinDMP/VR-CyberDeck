@@ -443,7 +443,7 @@ const translations = {
 export type TranslationKey = keyof (typeof translations)['en']
 
 export function getTranslations(lang: Language): (typeof translations)['en'] {
-  return translations[lang] ?? translations.en
+  return (translations[lang] ?? translations.en) as (typeof translations)['en']
 }
 
 export default translations
