@@ -326,7 +326,7 @@ class GameService extends EventEmitter implements GamesAPI {
           try {
             // Use mirror with direct config file reference
             rcloneArgs = [
-              'sync',
+              'copyto',
               `${remoteName}:/Quest Games/meta.7z`,
               destination,
               '--config',
@@ -413,7 +413,7 @@ class GameService extends EventEmitter implements GamesAPI {
       const rcloneProcess = execa(
         rclonePath,
         [
-          'sync',
+          'copyto',
           `:http:/meta.7z`,
           destination,
           '--config',
