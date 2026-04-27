@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { promises as fs, readdirSync } from 'fs'
 import { execa } from 'execa'
 import { app, BrowserWindow, dialog } from 'electron'
@@ -324,11 +324,14 @@ class GameService extends EventEmitter implements GamesAPI {
           // Fall back to public endpoint logic below
         } else {
           try {
-            // Use mirror with direct config file reference
+            // Use mirror with direct config file reference.
+            // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern
+            // and avoids the HEAD stat that `copyto` issues (some CDN redirectors
+            // 403 HEAD even when GET works fine).
             rcloneArgs = [
-              'copyto',
+              'sync',
               `${remoteName}:/Quest Games/meta.7z`,
-              destination,
+              dirname(destination),
               '--config',
               configFilePath,
               '--tpslimit',
@@ -409,13 +412,16 @@ class GameService extends EventEmitter implements GamesAPI {
       // Get the appropriate null config path based on platform
       const nullConfigPath = process.platform === 'win32' ? 'NUL' : '/dev/null'
 
-      // Execute rclone using execa with progress reporting
+      // Execute rclone using execa with progress reporting.
+      // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern.
+      // Using `copyto` here breaks because rclone copyto issues a HEAD stat
+      // first, which the public CDN redirector blocks with 403.
       const rcloneProcess = execa(
         rclonePath,
         [
-          'copyto',
+          'sync',
           `:http:/meta.7z`,
-          destination,
+          dirname(destination),
           '--config',
           nullConfigPath,
           '--http-url',
