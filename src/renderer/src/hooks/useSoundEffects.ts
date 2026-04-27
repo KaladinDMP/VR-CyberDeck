@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 // ─── Storage keys ────────────────────────────────────────────────────────────
 export const SOUND_ENABLED_KEY = 'vrcyberdeck:soundEnabled'
 export const SOUND_VOLUME_KEY = 'vrcyberdeck:soundVolume'
+export const SOUND_PER_NAME_KEY = 'vrcyberdeck:soundPerNameEnabled'
 
 // ─── Sound names ─────────────────────────────────────────────────────────────
 // Add new effects here, then drop a matching <name>.{wav,mp3,ogg} into
@@ -32,6 +33,29 @@ function readVolume(): number {
   }
 }
 
+function readPerNameEnabled(): Record<SoundName, boolean> {
+  const defaults = SOUND_NAMES.reduce(
+    (acc, n) => {
+      acc[n] = true
+      return acc
+    },
+    {} as Record<SoundName, boolean>
+  )
+  try {
+    const raw = localStorage.getItem(SOUND_PER_NAME_KEY)
+    if (!raw) return defaults
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return defaults
+    const out = { ...defaults }
+    for (const n of SOUND_NAMES) {
+      if (typeof parsed[n] === 'boolean') out[n] = parsed[n]
+    }
+    return out
+  } catch {
+    return defaults
+  }
+}
+
 // ─── Module-level cache ──────────────────────────────────────────────────────
 // Loaded once per session. Each entry is the data URL or null if missing.
 const cache: Partial<Record<SoundName, string | null>> = {}
@@ -57,9 +81,11 @@ async function loadAll(): Promise<void> {
 // without needing to read React state.
 let currentEnabled = readEnabled()
 let currentVolume = readVolume()
+let currentPerName = readPerNameEnabled()
 
 export function playSound(name: SoundName): void {
   if (!currentEnabled) return
+  if (currentPerName[name] === false) return
   const url = cache[name]
   if (!url) return
   try {
@@ -73,19 +99,37 @@ export function playSound(name: SoundName): void {
   }
 }
 
+/**
+ * Like playSound, but only fires if no copy of the same sound has played
+ * within the last `windowMs` milliseconds. Used by the boot-intro typing
+ * track so a multi-second clip plays once over the whole sequence rather
+ * than restarting on every keystroke.
+ */
+const lastPlayedAt: Partial<Record<SoundName, number>> = {}
+export function playSoundOnce(name: SoundName, windowMs: number = 30_000): void {
+  const now = Date.now()
+  const prev = lastPlayedAt[name] ?? 0
+  if (now - prev < windowMs) return
+  lastPlayedAt[name] = now
+  playSound(name)
+}
+
 // ─── React hook ──────────────────────────────────────────────────────────────
 export interface SoundSettings {
   enabled: boolean
   volume: number
   loaded: Partial<Record<SoundName, boolean>>
+  perName: Record<SoundName, boolean>
   setEnabled: (v: boolean) => void
   setVolume: (v: number) => void
+  setPerName: (name: SoundName, enabled: boolean) => void
   play: (name: SoundName) => void
 }
 
 export function useSoundEffects(): SoundSettings {
   const [enabled, setEnabledState] = useState<boolean>(() => readEnabled())
   const [volume, setVolumeState] = useState<number>(() => readVolume())
+  const [perName, setPerNameState] = useState<Record<SoundName, boolean>>(() => readPerNameEnabled())
   const [loaded, setLoaded] = useState<Partial<Record<SoundName, boolean>>>({})
   const mountedRef = useRef(true)
 
@@ -123,7 +167,20 @@ export function useSoundEffects(): SoundSettings {
     }
   }, [])
 
-  return { enabled, volume, loaded, setEnabled, setVolume, play: playSound }
+  const setPerName = useCallback((name: SoundName, value: boolean) => {
+    setPerNameState((prev) => {
+      const next = { ...prev, [name]: value }
+      currentPerName = next
+      try {
+        localStorage.setItem(SOUND_PER_NAME_KEY, JSON.stringify(next))
+      } catch {
+        /* ignore */
+      }
+      return next
+    })
+  }, [])
+
+  return { enabled, volume, loaded, perName, setEnabled, setVolume, setPerName, play: playSound }
 }
 
 // ─── Bootstrap: kick off loading early so first click already has audio ─────

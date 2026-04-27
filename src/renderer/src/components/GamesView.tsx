@@ -1689,7 +1689,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
                       <Text weight="semibold">Display Options</Text>
                       <div>
                         <Text size={200}>Row Density</Text>
-                        <Slider min={0} max={100} value={prefs.rowDensity} onChange={(_, d) => setPrefs({ rowDensity: d.value })} />
+                        <Slider min={50} max={100} value={Math.max(50, prefs.rowDensity)} onChange={(_, d) => setPrefs({ rowDensity: d.value })} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Text size={200}>Alternating rows</Text>
