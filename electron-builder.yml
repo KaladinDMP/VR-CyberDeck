@@ -30,6 +30,12 @@ extraResources:
       - '*'
   - from: resources/ServerInfo.json
     to: ServerInfo.json
+  - from: resources/sounds
+    to: sounds
+    filter:
+      - '*.wav'
+      - '*.mp3'
+      - '*.ogg'
 win:
   target:
     - target: nsis

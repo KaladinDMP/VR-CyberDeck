@@ -271,6 +271,35 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('app:get-version', () => app.getVersion())
   typedIpcMain.handle('app:get-locale', () => app.getLocale())
   typedIpcMain.handle('app:get-system-username', () => os.userInfo().username)
+
+  // Look up an optional sound effect by name. Checks the user's data folder
+  // first (so users can drop in their own sounds without rebuilding) and then
+  // the bundled resources/sounds/ folder. Returns a base64 data URL the
+  // renderer can hand straight to the Audio constructor, or null if missing.
+  typedIpcMain.handle('app:get-sound', async (_event, name: string) => {
+    const SAFE = /^[a-z0-9_-]+$/i
+    if (!SAFE.test(name)) return null
+    const exts = ['wav', 'mp3', 'ogg']
+    const userDir = join(app.getPath('userData'), 'sounds')
+    const bundledDir = is.dev
+      ? join(app.getAppPath(), 'resources', 'sounds')
+      : join(process.resourcesPath, 'sounds')
+    const dirs = [userDir, bundledDir]
+    const mime = (ext: string): string =>
+      ext === 'wav' ? 'audio/wav' : ext === 'mp3' ? 'audio/mpeg' : 'audio/ogg'
+    for (const dir of dirs) {
+      for (const ext of exts) {
+        const filePath = join(dir, `${name}.${ext}`)
+        try {
+          const buf = await fs.readFile(filePath)
+          return `data:${mime(ext)};base64,${buf.toString('base64')}`
+        } catch {
+          /* try next */
+        }
+      }
+    }
+    return null
+  })
   typedIpcMain.on('app:confirm-close', () => {
     closeConfirmed = true
     // On macOS this is reached after a Cmd+Q that we preventDefault'd, so we

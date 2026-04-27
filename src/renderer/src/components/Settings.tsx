@@ -40,6 +40,7 @@ import { useLogs } from '../hooks/useLogs'
 import { useLanguage } from '../hooks/useLanguage'
 import { useAdb } from '../hooks/useAdb'
 import { useExtrasSettings, FONT_FAMILY_OPTIONS, FontFamilyChoice } from '../hooks/useExtrasSettings'
+import { useSoundEffects, SOUND_NAMES } from '../hooks/useSoundEffects'
 
 // Supported speed units with conversion factors to KB/s
 const SPEED_UNITS = [
@@ -480,6 +481,9 @@ const ExtraSystemsSettings: React.FC = () => {
     fontFamily, setFontFamily
   } = useExtrasSettings()
 
+  const { enabled: soundEnabled, volume: soundVolume, loaded: soundLoaded, setEnabled: setSoundEnabled, setVolume: setSoundVolume, play: playSfx } = useSoundEffects()
+  const anySoundLoaded = SOUND_NAMES.some((n) => soundLoaded[n])
+
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
   useEffect(() => {
     window.api.settings.getMaxConcurrentDownloads().then(setMaxConcurrentState).catch(() => {/* ignore */})
@@ -630,6 +634,60 @@ const ExtraSystemsSettings: React.FC = () => {
         <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           Switch the monospace font used across the app. Pick something easier to read if Courier New is hard on your eyes.
         </span>
+      </div>
+
+      {/* Sound effects */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'var(--vrcd-font-mono)', fontSize: '12px', letterSpacing: '0.04em' }}>
+          Sound Effects
+        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <Switch checked={soundEnabled} onChange={(_, d) => setSoundEnabled(!!d.checked)} label={soundEnabled ? 'ON' : 'OFF'} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '200px' }}>
+            <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace', fontSize: '11px', minWidth: '50px' }}>VOLUME</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(soundVolume * 100)}
+              onChange={(e) => setSoundVolume(parseInt(e.target.value, 10) / 100)}
+              disabled={!soundEnabled}
+              style={{ flex: 1, accentColor: 'var(--vrcd-neon)' }}
+            />
+            <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.7)', fontFamily: 'monospace', fontSize: '11px', minWidth: '36px', textAlign: 'right' }}>
+              {Math.round(soundVolume * 100)}%
+            </span>
+          </div>
+          <button
+            onClick={() => playSfx('click')}
+            disabled={!soundEnabled || !soundLoaded.click}
+            style={{ background: 'transparent', border: '1px solid rgba(var(--vrcd-neon-raw),0.4)', color: 'var(--vrcd-neon)', fontFamily: 'var(--vrcd-font-mono)', fontSize: '11px', padding: '4px 12px', borderRadius: '4px', cursor: !soundEnabled || !soundLoaded.click ? 'not-allowed' : 'pointer', opacity: !soundEnabled || !soundLoaded.click ? 0.4 : 1, letterSpacing: '0.06em' }}
+          >
+            TEST
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', padding: '8px 12px', background: 'rgba(var(--vrcd-neon-raw),0.04)', border: '1px solid rgba(var(--vrcd-neon-raw),0.15)', borderRadius: '4px', fontFamily: 'monospace', fontSize: '11px' }}>
+          <div style={{ color: 'rgba(var(--vrcd-neon-raw),0.55)', letterSpacing: '0.1em', marginBottom: '2px' }}>// LOADED FILES</div>
+          {SOUND_NAMES.map((name) => (
+            <div key={name} style={{ display: 'flex', justifyContent: 'space-between', color: soundLoaded[name] ? 'var(--vrcd-neon)' : 'rgba(255,68,68,0.7)' }}>
+              <span>{name}.{`{wav,mp3,ogg}`}</span>
+              <span>{soundLoaded[name] ? '✓ READY' : '— missing'}</span>
+            </div>
+          ))}
+        </div>
+
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.45)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
+          {anySoundLoaded
+            ? 'Sounds play on button clicks (click), the boot intro typing (type), and the ADB shell matrix load (matrix).'
+            : 'No sound files loaded. Drop click.wav, type.wav, or matrix.wav into one of these folders to enable:'}
+        </span>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: 'rgba(var(--vrcd-neon-raw),0.55)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.6 }}>
+          <li>your user-data folder → <code style={{ color: 'var(--vrcd-neon)' }}>sounds/</code> (no rebuild needed)</li>
+          <li>repo → <code style={{ color: 'var(--vrcd-neon)' }}>resources/sounds/</code> (bundled into the build)</li>
+        </ul>
       </div>
 
       {/* Deletion behavior */}

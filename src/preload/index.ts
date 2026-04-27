@@ -35,6 +35,8 @@ const api = {
     getSystemUsername: (): Promise<string> => typedIpcRenderer.invoke('app:get-system-username'),
     setZoomFactor: (factor: number): void => webFrame.setZoomFactor(factor),
     confirmClose: (): void => typedIpcRenderer.send('app:confirm-close'),
+    getSound: (name: string): Promise<string | null> =>
+      typedIpcRenderer.invoke('app:get-sound', name),
     onCloseRequested: (callback: () => void): (() => void) => {
       const listener = (): void => callback()
       typedIpcRenderer.on('app:close-requested', listener)

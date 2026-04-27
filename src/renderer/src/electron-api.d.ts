@@ -24,6 +24,7 @@ declare global {
         setZoomFactor: (factor: number) => void
         confirmClose: () => void
         onCloseRequested: (callback: () => void) => () => void
+        getSound: (name: string) => Promise<string | null>
       }
       dependency: DependencyAPIRenderer
       adb: AdbAPIRenderer
