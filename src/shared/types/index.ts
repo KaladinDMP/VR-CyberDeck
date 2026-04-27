@@ -259,9 +259,27 @@ export interface GameAPIRenderer
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void
 }
 
+/** Result codes returned by DownloadService.addToQueue. */
+export type AddToQueueResult =
+  /** New entry was added to the queue and the rclone pipeline will run. */
+  | 'added'
+  /** Already in the queue (or already complete in the queue). No-op. */
+  | 'duplicate'
+  /** Found a finished copy on disk and imported it as Completed. Caller can install. */
+  | 'imported'
+  /**
+   * Found a finished copy on disk but the user's preference is 'ask'. Caller
+   * must show a prompt and follow up with addToQueueResolveExisting.
+   */
+  | 'needs-prompt'
+
 export interface DownloadAPI {
   getQueue: () => Promise<DownloadItem[]>
-  addToQueue: (game: GameInfo) => Promise<boolean>
+  addToQueue: (game: GameInfo) => Promise<AddToQueueResult>
+  addToQueueResolveExisting: (
+    game: GameInfo,
+    action: 'reinstall' | 'redownload'
+  ) => Promise<AddToQueueResult>
   removeFromQueue: (releaseName: string) => Promise<void>
   removeFromQueueOnly: (releaseName: string) => Promise<void>
   cancelUserRequest: (releaseName: string) => void
@@ -335,6 +353,8 @@ export interface ServerConfigInfo {
 
 export type AppLanguage = 'en' | 'es'
 
+export type ExistingDownloadAction = 'ask' | 'reinstall' | 'redownload'
+
 export interface Settings {
   downloadPath: string
   downloadSpeedLimit: number
@@ -344,6 +364,7 @@ export interface Settings {
   serverConfig: ServerConfigInfo
   language?: AppLanguage
   maxConcurrentDownloads: number
+  existingDownloadAction?: ExistingDownloadAction
 }
 
 export interface SettingsAPI {
@@ -361,6 +382,8 @@ export interface SettingsAPI {
   setLanguage: (lang: AppLanguage) => void
   getMaxConcurrentDownloads: () => number
   setMaxConcurrentDownloads: (n: number) => void
+  getExistingDownloadAction: () => ExistingDownloadAction
+  setExistingDownloadAction: (v: ExistingDownloadAction) => void
 }
 
 export interface SettingsAPIRenderer
@@ -381,6 +404,8 @@ export interface SettingsAPIRenderer
       setLanguage: (lang: AppLanguage) => Promise<void>
       getMaxConcurrentDownloads: () => Promise<number>
       setMaxConcurrentDownloads: (n: number) => Promise<void>
+      getExistingDownloadAction: () => Promise<ExistingDownloadAction>
+      setExistingDownloadAction: (v: ExistingDownloadAction) => Promise<void>
     }
   > {}
 

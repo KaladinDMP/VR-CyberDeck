@@ -477,6 +477,14 @@ const ExtraSystemsSettings: React.FC = () => {
   const anySoundLoaded = SOUND_NAMES.some((n) => soundLoaded[n])
 
   const [maxConcurrent, setMaxConcurrentState] = useState<number>(3)
+  const [existingDlAction, setExistingDlActionState] = useState<'ask' | 'reinstall' | 'redownload'>('ask')
+  useEffect(() => {
+    window.api.settings.getExistingDownloadAction().then(setExistingDlActionState).catch(() => {/* ignore */})
+  }, [])
+  const handleSetExistingDlAction = (v: 'ask' | 'reinstall' | 'redownload'): void => {
+    setExistingDlActionState(v)
+    window.api.settings.setExistingDownloadAction(v).catch(() => {/* ignore */})
+  }
   useEffect(() => {
     window.api.settings.getMaxConcurrentDownloads().then(setMaxConcurrentState).catch(() => {/* ignore */})
   }, [])
@@ -713,6 +721,35 @@ const ExtraSystemsSettings: React.FC = () => {
         </div>
         <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px' }}>
           Number of games that download simultaneously. Takes effect on next queue item.
+        </span>
+      </div>
+
+      {/* When download already exists on disk */}
+      <div style={{ padding: '10px 0 4px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.1)', marginTop: '6px' }}>
+        <span style={{ color: 'var(--vrcd-neon)', fontFamily: 'var(--vrcd-font-mono)', fontSize: '12px', letterSpacing: '0.04em' }}>
+          When download already exists on disk
+        </span>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {([
+            { v: 'ask', label: 'ASK ME' },
+            { v: 'reinstall', label: 'INSTALL FROM EXISTING' },
+            { v: 'redownload', label: 'RE-DOWNLOAD' }
+          ] as const).map((opt) => (
+            <button
+              key={opt.v}
+              onClick={() => handleSetExistingDlAction(opt.v)}
+              style={neonOptionBtn(existingDlAction === opt.v)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <span style={{ color: 'rgba(var(--vrcd-neon-raw),0.35)', fontFamily: 'monospace', fontSize: '11px', lineHeight: 1.5 }}>
+          When you click Download for a game whose folder already exists in your downloads path
+          (from a previous run, another tool, or a cleared queue): <strong>Ask me</strong> shows
+          a prompt; <strong>Install from existing</strong> imports the folder as Completed and
+          skips straight to install; <strong>Re-download</strong> wipes the folder first and
+          fetches a fresh copy.
         </span>
       </div>
 

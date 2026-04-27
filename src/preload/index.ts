@@ -125,7 +125,9 @@ const api = {
   // Download Queue APIs
   downloads: {
     getQueue: (): Promise<DownloadItem[]> => typedIpcRenderer.invoke('download:get-queue'),
-    addToQueue: (game: GameInfo): Promise<boolean> => typedIpcRenderer.invoke('download:add', game),
+    addToQueue: (game) => typedIpcRenderer.invoke('download:add', game),
+    addToQueueResolveExisting: (game, action) =>
+      typedIpcRenderer.invoke('download:add-resolve-existing', game, action),
     removeFromQueue: (releaseName: string): Promise<void> =>
       typedIpcRenderer.invoke('download:remove', releaseName),
     removeFromQueueOnly: (releaseName: string): Promise<void> =>
@@ -254,7 +256,11 @@ const api = {
     getMaxConcurrentDownloads: (): Promise<number> =>
       typedIpcRenderer.invoke('settings:get-max-concurrent-downloads'),
     setMaxConcurrentDownloads: (n: number): Promise<void> =>
-      typedIpcRenderer.invoke('settings:set-max-concurrent-downloads', n)
+      typedIpcRenderer.invoke('settings:set-max-concurrent-downloads', n),
+    getExistingDownloadAction: () =>
+      typedIpcRenderer.invoke('settings:get-existing-download-action'),
+    setExistingDownloadAction: (v) =>
+      typedIpcRenderer.invoke('settings:set-existing-download-action', v)
   } satisfies SettingsAPIRenderer,
   // Logs APIs
   logs: {

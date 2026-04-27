@@ -386,6 +386,9 @@ app.whenReady().then(async () => {
   // --- Download Handlers ---
   typedIpcMain.handle('download:get-queue', () => downloadService.getQueue())
   typedIpcMain.handle('download:add', (_event, game) => downloadService.addToQueue(game))
+  typedIpcMain.handle('download:add-resolve-existing', (_event, game, action) =>
+    downloadService.addToQueueResolveExisting(game, action)
+  )
   typedIpcMain.handle('download:delete-files', (_event, releaseName) =>
     downloadService.deleteDownloadedFiles(releaseName)
   )
@@ -588,6 +591,13 @@ app.whenReady().then(async () => {
   )
   typedIpcMain.handle('settings:set-max-concurrent-downloads', (_event, n) =>
     settingsService.setMaxConcurrentDownloads(n)
+  )
+
+  typedIpcMain.handle('settings:get-existing-download-action', () =>
+    settingsService.getExistingDownloadAction()
+  )
+  typedIpcMain.handle('settings:set-existing-download-action', (_event, v) =>
+    settingsService.setExistingDownloadAction(v)
   )
 
   // --- Logs Handlers ---

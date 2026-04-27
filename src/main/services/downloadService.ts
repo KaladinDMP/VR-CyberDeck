@@ -10,7 +10,7 @@ import { QueueManager } from './download/queueManager'
 import { DownloadProcessor } from './download/downloadProcessor'
 import { ExtractionProcessor } from './download/extractionProcessor'
 import { InstallationProcessor } from './download/installationProcessor'
-import { DownloadAPI, GameInfo, DownloadItem, DownloadStatus } from '@shared/types'
+import { DownloadAPI, GameInfo, DownloadItem, DownloadStatus, AddToQueueResult } from '@shared/types'
 import settingsService from './settingsService'
 import { typedWebContentsSend } from '@shared/ipc-utils'
 
@@ -121,30 +121,151 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     return Promise.resolve(this.queueManager.getQueue())
   }
 
-  public addToQueue(game: GameInfo): Promise<boolean> {
+  /**
+   * Inspect the destination folder for a release to figure out what state it
+   * is in on disk, separate from the queue. Catches the case where a user
+   * cleared the queue or downloaded the same release with a different tool.
+   *
+   * - 'absent'    : folder doesn't exist or is empty
+   * - 'partial'   : has only rclone .partial files (resumable in-progress run)
+   * - 'completed' : has at least one real (non-.partial) file
+   */
+  public async checkOnDiskCompletion(
+    releaseName: string
+  ): Promise<'absent' | 'partial' | 'completed'> {
+    const folderPath = join(this.downloadsPath, releaseName)
+    if (!existsSync(folderPath)) return 'absent'
+    let entries: string[]
+    try {
+      entries = await fs.readdir(folderPath)
+    } catch {
+      return 'absent'
+    }
+    if (entries.length === 0) return 'absent'
+    const hasReal = entries.some((name) => !name.endsWith('.partial'))
+    return hasReal ? 'completed' : 'partial'
+  }
+
+  public addToQueue(game: GameInfo): Promise<AddToQueueResult> {
     if (!this.isInitialized) {
       console.error('DownloadService not initialized. Cannot add to queue.')
-      return Promise.resolve(false)
+      return Promise.resolve('duplicate')
     }
     if (!game.releaseName) {
       console.error(`Cannot add game ${game.name} to queue: Missing releaseName.`)
-      return Promise.resolve(false)
+      return Promise.resolve('duplicate')
     }
 
+    return this.addToQueueInternal(game)
+  }
+
+  /**
+   * Called from the renderer once the user picks an action in the
+   * "files already exist" prompt. Bypasses the on-disk check.
+   */
+  public async addToQueueResolveExisting(
+    game: GameInfo,
+    action: 'reinstall' | 'redownload'
+  ): Promise<AddToQueueResult> {
+    if (!this.isInitialized || !game.releaseName) return 'duplicate'
+    if (action === 'reinstall') {
+      this.importExistingAsCompleted(game)
+      return 'imported'
+    }
+    // redownload: wipe the existing folder so rclone copies into a clean dest
+    const folderPath = join(this.downloadsPath, game.releaseName)
+    try {
+      await fs.rm(folderPath, { recursive: true, force: true })
+    } catch (err) {
+      console.error(`[Service] Failed to wipe ${folderPath} before redownload:`, err)
+    }
+    return this.addToQueueInternal(game, { skipOnDiskCheck: true })
+  }
+
+  private importExistingAsCompleted(game: GameInfo): void {
+    const folderPath = join(this.downloadsPath, game.releaseName)
+    const existing = this.queueManager.findItem(game.releaseName)
+    if (existing) {
+      this.queueManager.updateItem(game.releaseName, {
+        status: 'Completed',
+        progress: 100,
+        extractProgress: 100,
+        downloadPath: folderPath,
+        error: undefined,
+        gameId: game.id,
+        gameName: game.name,
+        packageName: game.packageName,
+        thumbnailPath: game.thumbnailPath,
+        size: game.size
+      })
+    } else {
+      this.queueManager.addItem({
+        gameId: game.id,
+        releaseName: game.releaseName,
+        packageName: game.packageName,
+        gameName: game.name,
+        status: 'Completed',
+        progress: 100,
+        extractProgress: 100,
+        addedDate: Date.now(),
+        thumbnailPath: game.thumbnailPath,
+        downloadPath: folderPath,
+        size: game.size
+      })
+    }
+    console.log(`Imported existing folder for ${game.releaseName} as Completed.`)
+    this.emitUpdate()
+  }
+
+  private async addToQueueInternal(
+    game: GameInfo,
+    opts: { skipOnDiskCheck?: boolean } = {}
+  ): Promise<AddToQueueResult> {
     const existing = this.queueManager.findItem(game.releaseName)
 
     if (existing) {
       if (existing.status === 'Completed') {
         console.log(`Game ${game.releaseName} already downloaded.`)
-        return Promise.resolve(false)
+        return 'duplicate'
       } else if (existing.status !== 'Error' && existing.status !== 'Cancelled') {
         console.log(
           `Game ${game.releaseName} is already in the queue with status: ${existing.status}.`
         )
-        return Promise.resolve(false)
+        return 'duplicate'
       }
       console.log(`Re-adding game ${game.releaseName} after previous ${existing.status}.`)
       this.queueManager.removeItem(game.releaseName)
+    }
+
+    // On-disk check: a previous tool / earlier run / queue clear may have
+    // left a complete copy on disk that the queue doesn't know about. Apply
+    // the user's "When download already exists" preference.
+    if (!opts.skipOnDiskCheck) {
+      const diskState = await this.checkOnDiskCompletion(game.releaseName)
+      if (diskState === 'completed') {
+        const action = settingsService.getExistingDownloadAction()
+        if (action === 'reinstall') {
+          this.importExistingAsCompleted(game)
+          return 'imported'
+        }
+        if (action === 'redownload') {
+          const folderPath = join(this.downloadsPath, game.releaseName)
+          try {
+            await fs.rm(folderPath, { recursive: true, force: true })
+          } catch (err) {
+            console.error(
+              `[Service] Failed to wipe ${folderPath} before auto-redownload:`,
+              err
+            )
+          }
+          // fall through to normal queueing below
+        } else {
+          // 'ask' — let the renderer prompt the user. We don't add anything
+          // to the queue yet; the renderer follows up with
+          // addToQueueResolveExisting.
+          return 'needs-prompt'
+        }
+      }
     }
 
     const newItem: DownloadItem = {
@@ -163,7 +284,7 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     console.log(`Added ${game.releaseName} to download queue.`)
     this.emitUpdate()
     this.processQueue()
-    return Promise.resolve(true)
+    return 'added'
   }
 
   private cancelActiveItem(releaseName: string, item: DownloadItem): void {
