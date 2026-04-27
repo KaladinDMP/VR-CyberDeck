@@ -325,11 +325,11 @@ class GameService extends EventEmitter implements GamesAPI {
         } else {
           try {
             // Use mirror with direct config file reference.
-            // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern
-            // and avoids the HEAD stat that `copyto` issues (some CDN redirectors
-            // 403 HEAD even when GET works fine).
+            // `copy <file_source> <dir_dest>` is the unambiguous "drop this file
+            // into that directory" semantic; `sync` with our flag set was being
+            // misclassified as a directory→directory operation on rclone 1.72.1.
             rcloneArgs = [
-              'sync',
+              'copy',
               `${remoteName}:/Quest Games/meta.7z`,
               dirname(destination),
               '--config',
@@ -413,13 +413,13 @@ class GameService extends EventEmitter implements GamesAPI {
       const nullConfigPath = process.platform === 'win32' ? 'NUL' : '/dev/null'
 
       // Execute rclone using execa with progress reporting.
-      // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern.
-      // Using `copyto` here breaks because rclone copyto issues a HEAD stat
-      // first, which the public CDN redirector blocks with 403.
+      // `copy <file_source> <dir_dest>` drops the file into the dir. Used here
+      // (not `sync` or `copyto`) because the rclone HTTP backend with our flag
+      // set was misclassifying source type, and `copy` is unambiguous.
       const rcloneProcess = execa(
         rclonePath,
         [
-          'sync',
+          'copy',
           `:http:/meta.7z`,
           dirname(destination),
           '--config',
