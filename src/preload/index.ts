@@ -108,8 +108,11 @@ const api = {
     getLastSyncTime: (): Promise<Date | null> =>
       typedIpcRenderer.invoke('games:get-last-sync-time'),
     forceSync: (): Promise<GameInfo[]> => typedIpcRenderer.invoke('games:force-sync-games'),
-    getTrailerVideoId: (gameName: string): Promise<string | null> =>
-      typedIpcRenderer.invoke('games:get-trailer-video-id', gameName),
+    getTrailerUrl: (
+      gameName: string,
+      packageName: string | undefined
+    ): Promise<string | null> =>
+      typedIpcRenderer.invoke('games:get-trailer-url', gameName, packageName),
     onDownloadProgress: (callback: (progress: DownloadProgress) => void): (() => void) => {
       const listener = (_: IpcRendererEvent, progress: DownloadProgress): void => callback(progress)
       typedIpcRenderer.on('games:download-progress', listener)

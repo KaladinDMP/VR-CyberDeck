@@ -15,7 +15,7 @@ export interface GamesContextType {
   loadGames: () => Promise<void>
   getNote: (releaseName: string) => Promise<string>
   isInitialLoadComplete: boolean
-  getTrailerVideoId: (gameName: string) => Promise<string | null>
+  getTrailerUrl: (gameName: string, packageName: string | undefined) => Promise<string | null>
   addGameToBlacklist: (packageName: string, version?: number | 'any') => Promise<void>
   getBlacklistGames: () => Promise<BlacklistEntry[]>
   removeGameFromBlacklist: (packageName: string) => Promise<void>

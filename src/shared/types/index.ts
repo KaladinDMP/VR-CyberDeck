@@ -243,7 +243,7 @@ export interface GamesAPI {
   forceSync: () => Promise<GameInfo[]>
   getNote: (releaseName: string) => Promise<string>
   getBlacklistGames: () => Promise<BlacklistEntry[]>
-  getTrailerVideoId: (gameName: string) => Promise<string | null>
+  getTrailerUrl: (gameName: string, packageName: string | undefined) => Promise<string | null>
   addToBlacklist: (packageName: string, version?: number | 'any') => Promise<boolean>
   removeFromBlacklist: (packageName: string) => Promise<boolean>
   isGameBlacklisted: (packageName: string, version?: number) => boolean

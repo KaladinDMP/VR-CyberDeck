@@ -9,7 +9,6 @@ import settingsService from './settingsService'
 import { GameInfo, ServiceStatus, GamesAPI, BlacklistEntry } from '@shared/types'
 import EventEmitter from 'events'
 import { typedWebContentsSend } from '@shared/ipc-utils'
-import yts from 'yt-search'
 import SevenZip from 'node-7z'
 
 interface VrpConfig {
@@ -33,7 +32,6 @@ class GameService extends EventEmitter implements GamesAPI {
   private blacklistGames: string[] = []
   private customBlacklistGames: BlacklistEntry[] = []
   private status: ServiceStatus = 'NOT_INITIALIZED'
-  private videoIdCache: Map<string, string | null> = new Map()
   constructor() {
     super()
     this.dataPath = join(app.getPath('userData'), 'vrp-data')
@@ -325,11 +323,11 @@ class GameService extends EventEmitter implements GamesAPI {
         } else {
           try {
             // Use mirror with direct config file reference.
-            // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern
-            // and avoids the HEAD stat that `copyto` issues (some CDN redirectors
-            // 403 HEAD even when GET works fine).
+            // `copy <file_source> <dir_dest>` is the unambiguous "drop this file
+            // into that directory" semantic; `sync` with our flag set was being
+            // misclassified as a directory→directory operation on rclone 1.72.1.
             rcloneArgs = [
-              'sync',
+              'copy',
               `${remoteName}:/Quest Games/meta.7z`,
               dirname(destination),
               '--config',
@@ -413,13 +411,13 @@ class GameService extends EventEmitter implements GamesAPI {
       const nullConfigPath = process.platform === 'win32' ? 'NUL' : '/dev/null'
 
       // Execute rclone using execa with progress reporting.
-      // `sync <file_source> <dir_dest>` matches the Rookie sideloader pattern.
-      // Using `copyto` here breaks because rclone copyto issues a HEAD stat
-      // first, which the public CDN redirector blocks with 403.
+      // `copy <file_source> <dir_dest>` drops the file into the dir. Used here
+      // (not `sync` or `copyto`) because the rclone HTTP backend with our flag
+      // set was misclassifying source type, and `copy` is unambiguous.
       const rcloneProcess = execa(
         rclonePath,
         [
-          'sync',
+          'copy',
           `:http:/meta.7z`,
           dirname(destination),
           '--config',
@@ -781,39 +779,6 @@ class GameService extends EventEmitter implements GamesAPI {
     } catch {
       return ''
     }
-  }
-
-  async getTrailerVideoId(gameName: string): Promise<string | null> {
-    // Check if the video ID is in the cache
-    if (this.videoIdCache.has(gameName)) {
-      return this.videoIdCache.get(gameName) || null
-    }
-
-    const searchQuery = `${gameName} quest vr trailer`
-    const searchResults = await yts({
-      query: searchQuery,
-      pages: 1
-    })
-    if (!searchResults.videos || searchResults.videos.length === 0) {
-      // Cache the null result to avoid repeated searches
-      this.videoIdCache.set(gameName, null)
-      return null
-    }
-
-    const cleanGameName = (name: string): string =>
-      // remove all non-alphanumeric characters and convert to lowercase
-      name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-
-    // only use videos that have the game name in the title
-    const video = searchResults.videos.find((video) =>
-      cleanGameName(video.title).includes(cleanGameName(gameName))
-    )
-
-    const videoId = video ? video.videoId : null
-    // Store result in cache (even if null)
-    this.videoIdCache.set(gameName, videoId)
-
-    return videoId
   }
 
   async addToBlacklist(packageName: string, version: number | 'any' = 'any'): Promise<boolean> {
