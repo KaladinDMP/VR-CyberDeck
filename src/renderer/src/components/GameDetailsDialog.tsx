@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { GameInfo } from '@shared/types'
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   ArrowUpRegular,
   InfoRegular,
   CheckmarkCircleRegular,
-  OpenRegular,
   BroomRegular as UninstallIcon
 } from '@fluentui/react-icons'
 import placeholderImage from '../assets/images/game-placeholder.png'
@@ -69,37 +68,12 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
   onRetry, onCancelDownload, onDeleteDownloaded,
   onInstallFromCompleted, getNote, isConnected, isBusy
 }) => {
-  const { getTrailerVideoId: getTrailerVideoIdFromContext } = useGames()
+  const { getTrailerUrl } = useGames()
   const [currentGameNote, setCurrentGameNote] = useState<string | null>(null)
   const [loadingNote, setLoadingNote] = useState(false)
-  const [videoId, setVideoId] = useState<string | null>(null)
+  const [trailerUrl, setTrailerUrl] = useState<string | null>(null)
   const [loadingVideo, setLoadingVideo] = useState(false)
   const [trailerOpen, setTrailerOpen] = useState(false)
-  const webviewRef = useRef<HTMLElement>(null)
-
-  const handleWebviewReady = useCallback(() => {
-    const wv = webviewRef.current as HTMLElement & {
-      insertCSS: (css: string) => Promise<string>
-      executeJavaScript: (code: string) => Promise<unknown>
-    }
-    if (!wv) return
-    // Belt-and-suspenders: the youtube-nocookie embed URL we use already
-    // strips most of the page chrome, but YouTube has a habit of slipping
-    // an end-screen "More videos" grid in once playback finishes. Hide it.
-    wv.insertCSS(`
-      .ytp-endscreen-content, .ytp-ce-element, .ytp-pause-overlay,
-      .ytp-suggested-action, .ytp-suggested-action-badge,
-      .ytp-watermark, .ytp-show-cards-title, .ytp-cards-button,
-      .ytp-paid-content-overlay { display: none !important; }
-    `)
-  }, [])
-
-  useEffect(() => {
-    const wv = webviewRef.current
-    if (!wv || !videoId) return
-    wv.addEventListener('dom-ready', handleWebviewReady)
-    return () => wv.removeEventListener('dom-ready', handleWebviewReady)
-  }, [videoId, handleWebviewReady])
 
   useEffect(() => {
     let alive = true
@@ -118,15 +92,15 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
     let alive = true
     if (open && game?.name) {
       setLoadingVideo(true)
-      setVideoId(null)
+      setTrailerUrl(null)
       setTrailerOpen(false)
-      getTrailerVideoIdFromContext(game.name)
-        .then((id) => { if (alive && id) setVideoId(id) })
+      getTrailerUrl(game.name, game.packageName)
+        .then((url) => { if (alive && url) setTrailerUrl(url) })
         .catch(() => { /* no trailer */ })
         .finally(() => { if (alive) setLoadingVideo(false) })
     }
     return () => { alive = false }
-  }, [open, game, getTrailerVideoIdFromContext])
+  }, [open, game, getTrailerUrl])
 
   const renderActionButtons = (g: GameInfo): React.ReactNode => {
     const status = downloadStatusMap.get(g.releaseName || '')?.status
@@ -302,34 +276,25 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
               <span style={{ fontSize: 10 }}>{trailerOpen ? '▼' : '▶'}</span>
               <span>TRAILER</span>
               {loadingVideo && <Spinner size="tiny" style={{ marginLeft: 4 }} />}
-              {videoId && !loadingVideo && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${videoId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ marginLeft: 'auto', fontSize: 11, color: PURPLE, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
-                >
-                  <OpenRegular fontSize={11} /> Watch on YouTube
-                </a>
-              )}
-              {!videoId && !loadingVideo && (
+              {!trailerUrl && !loadingVideo && (
                 <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(var(--vrcd-neon-raw),0.35)' }}>no trailer found</span>
               )}
             </button>
 
-            {trailerOpen && videoId && (
-              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(var(--vrcd-neon-raw),0.2)' }}>
-                <webview
-                  ref={webviewRef}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' } as React.CSSProperties}
-                  src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&iv_load_policy=3&fs=1&playsinline=1&disablekb=0&autoplay=1&color=white`}
-                  partition="persist:youtube"
-                  title="Game Trailer"
+            {trailerOpen && trailerUrl && (
+              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(var(--vrcd-neon-raw),0.2)', background: '#000' }}>
+                <video
+                  key={trailerUrl}
+                  src={trailerUrl}
+                  controls
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </div>
             )}
-            {trailerOpen && !videoId && !loadingVideo && (
+            {trailerOpen && !trailerUrl && !loadingVideo && (
               <p style={{ color: 'rgba(var(--vrcd-neon-raw),0.4)', fontFamily: 'monospace', fontSize: 12, margin: '8px 0 0' }}>No trailer available.</p>
             )}
           </div>

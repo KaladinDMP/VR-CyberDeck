@@ -6,6 +6,7 @@ import icon from '../../resources/icon.png?asset'
 import adbService from './services/adbService'
 import dependencyService, { DependencyStatus } from './services/dependencyService'
 import gameService from './services/gameService'
+import metaStoreService from './services/metaStoreService'
 import downloadService from './services/downloadService'
 import uploadService from './services/uploadService'
 import updateService from './services/updateService'
@@ -379,8 +380,8 @@ app.whenReady().then(async () => {
   typedIpcMain.handle('games:get-note', async (_event, releaseName) => {
     return gameService.getNote(releaseName)
   })
-  typedIpcMain.handle('games:get-trailer-video-id', async (_event, gameName) => {
-    return gameService.getTrailerVideoId(gameName)
+  typedIpcMain.handle('games:get-trailer-url', async (_event, gameName, packageName) => {
+    return metaStoreService.getTrailerUrl(gameName, packageName)
   })
 
   // --- Download Handlers ---
