@@ -57,11 +57,44 @@ function sendDependencyProgress(
 
 function createWindow(): void {
   // Create the browser window.
-  const { height: workH } = screen.getPrimaryDisplay().workAreaSize
-  mainWindow = new BrowserWindow({
+  const { height: workH, width: workW } = screen.getPrimaryDisplay().workAreaSize
+
+  // Restore last-session bounds when they're still on a connected display.
+  // If the saved position is off-screen (monitor unplugged, resolution change),
+  // fall back to defaults so the window doesn't open somewhere invisible.
+  const saved = settingsService.getWindowBounds()
+  const MIN_W = 900
+  const MIN_H = 640
+  let initialBounds: { x?: number; y?: number; width: number; height: number } = {
     width: 1200,
-    minWidth: 900,
-    height: Math.min(900, workH),
+    height: Math.min(900, workH)
+  }
+  let startMaximized = false
+  if (saved) {
+    const w = Math.max(MIN_W, Math.min(saved.width, workW))
+    const h = Math.max(MIN_H, Math.min(saved.height, workH))
+    initialBounds = { width: w, height: h }
+    if (saved.x !== undefined && saved.y !== undefined) {
+      const onScreen = screen.getAllDisplays().some((d) => {
+        const { x, y, width, height } = d.workArea
+        return (
+          saved.x! + w > x &&
+          saved.x! < x + width &&
+          saved.y! + h > y &&
+          saved.y! < y + height
+        )
+      })
+      if (onScreen) {
+        initialBounds.x = saved.x
+        initialBounds.y = saved.y
+      }
+    }
+    startMaximized = !!saved.maximized
+  }
+
+  mainWindow = new BrowserWindow({
+    ...initialBounds,
+    minWidth: MIN_W,
     maxHeight: workH,
     show: false,
     autoHideMenuBar: true,
@@ -74,6 +107,8 @@ function createWindow(): void {
       webviewTag: true // Enable <webview> for YouTube trailer embedding
     }
   })
+
+  if (startMaximized) mainWindow.maximize()
 
   // Set up a dedicated session partition for YouTube webview embeds.
   // The webview runs in its own process where window.top === window,
@@ -113,6 +148,48 @@ function createWindow(): void {
   // Sized for ~1366x768 laptops (typical small-screen target) with the OS
   // chrome subtracted so the window fits comfortably.
   mainWindow.setMinimumSize(900, 640)
+
+  // Persist window size & position. Debounce so we don't hammer the disk
+  // during a drag/resize - we only need the final resting bounds.
+  let saveBoundsTimer: NodeJS.Timeout | null = null
+  const persistBounds = (): void => {
+    if (saveBoundsTimer) clearTimeout(saveBoundsTimer)
+    saveBoundsTimer = setTimeout(() => {
+      saveBoundsTimer = null
+      if (!mainWindow || mainWindow.isDestroyed()) return
+      // getNormalBounds() returns the un-maximized bounds even when the
+      // window is currently maximized, so we always remember a sane size to
+      // restore to if the user un-maximizes next session.
+      const normal = mainWindow.getNormalBounds()
+      settingsService.setWindowBounds({
+        x: normal.x,
+        y: normal.y,
+        width: normal.width,
+        height: normal.height,
+        maximized: mainWindow.isMaximized()
+      })
+    }, 400)
+  }
+  mainWindow.on('resize', persistBounds)
+  mainWindow.on('move', persistBounds)
+  mainWindow.on('maximize', persistBounds)
+  mainWindow.on('unmaximize', persistBounds)
+  mainWindow.on('close', () => {
+    if (saveBoundsTimer) {
+      clearTimeout(saveBoundsTimer)
+      saveBoundsTimer = null
+    }
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const normal = mainWindow.getNormalBounds()
+      settingsService.setWindowBounds({
+        x: normal.x,
+        y: normal.y,
+        width: normal.width,
+        height: normal.height,
+        maximized: mainWindow.isMaximized()
+      })
+    }
+  })
 
   // Crash recovery: Snagit and other screen-capture tools can crash the GPU /
   // renderer process when the window has a YouTube webview playing. Without

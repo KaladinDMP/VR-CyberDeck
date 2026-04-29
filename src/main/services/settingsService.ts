@@ -1,4 +1,11 @@
-import { Settings, SettingsAPI, ServerConfigInfo, AppLanguage, ExistingDownloadAction } from '@shared/types'
+import {
+  Settings,
+  SettingsAPI,
+  ServerConfigInfo,
+  AppLanguage,
+  ExistingDownloadAction,
+  WindowBounds
+} from '@shared/types'
 import { app, nativeTheme } from 'electron'
 import { join } from 'path'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
@@ -129,6 +136,15 @@ class SettingsService extends EventEmitter implements SettingsAPI {
     this.settings.existingDownloadAction = v
     this.saveSettings()
     this.emit('existing-download-action-changed', v)
+  }
+
+  getWindowBounds(): WindowBounds | undefined {
+    return this.settings.windowBounds
+  }
+
+  setWindowBounds(bounds: WindowBounds): void {
+    this.settings.windowBounds = bounds
+    this.saveSettings()
   }
 
   private loadSettings(): void {

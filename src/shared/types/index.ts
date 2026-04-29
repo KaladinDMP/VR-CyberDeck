@@ -355,6 +355,14 @@ export type AppLanguage = 'en' | 'es'
 
 export type ExistingDownloadAction = 'ask' | 'reinstall' | 'redownload'
 
+export interface WindowBounds {
+  x?: number
+  y?: number
+  width: number
+  height: number
+  maximized?: boolean
+}
+
 export interface Settings {
   downloadPath: string
   downloadSpeedLimit: number
@@ -365,6 +373,7 @@ export interface Settings {
   language?: AppLanguage
   maxConcurrentDownloads: number
   existingDownloadAction?: ExistingDownloadAction
+  windowBounds?: WindowBounds
 }
 
 export interface SettingsAPI {
