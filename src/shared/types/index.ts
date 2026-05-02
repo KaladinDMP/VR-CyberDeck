@@ -75,6 +75,17 @@ export interface GameInfo {
   isInstalled: boolean
   deviceVersionCode?: number
   hasUpdate?: boolean
+  /**
+   * ms timestamp of when this packageName first appeared in our local
+   * library snapshot. 0 = present at initial-sync (so we don't badge every
+   * game NEW for new installs). Undefined = no snapshot info.
+   */
+  firstSeenAt?: number
+  /**
+   * ms timestamp of when this package's version most recently changed
+   * compared to the previous sync. 0 = never changed since first seen.
+   */
+  versionChangedAt?: number
 }
 
 export interface UploadCandidate {
