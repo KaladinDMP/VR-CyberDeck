@@ -1,4 +1,8 @@
 import { app, shell, BrowserWindow, screen, protocol, dialog, ipcMain, session } from 'electron'
+// Side-effect import: must run before any service whose singleton constructor
+// reads app.getPath('userData'). ESM evaluates sibling imports in source
+// order, so keep this above the service imports below.
+import './services/portableSetup'
 import os from 'os'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
