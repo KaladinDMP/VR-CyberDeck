@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { GameInfo } from '@shared/types'
 import {
   Dialog,
@@ -76,6 +76,67 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
   const [loadingVideo, setLoadingVideo] = useState(false)
   const [trailerOpen, setTrailerOpen] = useState(false)
   const [errorDetailOpen, setErrorDetailOpen] = useState(false)
+  const webviewRef = useRef<HTMLElement>(null)
+
+  // The trailer is loaded as the actual youtube.com/watch page (not /embed/,
+  // which gets rejected with error 152 for many trailers). On dom-ready we
+  // strip out everything except the player so the result looks like an
+  // embed. Same approach as ApprenticeVRSrc.
+  const handleWebviewReady = useCallback(() => {
+    const wv = webviewRef.current as
+      | (HTMLElement & {
+          insertCSS: (css: string) => Promise<string>
+          executeJavaScript: (code: string) => Promise<unknown>
+        })
+      | null
+    if (!wv) return
+    void wv.insertCSS(`
+      #masthead-container, #top-row, #bottom-row,
+      ytd-watch-metadata, #related, #comments,
+      #secondary, #below, ytd-masthead,
+      #guide-button, ytd-mini-guide-renderer,
+      #chat-container, .ytp-chrome-top,
+      #info-contents, #meta-contents,
+      ytd-merch-shelf-renderer, #offer-module,
+      tp-yt-app-drawer, #guide-wrapper,
+      .ytd-watch-flexy #menu, #subscribe-button,
+      .ytd-watch-flexy #actions, #notification-preference-button,
+      ytd-watch-next-secondary-results-renderer,
+      #description, #header, #content-header,
+      ytd-engagement-panel-section-list-renderer,
+      #panels, ytd-watch-flexy #cinematics,
+      ytd-compact-video-renderer, .ytp-endscreen-content,
+      .ytp-ce-element, .ytp-pause-overlay,
+      ytd-clarification-renderer, ytd-info-panel-content-renderer {
+        display: none !important;
+      }
+      body { overflow: hidden !important; background: #000 !important; }
+      #page-manager, ytd-watch-flexy, #player-container-outer,
+      #player-container-inner, #player, #ytd-player,
+      .html5-video-player, video {
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100vw !important; height: 100vh !important;
+        max-width: 100vw !important; max-height: 100vh !important;
+        margin: 0 !important; padding: 0 !important;
+      }
+      ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen] {
+        max-height: 100vh !important;
+      }
+      .html5-video-container { width: 100% !important; height: 100% !important; }
+    `)
+    void wv.executeJavaScript(`
+      const v = document.querySelector('video');
+      if (v && v.paused) v.play();
+    `)
+  }, [])
+
+  useEffect(() => {
+    const wv = webviewRef.current
+    if (!wv || !trailerUrl) return
+    wv.addEventListener('dom-ready', handleWebviewReady)
+    return () => wv.removeEventListener('dom-ready', handleWebviewReady)
+  }, [trailerUrl, trailerOpen, handleWebviewReady])
 
   useEffect(() => {
     let alive = true
@@ -314,6 +375,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
               <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(var(--vrcd-neon-raw),0.2)', background: '#000' }}>
                 {/youtube(?:-nocookie)?\.com|youtu\.be/.test(trailerUrl) ? (
                   <webview
+                    ref={webviewRef}
                     key={trailerUrl}
                     src={trailerUrl}
                     // eslint-disable-next-line react/no-unknown-property

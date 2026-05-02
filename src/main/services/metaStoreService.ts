@@ -22,8 +22,13 @@ import axios from 'axios'
  *   5. Null - caller renders "no trailer available"
  *
  * The returned URL is one of:
- *   - "https://www.youtube-nocookie.com/embed/<id>?...": render in <webview>
- *   - "<direct mp4 URL>": render in <video> (only via overrides)
+ *   - "https://www.youtube.com/watch?v=<id>": render in <webview>. We use the
+ *     real watch page rather than /embed/ because YouTube's embed pathway
+ *     refuses a lot of music/publisher trailers with error 152 ("video
+ *     unavailable"); the watch page has no such restriction. The renderer
+ *     hides the surrounding chrome via insertCSS on the webview's
+ *     dom-ready event so only the player is visible.
+ *   - "<direct mp4 URL>": render in <video> (only via overrides).
  */
 
 const USER_AGENT =
@@ -46,7 +51,7 @@ interface OverrideEntry {
   youtubeId?: string
 }
 
-const CACHE_VERSION = 2 // bump invalidates pre-YouTube cache entries
+const CACHE_VERSION = 3 // bumps invalidate stale entries (v2 stored embed URLs)
 
 class MetaStoreService {
   private cache: Map<string, CacheEntry> = new Map()
@@ -99,10 +104,11 @@ class MetaStoreService {
     }
   }
 
-  private buildYoutubeEmbed(videoId: string): string {
-    // youtube-nocookie + modestbranding keeps the embed minimal and matches
-    // the session partition headers configured in main/index.ts.
-    return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
+  private buildYoutubeWatchUrl(videoId: string): string {
+    // Watch page (not /embed/) - the embed pathway gets rejected for many
+    // game/publisher trailers with error 152. The renderer hides the chrome
+    // around the player with insertCSS on dom-ready.
+    return `https://www.youtube.com/watch?v=${videoId}`
   }
 
   public async getTrailerUrl(
@@ -116,13 +122,14 @@ class MetaStoreService {
     const override = packageName ? this.overrides.get(packageName) : undefined
     if (override) {
       if (override.url === null) return null
-      if (override.youtubeId) return this.buildYoutubeEmbed(override.youtubeId)
+      if (override.youtubeId) return this.buildYoutubeWatchUrl(override.youtubeId)
       if (override.url) {
-        // YouTube watch URL → convert to embed
+        // Normalise any youtube.com/watch or youtu.be link to our canonical
+        // watch URL form. Other URLs (mp4 etc.) pass through untouched.
         const ytWatch = override.url.match(
           /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
         )
-        if (ytWatch) return this.buildYoutubeEmbed(ytWatch[1])
+        if (ytWatch) return this.buildYoutubeWatchUrl(ytWatch[1])
         return override.url
       }
     }
@@ -144,7 +151,7 @@ class MetaStoreService {
       for (const q of queries) {
         const id = await this.searchYoutubeVideoId(q)
         if (id) {
-          trailerUrl = this.buildYoutubeEmbed(id)
+          trailerUrl = this.buildYoutubeWatchUrl(id)
           break
         }
       }

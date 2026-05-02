@@ -104,13 +104,35 @@ const parseSizeBytes = (s: string): number => {
 
 const NEW_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000   // 30 days
 const UPDATED_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000  // 7 days
+// Hard floor: snapshot tracking shipped on this date. Anything observed
+// before then was bulk-recorded as "always existed" (firstSeenAt = 0) so we
+// don't badge every game NEW after upgrading. Belt-and-suspenders: also
+// reject any firstSeenAt value that predates this date.
+const SNAPSHOT_TRACKING_EPOCH_MS = new Date('2026-04-20T00:00:00Z').getTime()
 
 function getGameBadge(game: GameInfo): 'new' | 'updated' | null {
-  if (!game.lastUpdated) return null
-  const age = Date.now() - new Date(game.lastUpdated).getTime()
-  if (!Number.isFinite(age) || age < 0) return null
-  if (age <= UPDATED_THRESHOLD_MS) return 'updated'
-  if (age <= NEW_THRESHOLD_MS) return 'new'
+  const now = Date.now()
+  // NEW = packageName first appeared in our local library within the last
+  // 30 days, AND that "first seen" timestamp is after the day this feature
+  // shipped. Without the date floor, anything pre-tracking would slip
+  // through if firstSeenAt ever ended up unset or zero in a weird way.
+  if (
+    game.firstSeenAt &&
+    game.firstSeenAt > SNAPSHOT_TRACKING_EPOCH_MS &&
+    now - game.firstSeenAt <= NEW_THRESHOLD_MS
+  ) {
+    return 'new'
+  }
+  // UPDATED = the package's version changed (relative to the previous sync)
+  // within the last 7 days. Only applies to games we already had - genuinely
+  // new packages get NEW above and never fall through to UPDATED.
+  if (
+    game.versionChangedAt &&
+    game.versionChangedAt > SNAPSHOT_TRACKING_EPOCH_MS &&
+    now - game.versionChangedAt <= UPDATED_THRESHOLD_MS
+  ) {
+    return 'updated'
+  }
   return null
 }
 

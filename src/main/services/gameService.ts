@@ -17,6 +17,28 @@ interface VrpConfig {
   lastSync?: Date
 }
 
+interface SnapshotEntry {
+  /** ms timestamp this packageName first appeared in our snapshot. 0 marks
+   *  packages that were present on initial-sync (so we don't badge every
+   *  game NEW after a clean install). */
+  firstSeenAt: number
+  /** Version string last seen for this package. */
+  version: string
+  /** ms timestamp of most recent version change. 0 if never changed. */
+  versionChangedAt: number
+}
+
+interface LibrarySnapshot {
+  /** Per-package state used to drive the NEW / UPDATED badges. */
+  packages: Record<string, SnapshotEntry>
+  /** ms timestamp the snapshot was first created. */
+  initializedAt: number
+  /** Schema version so we can migrate / invalidate later if needed. */
+  version: number
+}
+
+const SNAPSHOT_VERSION = 1
+
 const INTERNAL_BLACKLIST_GAMES = ['com.oculus.MiramarSetupRetail']
 
 class GameService extends EventEmitter implements GamesAPI {
@@ -27,6 +49,8 @@ class GameService extends EventEmitter implements GamesAPI {
   private blacklistGamesPath: string
   private customBlacklistPath: string
   private serverInfoPath: string
+  private librarySnapshotPath: string
+  private librarySnapshot: LibrarySnapshot | null = null
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
@@ -41,6 +65,7 @@ class GameService extends EventEmitter implements GamesAPI {
     this.blacklistGamesPath = join(this.metaPath, 'nouns', 'blacklist.txt')
     this.customBlacklistPath = join(app.getPath('userData'), 'custom-blacklist.json')
     this.serverInfoPath = join(app.getPath('userData'), 'ServerInfo.json')
+    this.librarySnapshotPath = join(app.getPath('userData'), 'library-snapshot.json')
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -67,6 +92,7 @@ class GameService extends EventEmitter implements GamesAPI {
       //   await this.syncGameData()
       // } else {
       console.log('Using cached game data...')
+      await this.loadLibrarySnapshot()
       await this.loadGameList()
       await this.loadBlacklistGames()
       await this.loadCustomBlacklistGames()
@@ -196,6 +222,7 @@ class GameService extends EventEmitter implements GamesAPI {
       await this.extractMetaArchive(metaArchive)
 
       // Load the game list
+      await this.loadLibrarySnapshot()
       await this.loadGameList()
       await this.loadBlacklistGames()
       await this.loadCustomBlacklistGames()
@@ -603,6 +630,97 @@ class GameService extends EventEmitter implements GamesAPI {
     console.log(`Loaded ${this.blacklistGames.length} games from blacklist`)
   }
 
+  private async loadLibrarySnapshot(): Promise<void> {
+    try {
+      if (existsSync(this.librarySnapshotPath)) {
+        const raw = await fs.readFile(this.librarySnapshotPath, 'utf-8')
+        const parsed = JSON.parse(raw) as LibrarySnapshot
+        if (parsed && typeof parsed === 'object' && parsed.packages) {
+          this.librarySnapshot = parsed
+          console.log(
+            `Loaded library snapshot with ${Object.keys(parsed.packages).length} packages`
+          )
+          return
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load library snapshot, starting fresh:', err)
+    }
+    this.librarySnapshot = null
+  }
+
+  private async saveLibrarySnapshot(): Promise<void> {
+    if (!this.librarySnapshot) return
+    try {
+      await fs.writeFile(
+        this.librarySnapshotPath,
+        JSON.stringify(this.librarySnapshot),
+        'utf-8'
+      )
+    } catch (err) {
+      console.warn('Failed to save library snapshot:', err)
+    }
+  }
+
+  /**
+   * Reconcile the freshly parsed library against the on-disk snapshot:
+   *
+   *   - If the snapshot doesn't exist yet (clean install or first run after
+   *     this feature shipped), every current package is recorded with
+   *     firstSeenAt = 0. The renderer treats firstSeenAt = 0 as "not new"
+   *     so the user doesn't see a wall of NEW badges on day 1.
+   *   - If a package isn't in the snapshot, it's recorded with
+   *     firstSeenAt = now and the renderer will badge it NEW.
+   *   - If a package IS in the snapshot but its version string changed,
+   *     versionChangedAt is bumped to now and the renderer will badge it
+   *     UPDATED.
+   *
+   * The chosen timestamps are also stamped onto each GameInfo so the
+   * renderer can compute the badge purely from the GameInfo with no
+   * extra IPC roundtrip.
+   */
+  private decorateAndUpdateSnapshot(games: GameInfo[]): void {
+    const now = Date.now()
+    const isFirstRun = !this.librarySnapshot
+    if (!this.librarySnapshot) {
+      this.librarySnapshot = {
+        packages: {},
+        initializedAt: now,
+        version: SNAPSHOT_VERSION
+      }
+    }
+    const snap = this.librarySnapshot
+    let dirty = false
+
+    for (const game of games) {
+      const pkg = game.packageName
+      if (!pkg) continue
+      const ver = game.version || ''
+      const existing = snap.packages[pkg]
+
+      if (!existing) {
+        // First time we've ever seen this package. On the very first sync we
+        // mark them all as "always existed" (firstSeenAt = 0) so a clean
+        // install doesn't badge every game NEW.
+        const firstSeenAt = isFirstRun ? 0 : now
+        snap.packages[pkg] = { firstSeenAt, version: ver, versionChangedAt: 0 }
+        game.firstSeenAt = firstSeenAt
+        game.versionChangedAt = 0
+        dirty = true
+      } else {
+        if (existing.version !== ver) {
+          existing.version = ver
+          existing.versionChangedAt = now
+          dirty = true
+        }
+        game.firstSeenAt = existing.firstSeenAt
+        game.versionChangedAt = existing.versionChangedAt
+      }
+    }
+
+    if (dirty) void this.saveLibrarySnapshot()
+  }
+
   private async loadCustomBlacklistGames(): Promise<void> {
     try {
       if (existsSync(this.customBlacklistPath)) {
@@ -738,6 +856,7 @@ class GameService extends EventEmitter implements GamesAPI {
       }
     }
 
+    this.decorateAndUpdateSnapshot(games)
     this.games = games
     console.log(`Loaded ${games.length} games`)
   }
