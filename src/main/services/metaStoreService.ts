@@ -4,34 +4,35 @@ import { join } from 'path'
 import axios from 'axios'
 
 /**
- * Resolves Meta (Quest) Store trailer URLs for VRP games.
+ * Resolves trailer URLs for VRP games.
  *
- * Why this exists: YouTube increasingly returns "video unavailable" inside
- * embedded iframes (error 152), even for trailers that play fine on the
- * regular page. Meta Store experience pages expose the trailer as a plain
- * `og:video` mp4 hosted on Oculus CDN, which we can play in a vanilla
- * <video> tag with no embed restrictions.
+ * History: This used to scrape Meta Store experience pages for an `og:video`
+ * mp4 hosted on Oculus CDN. Meta migrated those pages (and the search page)
+ * to a fully client-rendered Facebook shell, so the raw HTML no longer
+ * contains either experience IDs or og:video tags - every lookup returned
+ * null. We now resolve trailers via YouTube search instead, which still
+ * server-renders enough metadata to extract a video ID, and YouTube playback
+ * already works inside our pre-configured `persist:youtube` <webview>.
  *
  * Resolution order:
  *   1. Cache hit (persisted to disk by package name)
  *   2. Manual override file (vrp-data/trailer-overrides.json)
- *   3. Meta Store search by game name
- *   4. Meta Store search by package name (with .mr. stripped for MR-fix variants)
- *   5. Null → caller renders "no trailer available"
+ *   3. YouTube search by "<game name> oculus quest trailer"
+ *   4. YouTube search by "<game name> trailer" (broader)
+ *   5. Null - caller renders "no trailer available"
+ *
+ * The returned URL is one of:
+ *   - "https://www.youtube-nocookie.com/embed/<id>?...": render in <webview>
+ *   - "<direct mp4 URL>": render in <video> (only via overrides)
  */
 
-// Pretend to be a normal Chrome on Windows. Some Meta endpoints return a
-// stripped/login-walled response to bot-shaped UAs.
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
-const META_SEARCH_URL = 'https://www.meta.com/experiences/section/search/'
-// Meta uses hash-style IDs in URL slugs. We just need the digit-string id.
-const EXPERIENCE_LINK_RE = /\/experiences\/(?:[^/]+\/)?(\d{6,})\b/g
-// og:video / og:video:url / og:video:secure_url all point at the mp4
-const OG_VIDEO_RE =
-  /<meta\s+property=["']og:video(?::(?:url|secure_url))?["']\s+content=["']([^"']+)["']/i
+const YT_SEARCH_URL = 'https://www.youtube.com/results'
+// First videoId in the SSR'd JSON blob is the top result.
+const YT_VIDEO_ID_RE = /"videoId":"([a-zA-Z0-9_-]{11})"/
 
 interface CacheEntry {
   trailerUrl: string | null
@@ -39,11 +40,13 @@ interface CacheEntry {
 }
 
 interface OverrideEntry {
-  // Either a direct mp4 URL, a Meta experience URL, or null to mean "no trailer"
+  /** Direct mp4 URL, full YouTube/Meta URL, or null to mean "no trailer" */
   url?: string | null
-  // Convenience: supply just an experience id, we'll build the URL
-  experienceId?: string
+  /** Convenience: just a YouTube video id, we'll build the embed URL */
+  youtubeId?: string
 }
+
+const CACHE_VERSION = 2 // bump invalidates pre-YouTube cache entries
 
 class MetaStoreService {
   private cache: Map<string, CacheEntry> = new Map()
@@ -62,8 +65,13 @@ class MetaStoreService {
   private async load(): Promise<void> {
     try {
       const raw = await fs.readFile(this.cachePath, 'utf-8')
-      const obj = JSON.parse(raw) as Record<string, CacheEntry>
-      for (const [k, v] of Object.entries(obj)) this.cache.set(k, v)
+      const obj = JSON.parse(raw) as { __version?: number } & Record<string, CacheEntry>
+      if (obj.__version === CACHE_VERSION) {
+        for (const [k, v] of Object.entries(obj)) {
+          if (k === '__version') continue
+          this.cache.set(k, v as CacheEntry)
+        }
+      }
     } catch {
       /* fresh cache */
     }
@@ -81,7 +89,7 @@ class MetaStoreService {
   }
 
   private async persistCache(): Promise<void> {
-    const obj: Record<string, CacheEntry> = {}
+    const obj: Record<string, CacheEntry | number> = { __version: CACHE_VERSION }
     for (const [k, v] of this.cache) obj[k] = v
     try {
       await fs.mkdir(join(app.getPath('userData'), 'vrp-data'), { recursive: true })
@@ -91,12 +99,10 @@ class MetaStoreService {
     }
   }
 
-  /**
-   * Some VRP releases append `.mr` to the package for Mixed Reality fix builds
-   * (e.g. `com.example.game.mr`). The Meta Store entry is the base game.
-   */
-  private normalizePackageName(pkg: string): string {
-    return pkg.replace(/\.mr(?:\..+)?$/i, '').replace(/\.mr$/i, '')
+  private buildYoutubeEmbed(videoId: string): string {
+    // youtube-nocookie + modestbranding keeps the embed minimal and matches
+    // the session partition headers configured in main/index.ts.
+    return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
   }
 
   public async getTrailerUrl(
@@ -110,15 +116,14 @@ class MetaStoreService {
     const override = packageName ? this.overrides.get(packageName) : undefined
     if (override) {
       if (override.url === null) return null
+      if (override.youtubeId) return this.buildYoutubeEmbed(override.youtubeId)
       if (override.url) {
-        // If override is an experience URL, resolve to mp4. If already mp4, pass through.
-        if (/\.mp4(?:\?|$)/i.test(override.url)) return override.url
-        return await this.resolveOgVideo(override.url)
-      }
-      if (override.experienceId) {
-        return await this.resolveOgVideo(
-          `https://www.meta.com/experiences/${override.experienceId}/`
+        // YouTube watch URL → convert to embed
+        const ytWatch = override.url.match(
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
         )
+        if (ytWatch) return this.buildYoutubeEmbed(ytWatch[1])
+        return override.url
       }
     }
 
@@ -127,14 +132,21 @@ class MetaStoreService {
 
     let trailerUrl: string | null = null
     try {
-      const experienceUrl =
-        (await this.searchExperienceUrl(gameName)) ??
-        (packageName
-          ? await this.searchExperienceUrl(this.normalizePackageName(packageName))
-          : null)
-
-      if (experienceUrl) {
-        trailerUrl = await this.resolveOgVideo(experienceUrl)
+      // Prefer Quest-specific results, then fall back to a broader query.
+      const baseName = (gameName || '').replace(/[^\w\s-]/g, ' ').trim()
+      const queries = baseName
+        ? [
+            `${baseName} oculus quest trailer`,
+            `${baseName} meta quest trailer`,
+            `${baseName} trailer`
+          ]
+        : []
+      for (const q of queries) {
+        const id = await this.searchYoutubeVideoId(q)
+        if (id) {
+          trailerUrl = this.buildYoutubeEmbed(id)
+          break
+        }
       }
     } catch (err) {
       console.warn('[MetaStoreService] Trailer lookup failed:', err)
@@ -145,37 +157,23 @@ class MetaStoreService {
     return trailerUrl
   }
 
-  private async searchExperienceUrl(query: string): Promise<string | null> {
+  private async searchYoutubeVideoId(query: string): Promise<string | null> {
     if (!query.trim()) return null
     try {
-      const response = await axios.get<string>(META_SEARCH_URL, {
-        params: { q: query },
+      const response = await axios.get<string>(YT_SEARCH_URL, {
+        params: { search_query: query, sp: 'EgIQAQ%253D%253D' /* type=video filter */ },
         timeout: 10_000,
-        headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,*/*' }
+        headers: {
+          'User-Agent': USER_AGENT,
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'en-US,en;q=0.9'
+        }
       })
       const html = typeof response.data === 'string' ? response.data : ''
-      const ids = new Set<string>()
-      for (const m of html.matchAll(EXPERIENCE_LINK_RE)) ids.add(m[1])
-      const first = ids.values().next().value
-      if (!first) return null
-      return `https://www.meta.com/experiences/${first}/`
-    } catch (err) {
-      console.warn(`[MetaStoreService] Search failed for "${query}":`, err)
-      return null
-    }
-  }
-
-  private async resolveOgVideo(experienceUrl: string): Promise<string | null> {
-    try {
-      const response = await axios.get<string>(experienceUrl, {
-        timeout: 10_000,
-        headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,*/*' }
-      })
-      const html = typeof response.data === 'string' ? response.data : ''
-      const match = html.match(OG_VIDEO_RE)
+      const match = html.match(YT_VIDEO_ID_RE)
       return match ? match[1] : null
     } catch (err) {
-      console.warn(`[MetaStoreService] og:video lookup failed for ${experienceUrl}:`, err)
+      console.warn(`[MetaStoreService] YouTube search failed for "${query}":`, err)
       return null
     }
   }

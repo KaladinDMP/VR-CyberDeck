@@ -26,6 +26,7 @@ import {
 import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
 import { getSideloadingDisabled } from '@renderer/hooks/useExtrasSettings'
+import ErrorDetailDialog, { ErrorPhase } from './ErrorDetailDialog'
 
 const NEON = 'var(--vrcd-neon)'
 const PURPLE = 'var(--vrcd-purple)'
@@ -48,7 +49,7 @@ interface GameDetailsDialogProps {
   game: GameInfo | null
   open: boolean
   onClose: () => void
-  downloadStatusMap: Map<string, { status: string; progress: number }>
+  downloadStatusMap: Map<string, { status: string; progress: number; error?: string }>
   onInstall: (game: GameInfo) => void
   onUninstall: (game: GameInfo) => Promise<void>
   onReinstall: (game: GameInfo) => Promise<void>
@@ -74,6 +75,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
   const [trailerUrl, setTrailerUrl] = useState<string | null>(null)
   const [loadingVideo, setLoadingVideo] = useState(false)
   const [trailerOpen, setTrailerOpen] = useState(false)
+  const [errorDetailOpen, setErrorDetailOpen] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -122,8 +124,18 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
       </Button>
     )
     if (isInstallError || isErrorOrCancelled) return (
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => onRetry(g)} disabled={isBusy}>Retry</Button>
+        {(isInstallError || status === 'Error') && (
+          <Button
+            appearance="secondary"
+            icon={<InfoRegular />}
+            style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }}
+            onClick={() => setErrorDetailOpen(true)}
+          >
+            Error info
+          </Button>
+        )}
         <Button appearance="secondary" style={{ color: '#ff5555', borderColor: 'rgba(255,85,85,0.5)' }} icon={<DeleteRegular />} onClick={() => onDeleteDownloaded(g)} disabled={isBusy}>Delete Files</Button>
       </div>
     )
@@ -165,11 +177,12 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
 
   const statusColor = game.isInstalled ? NEON
     : dlStatus === 'Completed' ? 'rgba(var(--vrcd-neon-raw),0.5)'
-    : dlStatus === 'InstallError' ? '#ff5555'
+    : dlStatus === 'InstallError' || dlStatus === 'Error' ? '#ff5555'
     : 'rgba(var(--vrcd-neon-raw),0.4)'
   const statusLabel = game.isInstalled ? (game.hasUpdate ? 'Update Available' : 'Installed')
     : dlStatus === 'Completed' ? 'Downloaded'
     : dlStatus === 'InstallError' ? 'Install Error'
+    : dlStatus === 'Error' ? 'Download Error'
     : dlStatus === 'Installing' ? 'Installing...'
     : 'Not Installed'
 
@@ -221,9 +234,25 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
 
               {/* Status badge */}
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
-                <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 4, padding: '1px 7px', letterSpacing: '0.06em' }}>
-                  {statusLabel}
-                </span>
+                {(dlStatus === 'InstallError' || dlStatus === 'Error') ? (
+                  <button
+                    type="button"
+                    onClick={() => setErrorDetailOpen(true)}
+                    title="Click for error details"
+                    style={{
+                      fontSize: 11, fontFamily: 'monospace', fontWeight: 600,
+                      color: statusColor, border: `1px solid ${statusColor}`,
+                      borderRadius: 4, padding: '1px 7px', letterSpacing: '0.06em',
+                      background: 'transparent', cursor: 'pointer'
+                    }}
+                  >
+                    {statusLabel} ⓘ
+                  </button>
+                ) : (
+                  <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 600, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 4, padding: '1px 7px', letterSpacing: '0.06em' }}>
+                    {statusLabel}
+                  </span>
+                )}
                 <span style={{ fontSize: 11, color: 'rgba(var(--vrcd-neon-raw),0.6)', fontFamily: 'monospace' }}>
                   <DocumentDataRegular fontSize={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{game.size || '-'}
                 </span>
@@ -283,15 +312,25 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
 
             {trailerOpen && trailerUrl && (
               <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(var(--vrcd-neon-raw),0.2)', background: '#000' }}>
-                <video
-                  key={trailerUrl}
-                  src={trailerUrl}
-                  controls
-                  autoPlay
-                  playsInline
-                  preload="metadata"
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
-                />
+                {/youtube(?:-nocookie)?\.com|youtu\.be/.test(trailerUrl) ? (
+                  <webview
+                    key={trailerUrl}
+                    src={trailerUrl}
+                    // eslint-disable-next-line react/no-unknown-property
+                    partition="persist:youtube"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                  />
+                ) : (
+                  <video
+                    key={trailerUrl}
+                    src={trailerUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="metadata"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                )}
               </div>
             )}
             {trailerOpen && !trailerUrl && !loadingVideo && (
@@ -315,6 +354,14 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
 
         </DialogBody>
       </DialogSurface>
+      <ErrorDetailDialog
+        open={errorDetailOpen}
+        onClose={() => setErrorDetailOpen(false)}
+        error={statusEntry?.error}
+        phase={(dlStatus === 'InstallError' ? 'install' : 'download') as ErrorPhase}
+        contextLabel={`${game.name}${game.releaseName ? ` (${game.releaseName})` : ''}`}
+        onRetry={() => onRetry(game)}
+      />
     </Dialog>
   )
 }

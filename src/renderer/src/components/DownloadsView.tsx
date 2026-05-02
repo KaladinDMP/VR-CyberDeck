@@ -29,6 +29,7 @@ import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
 import { useGameDialog } from '@renderer/hooks/useGameDialog'
 import { getDeleteOnRemove, getSideloadingDisabled } from '../hooks/useExtrasSettings'
+import ErrorDetailDialog, { ErrorPhase } from './ErrorDetailDialog'
 
 const useStyles = makeStyles({
   root: {
@@ -82,10 +83,6 @@ const useStyles = makeStyles({
     marginTop: tokens.spacingVerticalXS,
     alignItems: 'flex-end'
   },
-  errorText: {
-    color: tokens.colorPaletteRedForeground1,
-    fontSize: tokens.fontSizeBase200
-  },
   statusText: {
     fontSize: tokens.fontSizeBase200,
     color: tokens.colorNeutralForeground2
@@ -106,6 +103,12 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
   const [confirmPending, setConfirmPending] = useState<string | null>(null)
   const [scanResult, setScanResult] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
+  const [errorDetail, setErrorDetail] = useState<{
+    error: string
+    phase: ErrorPhase
+    contextLabel: string
+    releaseName: string
+  } | null>(null)
 
   const formatAddedTime = (timestamp: number): string => {
     try {
@@ -353,47 +356,54 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                     </>
                   )}
                   {item.status === 'Error' && (
-                    <>
-                      <Text className={styles.errorText}>
-                        {item.error?.toLowerCase().includes('insufficient disk space') ||
-                        item.error?.toLowerCase().includes('no space left')
-                          ? '💾 Out of disk space'
-                          : 'Error'}
-                      </Text>
-                      {item.error && (
-                        <Text
-                          size={200}
-                          className={styles.errorText}
-                          title={item.error}
-                          style={
-                            item.error.toLowerCase().includes('insufficient disk space') ||
-                            item.error.toLowerCase().includes('no space left')
-                              ? { whiteSpace: 'normal', wordBreak: 'break-word' }
-                              : undefined
-                          }
-                        >
-                          {item.error.toLowerCase().includes('insufficient disk space') ||
-                          item.error.toLowerCase().includes('no space left')
-                            ? item.error
-                            : `${item.error.substring(0, 30)}...`}
-                        </Text>
-                      )}
-                    </>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      onClick={() =>
+                        setErrorDetail({
+                          error: item.error || '',
+                          phase: 'download',
+                          contextLabel: `${item.gameName} (${item.releaseName})`,
+                          releaseName: item.releaseName
+                        })
+                      }
+                      style={{
+                        color: tokens.colorPaletteRedForeground1,
+                        border: `1px solid ${tokens.colorPaletteRedForeground1}`,
+                        padding: '2px 10px',
+                        minHeight: 0,
+                        height: 'auto',
+                        fontWeight: 600
+                      }}
+                      title="Click for details"
+                    >
+                      Error - click for details
+                    </Button>
                   )}
                   {item.status === 'InstallError' && (
-                    <>
-                      <Text className={styles.errorText}>
-                        {item.error?.toLowerCase().includes('insufficient_storage') ||
-                        item.error?.toLowerCase().includes('no space left')
-                          ? '💾 Out of device storage'
-                          : 'Install Error'}
-                      </Text>
-                      {item.error && (
-                        <Text size={200} className={styles.errorText} title={item.error}>
-                          {item.error.substring(0, 50)}...
-                        </Text>
-                      )}
-                    </>
+                    <Button
+                      appearance="subtle"
+                      size="small"
+                      onClick={() =>
+                        setErrorDetail({
+                          error: item.error || '',
+                          phase: 'install',
+                          contextLabel: `${item.gameName} (${item.releaseName})`,
+                          releaseName: item.releaseName
+                        })
+                      }
+                      style={{
+                        color: tokens.colorPaletteRedForeground1,
+                        border: `1px solid ${tokens.colorPaletteRedForeground1}`,
+                        padding: '2px 10px',
+                        minHeight: 0,
+                        height: 'auto',
+                        fontWeight: 600
+                      }}
+                      title="Click for details"
+                    >
+                      Install error - click for details
+                    </Button>
                   )}
 
                   {/* Install/Uninstall Buttons */}
@@ -537,6 +547,19 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
             ))}
         </div>
       )}
+
+      <ErrorDetailDialog
+        open={errorDetail !== null}
+        onClose={() => setErrorDetail(null)}
+        error={errorDetail?.error}
+        phase={errorDetail?.phase || 'download'}
+        contextLabel={errorDetail?.contextLabel}
+        onRetry={
+          errorDetail
+            ? () => retryDownload(errorDetail.releaseName)
+            : undefined
+        }
+      />
     </div>
   )
 }
