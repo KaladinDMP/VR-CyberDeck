@@ -894,29 +894,42 @@ class GameService extends EventEmitter implements GamesAPI {
   }
 
   /**
-   * Returns the note for a release. User-authored notes in
-   * `userData/custom-notes.json` take precedence over the server's note;
-   * if no custom note exists the server note is returned. Empty string
-   * means "neither source has anything."
+   * Returns the note for a release. Lookup order:
    *
-   * The custom-notes file is a flat JSON map: { "<release name>": "...note text..." }.
-   * Note text supports `run: <label> | <shell command>` lines that the
-   * renderer turns into clickable buttons, and bare URLs that become
-   * external links.
+   *   1. User-local `userData/custom-notes.json` - lets the user/dev
+   *      override or test notes without rebuilding the app.
+   *   2. App-bundled `resources/custom-notes.json` (copied to
+   *      <resourcesPath>/custom-notes.json by electron-builder) - notes
+   *      authored by the dev that ship to every user.
+   *   3. The server-bundled note at vrp-data/.meta/notes/<release>.txt.
+   *
+   * Empty string means "no source had anything."
+   *
+   * Both custom-notes files are flat JSON maps:
+   *   { "<release name>": "...note text..." }
+   *
+   * Keys starting with "_" are ignored (so we can leave breadcrumbs /
+   * documentation entries in the bundled file).
+   *
+   * The note text supports `run: <label> | <shell command>` lines that
+   * the renderer turns into clickable buttons, and bare URLs that
+   * become external links.
    */
   async getNote(releaseName: string): Promise<string> {
-    try {
-      if (existsSync(this.customNotesPath)) {
-        const raw = await fs.readFile(this.customNotesPath, 'utf-8')
-        const map = JSON.parse(raw) as Record<string, string>
-        const custom = map?.[releaseName]
-        if (typeof custom === 'string' && custom.trim().length > 0) {
-          return custom
-        }
-      }
-    } catch (err) {
-      console.warn('[GameService] Failed to read custom-notes.json:', err)
+    if (releaseName.startsWith('_')) {
+      // Underscore keys are reserved for inline docs; never let one
+      // accidentally resolve to a real note.
+      return ''
     }
+
+    const userNote = await this.readCustomNote(this.customNotesPath, releaseName)
+    if (userNote) return userNote
+
+    const bundledPath = app.isPackaged
+      ? join(process.resourcesPath, 'custom-notes.json')
+      : join(app.getAppPath(), 'resources', 'custom-notes.json')
+    const bundledNote = await this.readCustomNote(bundledPath, releaseName)
+    if (bundledNote) return bundledNote
 
     const notePath = join(this.metaPath, 'notes', `${releaseName}.txt`)
     try {
@@ -924,6 +937,21 @@ class GameService extends EventEmitter implements GamesAPI {
     } catch {
       return ''
     }
+  }
+
+  private async readCustomNote(filePath: string, releaseName: string): Promise<string | null> {
+    try {
+      if (!existsSync(filePath)) return null
+      const raw = await fs.readFile(filePath, 'utf-8')
+      const map = JSON.parse(raw) as Record<string, string>
+      const value = map?.[releaseName]
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value
+      }
+    } catch (err) {
+      console.warn(`[GameService] Failed to read custom notes from ${filePath}:`, err)
+    }
+    return null
   }
 
   async addToBlacklist(packageName: string, version: number | 'any' = 'any'): Promise<boolean> {

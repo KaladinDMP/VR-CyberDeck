@@ -30,6 +30,8 @@ extraResources:
       - '*'
   - from: resources/ServerInfo.json
     to: ServerInfo.json
+  - from: resources/custom-notes.json
+    to: custom-notes.json
   - from: resources/sounds
     to: sounds
     filter:

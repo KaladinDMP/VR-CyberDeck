@@ -1,0 +1,4 @@
+{
+  "_comment_meta": "Notes here ship with the app and are shown to every user. Keys are the exact release name as displayed in the game details dialog (the line next to the tag icon). Values are the note text. Special syntax: lines starting with 'run: <label> | <shell command>' become buttons that run the shell command on the connected Quest after a confirm prompt; bare http(s) URLs become clickable links. Keys starting with an underscore are ignored so we can leave breadcrumbs like this one in the file.",
+  "_example_release_name_v1+abc -Group": "Replace this whole entry. Keys starting with _ are ignored.\n\nrun: Clear app data | pm clear com.example.package\nrun: pm list packages | grep example\n\nDocs: https://example.com"
+}
