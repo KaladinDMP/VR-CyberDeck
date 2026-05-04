@@ -565,6 +565,10 @@ app.whenReady().then(async () => {
     downloadService.setDownloadPath(path)
   )
 
+  typedIpcMain.on('download:set-sideloading-disabled', (_event, disabled) =>
+    downloadService.setSideloadingDisabled(disabled)
+  )
+
   ipcMain.on('download:set-app-connection-state', (_event, selectedDevice, isConnected) => {
     console.log(
       `[IPC] Setting app connection state - Device: ${selectedDevice}, Connected: ${isConnected}`

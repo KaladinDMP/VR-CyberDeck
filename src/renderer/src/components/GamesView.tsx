@@ -592,7 +592,7 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
   }, [selectedDevice, loadPackages])
 
   const downloadStatusMap = useMemo(() => {
-    const map = new Map<string, { status: string; progress: number; speed?: string; eta?: string; error?: string }>()
+    const map = new Map<string, { status: string; progress: number; speed?: string; eta?: string; error?: string; downloadPath?: string }>()
     downloadQueue.forEach((item) => {
       if (item.releaseName) {
         const progress =
@@ -602,7 +602,8 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
           progress: progress,
           speed: item.speed,
           eta: item.eta,
-          error: item.error
+          error: item.error,
+          downloadPath: item.downloadPath
         })
       }
     })

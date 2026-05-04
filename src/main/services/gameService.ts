@@ -51,6 +51,7 @@ class GameService extends EventEmitter implements GamesAPI {
   private serverInfoPath: string
   private librarySnapshotPath: string
   private librarySnapshot: LibrarySnapshot | null = null
+  private customNotesPath: string
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
@@ -66,6 +67,7 @@ class GameService extends EventEmitter implements GamesAPI {
     this.customBlacklistPath = join(app.getPath('userData'), 'custom-blacklist.json')
     this.serverInfoPath = join(app.getPath('userData'), 'ServerInfo.json')
     this.librarySnapshotPath = join(app.getPath('userData'), 'library-snapshot.json')
+    this.customNotesPath = join(app.getPath('userData'), 'custom-notes.json')
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -891,13 +893,65 @@ class GameService extends EventEmitter implements GamesAPI {
     })
   }
 
+  /**
+   * Returns the note for a release. Lookup order:
+   *
+   *   1. User-local `userData/custom-notes.json` - lets the user/dev
+   *      override or test notes without rebuilding the app.
+   *   2. App-bundled `resources/custom-notes.json` (copied to
+   *      <resourcesPath>/custom-notes.json by electron-builder) - notes
+   *      authored by the dev that ship to every user.
+   *   3. The server-bundled note at vrp-data/.meta/notes/<release>.txt.
+   *
+   * Empty string means "no source had anything."
+   *
+   * Both custom-notes files are flat JSON maps:
+   *   { "<release name>": "...note text..." }
+   *
+   * Keys starting with "_" are ignored (so we can leave breadcrumbs /
+   * documentation entries in the bundled file).
+   *
+   * The note text supports `run: <label> | <shell command>` lines that
+   * the renderer turns into clickable buttons, and bare URLs that
+   * become external links.
+   */
   async getNote(releaseName: string): Promise<string> {
+    if (releaseName.startsWith('_')) {
+      // Underscore keys are reserved for inline docs; never let one
+      // accidentally resolve to a real note.
+      return ''
+    }
+
+    const userNote = await this.readCustomNote(this.customNotesPath, releaseName)
+    if (userNote) return userNote
+
+    const bundledPath = app.isPackaged
+      ? join(process.resourcesPath, 'custom-notes.json')
+      : join(app.getAppPath(), 'resources', 'custom-notes.json')
+    const bundledNote = await this.readCustomNote(bundledPath, releaseName)
+    if (bundledNote) return bundledNote
+
     const notePath = join(this.metaPath, 'notes', `${releaseName}.txt`)
     try {
       return await fs.readFile(notePath, 'utf-8')
     } catch {
       return ''
     }
+  }
+
+  private async readCustomNote(filePath: string, releaseName: string): Promise<string | null> {
+    try {
+      if (!existsSync(filePath)) return null
+      const raw = await fs.readFile(filePath, 'utf-8')
+      const map = JSON.parse(raw) as Record<string, string>
+      const value = map?.[releaseName]
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value
+      }
+    } catch (err) {
+      console.warn(`[GameService] Failed to read custom notes from ${filePath}:`, err)
+    }
+    return null
   }
 
   async addToBlacklist(packageName: string, version: number | 'any' = 'any'): Promise<boolean> {
