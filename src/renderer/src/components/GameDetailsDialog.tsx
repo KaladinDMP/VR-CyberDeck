@@ -51,7 +51,7 @@ interface GameDetailsDialogProps {
   game: GameInfo | null
   open: boolean
   onClose: () => void
-  downloadStatusMap: Map<string, { status: string; progress: number; error?: string }>
+  downloadStatusMap: Map<string, { status: string; progress: number; error?: string; downloadPath?: string }>
   onInstall: (game: GameInfo) => void
   onUninstall: (game: GameInfo) => Promise<void>
   onReinstall: (game: GameInfo) => Promise<void>
@@ -409,7 +409,11 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
             {loadingNote ? (
               <Spinner size="tiny" label="Loading..." />
             ) : currentGameNote ? (
-              <NoteRenderer note={currentGameNote} selectedDevice={selectedDevice} />
+              <NoteRenderer
+                note={currentGameNote}
+                selectedDevice={selectedDevice}
+                downloadPath={statusEntry?.downloadPath ?? null}
+              />
             ) : (
               <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(var(--vrcd-neon-raw),0.35)' }}>No note available.</span>
             )}

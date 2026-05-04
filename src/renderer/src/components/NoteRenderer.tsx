@@ -37,6 +37,15 @@ const URL_RE = /(https?:\/\/[^\s)\]>]+)/g
 interface NoteRendererProps {
   note: string
   selectedDevice: string | null
+  /**
+   * The release's downloaded folder, if it has one. Relative paths in
+   * `adb install` / `adb push` / `adb pull` steps are resolved against
+   * this directory the same way install.txt scripts do - so a note can
+   * say `adb install -g app.apk` and have it find the APK inside the
+   * extracted release folder. Null when the game hasn't been downloaded
+   * (relative paths stay as-is and adb will surface its own error).
+   */
+  downloadPath: string | null
 }
 
 interface RunDirective {
@@ -116,15 +125,127 @@ interface Step {
 }
 
 /**
+ * Tokenize an args string respecting double-quoted segments so paths
+ * with spaces survive. Quotes are preserved on the tokens (we re-emit
+ * them) so the receiving exec call sees the same quoting.
+ */
+function tokenize(s: string): string[] {
+  const tokens: string[] = []
+  let buf = ''
+  let inQuote = false
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (c === '"') {
+      inQuote = !inQuote
+      buf += c
+      continue
+    }
+    if (!inQuote && /\s/.test(c)) {
+      if (buf.length > 0) {
+        tokens.push(buf)
+        buf = ''
+      }
+      continue
+    }
+    buf += c
+  }
+  if (buf.length > 0) tokens.push(buf)
+  return tokens
+}
+
+function unquote(s: string): { value: string; quoted: boolean } {
+  if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
+    return { value: s.slice(1, -1), quoted: true }
+  }
+  return { value: s, quoted: false }
+}
+
+function isLocalAbsolute(p: string): boolean {
+  return p.startsWith('/') || p.startsWith('\\') || /^[A-Za-z]:[\\/]/.test(p)
+}
+
+/**
+ * Resolve a (possibly quoted) token against the download folder. Absolute
+ * paths and bare flags pass through. Re-quotes if the resolved path
+ * contains a space so the receiving exec call doesn't split it.
+ */
+function resolveLocal(token: string, baseDir: string): string {
+  const { value, quoted } = unquote(token)
+  if (!value || value.startsWith('-')) return token
+  if (isLocalAbsolute(value)) return token
+  // Strip any leading "./" from the input - it's redundant after join.
+  const cleaned = value.replace(/^\.[\\/]+/, '')
+  const sep = baseDir.includes('\\') && !baseDir.includes('/') ? '\\' : '/'
+  const joined = baseDir.replace(/[\\/]+$/, '') + sep + cleaned
+  if (quoted || /\s/.test(joined)) return `"${joined}"`
+  return joined
+}
+
+/**
+ * For an `adb <args>` invocation, decide which non-flag tokens are
+ * LOCAL (host) paths and resolve any that are relative against
+ * downloadPath. Other tokens (flags, device-side paths, the subcommand
+ * itself) are left alone.
+ *
+ * Subcommand handling matches install.txt expectations:
+ *   - install / install-multiple: every non-flag token is a local APK
+ *   - push: all non-flag tokens except the LAST are local sources;
+ *           the last is the remote destination on the device
+ *   - pull: only the LAST non-flag token (if there are 2+) is the
+ *           local destination; the rest are remote sources
+ *   - shell / tcpip / reboot / etc.: leave alone
+ */
+function resolveAdbArgs(args: string, baseDir: string | null): string {
+  if (!baseDir) return args
+  const tokens = tokenize(args)
+  // Skip target-selector flags so we land on the actual subcommand.
+  let i = 0
+  while (i < tokens.length) {
+    const t = tokens[i]
+    if (t === '-s' || t === '-t' || t === '-H' || t === '-P' || t === '-L') {
+      i += 2
+      continue
+    }
+    if (t === '-d' || t === '-e' || t === '-a') {
+      i += 1
+      continue
+    }
+    break
+  }
+  const sub = tokens[i]?.toLowerCase()
+  if (!sub) return args
+
+  // Indices of remaining non-flag tokens that COULD be paths.
+  const argIdxs: number[] = []
+  for (let j = i + 1; j < tokens.length; j++) {
+    if (tokens[j].startsWith('-')) continue
+    argIdxs.push(j)
+  }
+
+  if (sub === 'install' || sub === 'install-multiple' || sub === 'install-multi-package') {
+    for (const idx of argIdxs) tokens[idx] = resolveLocal(tokens[idx], baseDir)
+  } else if (sub === 'push' && argIdxs.length >= 2) {
+    for (const idx of argIdxs.slice(0, -1)) tokens[idx] = resolveLocal(tokens[idx], baseDir)
+  } else if (sub === 'pull' && argIdxs.length >= 2) {
+    const last = argIdxs[argIdxs.length - 1]
+    tokens[last] = resolveLocal(tokens[last], baseDir)
+  }
+  return tokens.join(' ')
+}
+
+/**
  * Split a `run:` payload on `&` and classify each step as a raw adb
  * invocation (starts with `adb `) or a shell command.
  *
- * For raw adb steps we strip the leading `adb ` and inject `-s <serial>`
- * if the author didn't already specify a target. We don't try to be
- * clever about quoting - whatever the author wrote is passed through to
- * the adb binary as one args string.
+ * For raw adb steps we:
+ *   1. Strip the leading `adb `.
+ *   2. Inject `-s <serial>` if the author didn't already specify a
+ *      target so multi-device users hit the right Quest.
+ *   3. Resolve relative LOCAL paths against the release's download
+ *      folder (install.txt-style) so notes can say `app.apk` instead of
+ *      hardcoding a per-machine absolute path.
  */
-function splitSteps(payload: string, serial: string | null): Step[] {
+function splitSteps(payload: string, serial: string | null, downloadPath: string | null): Step[] {
   const out: Step[] = []
   for (const rawSegment of payload.split('&')) {
     const segment = rawSegment.trim()
@@ -132,10 +253,10 @@ function splitSteps(payload: string, serial: string | null): Step[] {
     const adbMatch = segment.match(/^adb\s+(.+)$/i)
     if (adbMatch) {
       let args = adbMatch[1].trim()
-      // Auto-target the connected device unless the author already did.
       if (serial && !/(^|\s)-s\s+\S+/.test(args) && !/(^|\s)-(?:e|d|t)\s/.test(args)) {
         args = `-s "${serial}" ${args}`
       }
+      args = resolveAdbArgs(args, downloadPath)
       out.push({ display: `adb ${args}`, exec: { kind: 'adb', args } })
     } else {
       out.push({ display: `adb shell ${segment}`, exec: { kind: 'shell', command: segment } })
@@ -150,7 +271,7 @@ interface StepResult {
   ok: boolean
 }
 
-const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice }) => {
+const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice, downloadPath }) => {
   const [runningCommand, setRunningCommand] = useState<string | null>(null)
   const [results, setResults] = useState<StepResult[] | null>(null)
   const lines = parseNote(note)
@@ -160,7 +281,7 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice }) => 
       window.alert('Connect a Quest before running commands from notes.')
       return
     }
-    const steps = splitSteps(command, selectedDevice)
+    const steps = splitSteps(command, selectedDevice, downloadPath)
     if (steps.length === 0) return
 
     const plan = steps.map((s, i) => `${i + 1}. ${s.display}`).join('\n')
