@@ -3,6 +3,7 @@ import { promises as fs, readdirSync } from 'fs'
 import { execa } from 'execa'
 import { app, BrowserWindow, dialog } from 'electron'
 import { existsSync } from 'fs'
+import axios from 'axios'
 import dependencyService from './dependencyService'
 import mirrorService from './mirrorService'
 import settingsService from './settingsService'
@@ -39,6 +40,17 @@ interface LibrarySnapshot {
 
 const SNAPSHOT_VERSION = 1
 
+/**
+ * Where the live, dev-curated custom-notes file lives. Pulled on each
+ * `forceSync()` and once in the background at startup. The bundled file
+ * (resources/custom-notes.json) acts as the offline-first fallback;
+ * once we've successfully fetched at least once, the cached copy in
+ * userData wins over the bundled one so notes can be updated between
+ * app releases without users having to reinstall.
+ */
+const REMOTE_CUSTOM_NOTES_URL =
+  'https://raw.githubusercontent.com/KaladinDMP/vr-cyberdeck/main/resources/custom-notes.json'
+
 const INTERNAL_BLACKLIST_GAMES = ['com.oculus.MiramarSetupRetail']
 
 class GameService extends EventEmitter implements GamesAPI {
@@ -52,6 +64,7 @@ class GameService extends EventEmitter implements GamesAPI {
   private librarySnapshotPath: string
   private librarySnapshot: LibrarySnapshot | null = null
   private customNotesPath: string
+  private remoteNotesCachePath: string
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
@@ -68,6 +81,7 @@ class GameService extends EventEmitter implements GamesAPI {
     this.serverInfoPath = join(app.getPath('userData'), 'ServerInfo.json')
     this.librarySnapshotPath = join(app.getPath('userData'), 'library-snapshot.json')
     this.customNotesPath = join(app.getPath('userData'), 'custom-notes.json')
+    this.remoteNotesCachePath = join(app.getPath('userData'), 'remote-custom-notes.json')
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -98,6 +112,10 @@ class GameService extends EventEmitter implements GamesAPI {
       await this.loadGameList()
       await this.loadBlacklistGames()
       await this.loadCustomBlacklistGames()
+      // Background-refresh the dev-curated notes from GitHub. Fire and
+      // forget - we don't want to block startup on an HTTP round trip,
+      // and the existing cache (or bundled fallback) handles offline.
+      void this.refreshRemoteCustomNotes()
       //}
     } catch (error) {
       console.error('Error initializing game service:', error)
@@ -864,7 +882,10 @@ class GameService extends EventEmitter implements GamesAPI {
   }
 
   async forceSync(): Promise<GameInfo[]> {
-    await this.syncGameData()
+    // Refresh notes alongside the game list so a "Sync games" click
+    // also picks up any newly-published notes from the GitHub repo.
+    // Run in parallel - either failing shouldn't block the other.
+    await Promise.all([this.syncGameData(), this.refreshRemoteCustomNotes()])
     return this.games
   }
 
@@ -898,22 +919,28 @@ class GameService extends EventEmitter implements GamesAPI {
    *
    *   1. User-local `userData/custom-notes.json` - lets the user/dev
    *      override or test notes without rebuilding the app.
-   *   2. App-bundled `resources/custom-notes.json` (copied to
-   *      <resourcesPath>/custom-notes.json by electron-builder) - notes
-   *      authored by the dev that ship to every user.
-   *   3. The server-bundled note at vrp-data/.meta/notes/<release>.txt.
+   *   2. Remote-fetched cache `userData/remote-custom-notes.json` -
+   *      pulled from REMOTE_CUSTOM_NOTES_URL on every forceSync() and
+   *      once at startup, so dev-authored notes update without an app
+   *      release.
+   *   3. App-bundled `resources/custom-notes.json` (copied to
+   *      <resourcesPath>/custom-notes.json by electron-builder) - the
+   *      offline-first fallback, used until the first successful remote
+   *      fetch completes.
+   *   4. The server-bundled note at vrp-data/.meta/notes/<release>.txt.
    *
    * Empty string means "no source had anything."
    *
-   * Both custom-notes files are flat JSON maps:
+   * All custom-notes files are flat JSON maps:
    *   { "<release name>": "...note text..." }
    *
    * Keys starting with "_" are ignored (so we can leave breadcrumbs /
-   * documentation entries in the bundled file).
+   * documentation entries in any of the files).
    *
-   * The note text supports `run: <label> | <shell command>` lines that
-   * the renderer turns into clickable buttons, and bare URLs that
-   * become external links.
+   * The note text supports `run: <label> | <command>` lines that the
+   * renderer turns into clickable buttons (with relative paths resolving
+   * against the release's download folder), and bare URLs that become
+   * external links.
    */
   async getNote(releaseName: string): Promise<string> {
     if (releaseName.startsWith('_')) {
@@ -924,6 +951,9 @@ class GameService extends EventEmitter implements GamesAPI {
 
     const userNote = await this.readCustomNote(this.customNotesPath, releaseName)
     if (userNote) return userNote
+
+    const remoteNote = await this.readCustomNote(this.remoteNotesCachePath, releaseName)
+    if (remoteNote) return remoteNote
 
     const bundledPath = app.isPackaged
       ? join(process.resourcesPath, 'custom-notes.json')
@@ -952,6 +982,39 @@ class GameService extends EventEmitter implements GamesAPI {
       console.warn(`[GameService] Failed to read custom notes from ${filePath}:`, err)
     }
     return null
+  }
+
+  /**
+   * Fetch the latest custom-notes JSON from the dev's GitHub repo and
+   * cache it to userData. Best-effort - any network or parse failure
+   * leaves the existing cache (or the bundled fallback) in place. We
+   * validate the payload is an object before writing so a hijacked CDN
+   * or a 404 HTML page can't poison the cache.
+   */
+  private async refreshRemoteCustomNotes(): Promise<void> {
+    try {
+      const response = await axios.get(REMOTE_CUSTOM_NOTES_URL, {
+        timeout: 15_000,
+        // Disable axios's own JSON parsing so we can validate the raw
+        // text matches our schema before committing it to disk.
+        responseType: 'text',
+        transformResponse: (data) => data,
+        headers: { Accept: 'application/json,text/plain' }
+      })
+      const raw = typeof response.data === 'string' ? response.data : ''
+      if (!raw) throw new Error('Empty response')
+      const parsed = JSON.parse(raw)
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Remote custom-notes payload is not a JSON object')
+      }
+      await fs.writeFile(this.remoteNotesCachePath, raw, 'utf-8')
+      console.log('[GameService] Refreshed remote custom-notes')
+    } catch (err) {
+      console.warn(
+        '[GameService] Failed to refresh remote custom-notes (using cached/bundled):',
+        err instanceof Error ? err.message : err
+      )
+    }
   }
 
   async addToBlacklist(packageName: string, version: number | 'any' = 'any'): Promise<boolean> {
