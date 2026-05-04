@@ -161,7 +161,9 @@ const api = {
     setDownloadPath: (path: string): void =>
       typedIpcRenderer.send('download:set-download-path', path),
     setAppConnectionState: (selectedDevice: string | null, isConnected: boolean): void =>
-      ipcRenderer.send('download:set-app-connection-state', selectedDevice, isConnected)
+      ipcRenderer.send('download:set-app-connection-state', selectedDevice, isConnected),
+    setSideloadingDisabled: (disabled: boolean): void =>
+      typedIpcRenderer.send('download:set-sideloading-disabled', disabled)
   } satisfies DownloadAPIRenderer,
   // Upload APIs
   uploads: {

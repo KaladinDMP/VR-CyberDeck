@@ -170,6 +170,7 @@ export interface IPCSendChannels {
   'download:pause': string
   'download:resume': string
   'download:set-download-path': string
+  'download:set-sideloading-disabled': boolean
   'upload:remove': string
   'upload:cancel': string
   'update:download': string

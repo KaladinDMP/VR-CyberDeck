@@ -51,6 +51,7 @@ class GameService extends EventEmitter implements GamesAPI {
   private serverInfoPath: string
   private librarySnapshotPath: string
   private librarySnapshot: LibrarySnapshot | null = null
+  private customNotesPath: string
   private vrpConfig: VrpConfig | null = null
   private games: GameInfo[] = []
   private blacklistGames: string[] = []
@@ -66,6 +67,7 @@ class GameService extends EventEmitter implements GamesAPI {
     this.customBlacklistPath = join(app.getPath('userData'), 'custom-blacklist.json')
     this.serverInfoPath = join(app.getPath('userData'), 'ServerInfo.json')
     this.librarySnapshotPath = join(app.getPath('userData'), 'library-snapshot.json')
+    this.customNotesPath = join(app.getPath('userData'), 'custom-notes.json')
   }
 
   async initialize(force?: boolean): Promise<ServiceStatus> {
@@ -891,7 +893,31 @@ class GameService extends EventEmitter implements GamesAPI {
     })
   }
 
+  /**
+   * Returns the note for a release. User-authored notes in
+   * `userData/custom-notes.json` take precedence over the server's note;
+   * if no custom note exists the server note is returned. Empty string
+   * means "neither source has anything."
+   *
+   * The custom-notes file is a flat JSON map: { "<release name>": "...note text..." }.
+   * Note text supports `run: <label> | <shell command>` lines that the
+   * renderer turns into clickable buttons, and bare URLs that become
+   * external links.
+   */
   async getNote(releaseName: string): Promise<string> {
+    try {
+      if (existsSync(this.customNotesPath)) {
+        const raw = await fs.readFile(this.customNotesPath, 'utf-8')
+        const map = JSON.parse(raw) as Record<string, string>
+        const custom = map?.[releaseName]
+        if (typeof custom === 'string' && custom.trim().length > 0) {
+          return custom
+        }
+      }
+    } catch (err) {
+      console.warn('[GameService] Failed to read custom-notes.json:', err)
+    }
+
     const notePath = join(this.metaPath, 'notes', `${releaseName}.txt`)
     try {
       return await fs.readFile(notePath, 'utf-8')

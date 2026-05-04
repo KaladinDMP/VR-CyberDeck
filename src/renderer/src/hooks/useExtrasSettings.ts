@@ -226,6 +226,11 @@ export function useExtrasSettings(): ExtrasSettings {
   const setDisableSideloading = useCallback((v: boolean) => {
     setDisableSideloadingState(v)
     persistBool(DISABLE_SIDELOADING_KEY, v)
+    // Mirror to the main process - the auto-install pipeline lives there
+    // and otherwise has no way to see this flag.
+    try {
+      window.api.downloads.setSideloadingDisabled(v)
+    } catch { /* ignore */ }
   }, [])
   const setColorblindMode = useCallback((v: boolean) => {
     setColorblindModeState(v)
@@ -306,4 +311,10 @@ try {
 
 try {
   applyAccentColor(getAccentColor())
+} catch { /* ignore */ }
+
+// Push the persisted sideloading-disabled flag to the main process at boot
+// so the auto-install pipeline honors it before the user touches Settings.
+try {
+  window.api.downloads.setSideloadingDisabled(getSideloadingDisabled())
 } catch { /* ignore */ }

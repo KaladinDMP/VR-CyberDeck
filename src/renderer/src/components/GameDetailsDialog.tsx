@@ -25,8 +25,10 @@ import {
 } from '@fluentui/react-icons'
 import placeholderImage from '../assets/images/game-placeholder.png'
 import { useGames } from '@renderer/hooks/useGames'
+import { useAdb } from '@renderer/hooks/useAdb'
 import { getSideloadingDisabled } from '@renderer/hooks/useExtrasSettings'
 import ErrorDetailDialog, { ErrorPhase } from './ErrorDetailDialog'
+import NoteRenderer from './NoteRenderer'
 
 const NEON = 'var(--vrcd-neon)'
 const PURPLE = 'var(--vrcd-purple)'
@@ -70,6 +72,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
   onInstallFromCompleted, getNote, isConnected, isBusy
 }) => {
   const { getTrailerUrl } = useGames()
+  const { selectedDevice } = useAdb()
   const [currentGameNote, setCurrentGameNote] = useState<string | null>(null)
   const [loadingNote, setLoadingNote] = useState(false)
   const [trailerUrl, setTrailerUrl] = useState<string | null>(null)
@@ -406,9 +409,7 @@ const GameDetailsDialog: React.FC<GameDetailsDialogProps> = ({
             {loadingNote ? (
               <Spinner size="tiny" label="Loading..." />
             ) : currentGameNote ? (
-              <div style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(var(--vrcd-neon-raw),0.8)', whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto', background: 'rgba(var(--vrcd-neon-raw),0.03)', border: '1px solid rgba(var(--vrcd-neon-raw),0.12)', borderRadius: 4, padding: '8px 10px' }}>
-                {currentGameNote}
-              </div>
+              <NoteRenderer note={currentGameNote} selectedDevice={selectedDevice} />
             ) : (
               <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'rgba(var(--vrcd-neon-raw),0.35)' }}>No note available.</span>
             )}

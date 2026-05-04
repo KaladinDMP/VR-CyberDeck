@@ -32,6 +32,7 @@ class DownloadService extends EventEmitter implements DownloadAPI {
   private adbService: typeof adbService
   private appSelectedDevice: string | null = null
   private appIsConnected: boolean = false
+  private sideloadingDisabled: boolean = false
 
   constructor() {
     super()
@@ -65,6 +66,19 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     this.appIsConnected = isConnected
   }
 
+  setSideloadingDisabled(disabled: boolean): void {
+    if (this.sideloadingDisabled !== disabled) {
+      console.log(`[Service] Sideloading disabled flag updated: ${disabled}`)
+    }
+    this.sideloadingDisabled = disabled
+  }
+
+  /**
+   * The auto-install path runs in main while the disable-sideloading toggle
+   * lives in the renderer's localStorage. The renderer pushes the value over
+   * IPC so the install pipeline can honor it; if the toggle is on we treat
+   * the post-extraction state as the final state and never touch the device.
+   */
   private getTargetDeviceForInstallation(): string | null {
     console.log(
       `[Service] Checking app connection state - Device: ${this.appSelectedDevice}, Connected: ${this.appIsConnected}`
@@ -421,6 +435,13 @@ class DownloadService extends EventEmitter implements DownloadAPI {
         return
       }
 
+      if (this.sideloadingDisabled) {
+        console.log(
+          `[Service ProcessQueue] Sideloading disabled - leaving ${itemAfterExtraction.releaseName} in Completed state, skipping auto-install on ${finalTargetDeviceId}.`
+        )
+        return
+      }
+
       console.log(
         `[Service ProcessQueue] Extraction successful for ${itemAfterExtraction.releaseName}. Queuing installation on ${finalTargetDeviceId}...`
       )
@@ -508,6 +529,13 @@ class DownloadService extends EventEmitter implements DownloadAPI {
       if (targetDeviceId && targetDeviceId !== finalTargetDeviceId) {
         console.warn(
           `[Service ResumeQueue] Target device changed. Skipping installation for ${itemAfterExtraction.releaseName}.`
+        )
+        return
+      }
+
+      if (this.sideloadingDisabled) {
+        console.log(
+          `[Service ResumeQueue] Sideloading disabled - leaving ${itemAfterExtraction.releaseName} in Completed state.`
         )
         return
       }

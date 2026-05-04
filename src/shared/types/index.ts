@@ -300,6 +300,7 @@ export interface DownloadAPI {
   deleteDownloadedFiles: (releaseName: string) => Promise<boolean>
   setDownloadPath: (path: string) => void
   setAppConnectionState: (selectedDevice: string | null, isConnected: boolean) => void
+  setSideloadingDisabled: (disabled: boolean) => void
   scanDownloadFolder: () => Promise<{ added: number; pruned: number }>
 }
 
