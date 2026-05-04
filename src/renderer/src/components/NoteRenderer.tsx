@@ -7,16 +7,31 @@ const URL_RE = /(https?:\/\/[^\s)\]>]+)/g
 /**
  * Render a release note. Custom notes can include two special bits:
  *
- *   - Lines like `run: <label> | <shell command>` become a button. Clicking
- *     prompts the user to confirm, then runs the shell command on the
- *     currently selected device via adb. The "<label> |" part is optional;
- *     without it the button shows the raw command.
- *   - Bare URLs anywhere in the text are turned into clickable links that
- *     open in the user's default browser (the main process intercepts new
- *     windows and forwards them to shell.openExternal).
+ *   - Lines like `run: <label> | <command(s)>` become a button. Clicking
+ *     prompts the user to confirm, then runs the command(s) on the
+ *     currently selected Quest. The "<label> |" part is optional; without
+ *     it the button is labeled with the command text itself.
  *
- * Everything else renders as plain text in the same monospace block we used
- * for server notes.
+ *     Within the command part:
+ *       * Steps starting with `adb ` are passed through to the bundled
+ *         adb binary verbatim (e.g. `adb install -g app.apk`,
+ *         `adb push folder /sdcard/...`). We auto-inject `-s <serial>` if
+ *         the author didn't include one, so multi-device setups don't
+ *         fire on the wrong headset.
+ *       * Steps without that prefix are treated as `adb shell <step>`
+ *         (the original behavior - convenient for `pm clear ...` etc.).
+ *       * Multiple steps can be chained with `&` and run sequentially.
+ *         All steps run regardless of intermediate output - we don't try
+ *         to short-circuit on "looks like an error" because adb's exit
+ *         signaling isn't reliable enough for that. The combined output
+ *         is shown inline below the note.
+ *
+ *   - Bare URLs anywhere in the text are turned into clickable links that
+ *     open in the user's default browser (the main process intercepts
+ *     new windows and forwards them to shell.openExternal).
+ *
+ * Everything else renders as plain text in the same monospace block we
+ * used for server notes.
  */
 
 interface NoteRendererProps {
@@ -91,9 +106,53 @@ function renderTextWithLinks(text: string): React.ReactNode[] {
   return parts
 }
 
+interface Step {
+  /** What we'll show the user in the confirm prompt and result panel. */
+  display: string
+  /** How we actually run it. */
+  exec:
+    | { kind: 'shell'; command: string }
+    | { kind: 'adb'; args: string }
+}
+
+/**
+ * Split a `run:` payload on `&` and classify each step as a raw adb
+ * invocation (starts with `adb `) or a shell command.
+ *
+ * For raw adb steps we strip the leading `adb ` and inject `-s <serial>`
+ * if the author didn't already specify a target. We don't try to be
+ * clever about quoting - whatever the author wrote is passed through to
+ * the adb binary as one args string.
+ */
+function splitSteps(payload: string, serial: string | null): Step[] {
+  const out: Step[] = []
+  for (const rawSegment of payload.split('&')) {
+    const segment = rawSegment.trim()
+    if (!segment) continue
+    const adbMatch = segment.match(/^adb\s+(.+)$/i)
+    if (adbMatch) {
+      let args = adbMatch[1].trim()
+      // Auto-target the connected device unless the author already did.
+      if (serial && !/(^|\s)-s\s+\S+/.test(args) && !/(^|\s)-(?:e|d|t)\s/.test(args)) {
+        args = `-s "${serial}" ${args}`
+      }
+      out.push({ display: `adb ${args}`, exec: { kind: 'adb', args } })
+    } else {
+      out.push({ display: `adb shell ${segment}`, exec: { kind: 'shell', command: segment } })
+    }
+  }
+  return out
+}
+
+interface StepResult {
+  display: string
+  output: string
+  ok: boolean
+}
+
 const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice }) => {
   const [runningCommand, setRunningCommand] = useState<string | null>(null)
-  const [resultLine, setResultLine] = useState<{ command: string; ok: boolean; output: string } | null>(null)
+  const [results, setResults] = useState<StepResult[] | null>(null)
   const lines = parseNote(note)
 
   const handleRun = async (label: string, command: string): Promise<void> => {
@@ -101,22 +160,52 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice }) => 
       window.alert('Connect a Quest before running commands from notes.')
       return
     }
+    const steps = splitSteps(command, selectedDevice)
+    if (steps.length === 0) return
+
+    const plan = steps.map((s, i) => `${i + 1}. ${s.display}`).join('\n')
     const ok = window.confirm(
-      `Run this on ${selectedDevice}?\n\nadb shell ${command}\n\n(${label})`
+      `Run ${steps.length === 1 ? 'this' : `these ${steps.length} steps`} on ${selectedDevice}?\n\n${plan}\n\n(${label})`
     )
     if (!ok) return
+
     setRunningCommand(command)
-    setResultLine(null)
+    setResults(null)
+    const collected: StepResult[] = []
     try {
-      const output = await window.api.adb.runShellCommand(selectedDevice, command)
-      setResultLine({ command, ok: output !== null, output: output ?? '(no output)' })
-    } catch (err) {
-      setResultLine({
-        command,
-        ok: false,
-        output: err instanceof Error ? err.message : String(err)
-      })
+      for (const step of steps) {
+        try {
+          if (step.exec.kind === 'shell') {
+            const out = await window.api.adb.runShellCommand(
+              selectedDevice,
+              step.exec.command
+            )
+            collected.push({
+              display: step.display,
+              output: out ?? '(no output)',
+              ok: out !== null
+            })
+          } else {
+            const out = await window.api.adb.runLocalAdbCommand(step.exec.args)
+            // adb prints failures to stderr but runLocalAdbCommand merges
+            // stdout+stderr into one string - flag obvious error markers.
+            const looksFailed = /^(?:error|failure)\b|^adb:\s*error/im.test(out)
+            collected.push({
+              display: step.display,
+              output: out || '(no output)',
+              ok: !looksFailed
+            })
+          }
+        } catch (err) {
+          collected.push({
+            display: step.display,
+            output: err instanceof Error ? err.message : String(err),
+            ok: false
+          })
+        }
+      }
     } finally {
+      setResults(collected)
       setRunningCommand(null)
     }
   }
@@ -167,25 +256,29 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ note, selectedDevice }) => 
         if (line.text.length === 0) return <div key={i}>&nbsp;</div>
         return <div key={i}>{renderTextWithLinks(line.text)}</div>
       })}
-      {resultLine && (
-        <div
-          style={{
-            marginTop: 6,
-            padding: '6px 8px',
-            borderRadius: 3,
-            background: resultLine.ok ? 'rgba(var(--vrcd-neon-raw),0.06)' : 'rgba(255,50,50,0.08)',
-            border: `1px solid ${resultLine.ok ? 'rgba(var(--vrcd-neon-raw),0.2)' : 'rgba(255,50,50,0.4)'}`,
-            color: resultLine.ok ? 'rgba(var(--vrcd-neon-raw),0.85)' : '#ff5555',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            fontSize: 11
-          }}
-        >
-          <div style={{ opacity: 0.6, marginBottom: 2 }}>
-            {resultLine.ok ? '$ ' : '! '}
-            {resultLine.command}
-          </div>
-          {resultLine.output}
+      {results && results.length > 0 && (
+        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {results.map((r, i) => (
+            <div
+              key={i}
+              style={{
+                padding: '6px 8px',
+                borderRadius: 3,
+                background: r.ok ? 'rgba(var(--vrcd-neon-raw),0.06)' : 'rgba(255,50,50,0.08)',
+                border: `1px solid ${r.ok ? 'rgba(var(--vrcd-neon-raw),0.2)' : 'rgba(255,50,50,0.4)'}`,
+                color: r.ok ? 'rgba(var(--vrcd-neon-raw),0.85)' : '#ff5555',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                fontSize: 11
+              }}
+            >
+              <div style={{ opacity: 0.6, marginBottom: 2 }}>
+                {r.ok ? '$ ' : '! '}
+                {r.display}
+              </div>
+              {r.output}
+            </div>
+          ))}
         </div>
       )}
     </div>
