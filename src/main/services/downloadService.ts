@@ -331,6 +331,15 @@ class DownloadService extends EventEmitter implements DownloadAPI {
     }
   }
 
+  public async moveToFront(releaseName: string): Promise<boolean> {
+    const moved = this.queueManager.moveQueuedToFront(releaseName)
+    if (moved) {
+      console.log(`[Service] Bumped ${releaseName} to front of queue.`)
+      this.emitUpdate()
+    }
+    return moved
+  }
+
   public async removeFromQueueOnly(releaseName: string): Promise<void> {
     const item = this.queueManager.findItem(releaseName)
     if (!item) return

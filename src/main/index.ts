@@ -541,6 +541,11 @@ app.whenReady().then(async () => {
     await downloadService.removeFromQueueOnly(releaseName)
   })
 
+  typedIpcMain.handle('download:move-to-front', (_event, releaseName) => {
+    console.log(`[IPC] Bumping to front of queue: ${releaseName}`)
+    return downloadService.moveToFront(releaseName)
+  })
+
   typedIpcMain.handle('download:scan', async () => {
     console.log('[IPC] Scanning download folder...')
     return downloadService.scanDownloadFolder()

@@ -293,6 +293,7 @@ export interface DownloadAPI {
   ) => Promise<AddToQueueResult>
   removeFromQueue: (releaseName: string) => Promise<void>
   removeFromQueueOnly: (releaseName: string) => Promise<void>
+  moveToFront: (releaseName: string) => Promise<boolean>
   cancelUserRequest: (releaseName: string) => void
   retryDownload: (releaseName: string) => void
   pauseDownload: (releaseName: string) => void

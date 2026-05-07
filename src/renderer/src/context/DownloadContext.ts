@@ -8,6 +8,7 @@ export interface DownloadContextType {
   addToQueue: (game: GameInfo) => Promise<boolean>
   removeFromQueue: (releaseName: string) => Promise<void>
   removeFromQueueOnly: (releaseName: string) => Promise<void>
+  moveToFront: (releaseName: string) => Promise<boolean>
   cancelDownload: (releaseName: string) => void
   retryDownload: (releaseName: string) => void
   pauseDownload: (releaseName: string) => void

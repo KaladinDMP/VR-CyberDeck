@@ -135,6 +135,8 @@ const api = {
       typedIpcRenderer.invoke('download:remove', releaseName),
     removeFromQueueOnly: (releaseName: string): Promise<void> =>
       typedIpcRenderer.invoke('download:remove-only', releaseName),
+    moveToFront: (releaseName: string): Promise<boolean> =>
+      typedIpcRenderer.invoke('download:move-to-front', releaseName),
     scanDownloadFolder: (): Promise<{ added: number; pruned: number }> =>
       typedIpcRenderer.invoke('download:scan'),
     cancelUserRequest: (releaseName: string): void =>

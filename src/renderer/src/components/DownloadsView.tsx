@@ -16,6 +16,7 @@ import {
   DeleteRegular,
   DismissRegular as CloseIcon,
   ArrowCounterclockwiseRegular as RetryIcon,
+  ArrowUpRegular as BumpIcon,
   ArrowDownloadRegular as DownloadInstallIcon,
   BroomRegular as UninstallIcon,
   PauseRegular as PauseIcon,
@@ -95,7 +96,7 @@ interface DownloadsViewProps {
 
 const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
   const styles = useStyles()
-  const { queue, isLoading, error, removeFromQueue, removeFromQueueOnly, cancelDownload, retryDownload, pauseDownload, resumeDownload } = useDownload()
+  const { queue, isLoading, error, removeFromQueue, removeFromQueueOnly, moveToFront, cancelDownload, retryDownload, pauseDownload, resumeDownload } = useDownload()
   const { selectedDevice, isConnected, loadPackages } = useAdb()
   const { games } = useGames()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -464,6 +465,18 @@ const DownloadsView: React.FC<DownloadsViewProps> = ({ onClose }) => {
                       appearance="subtle"
                       onClick={() => resumeDownload(item.releaseName)}
                       title="Resume download"
+                    />
+                  )}
+
+                  {/* Bump-to-top Button (Queued only) */}
+                  {item.status === 'Queued' && (
+                    <Button
+                      icon={<BumpIcon />}
+                      aria-label="Move to front of queue"
+                      size="small"
+                      appearance="subtle"
+                      onClick={() => moveToFront(item.releaseName)}
+                      title="Download next"
                     />
                   )}
 

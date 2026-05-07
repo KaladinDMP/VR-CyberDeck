@@ -87,6 +87,23 @@ export class QueueManager {
     return this.queue.find((item) => item.status === 'Queued')
   }
 
+  // Move a Queued item ahead of all other Queued items so it runs next.
+  // Items currently Downloading/Extracting/Installing are not displaced.
+  public moveQueuedToFront(releaseName: string): boolean {
+    const idx = this.findIndex(releaseName)
+    if (idx === -1) return false
+    const item = this.queue[idx]
+    if (item.status !== 'Queued') return false
+
+    const firstQueuedIdx = this.queue.findIndex((i) => i.status === 'Queued')
+    if (firstQueuedIdx === -1 || firstQueuedIdx === idx) return false
+
+    this.queue.splice(idx, 1)
+    this.queue.splice(firstQueuedIdx, 0, item)
+    this.debouncedSaveQueue()
+    return true
+  }
+
   public addItem(item: DownloadItem): void {
     // Basic add, assumes checks are done beforehand if needed
     this.queue.push(item)

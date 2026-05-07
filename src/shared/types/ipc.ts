@@ -79,6 +79,7 @@ export interface IPCChannels {
   >
   'download:remove': DefineChannel<[releaseName: string], void>
   'download:remove-only': DefineChannel<[releaseName: string], void>
+  'download:move-to-front': DefineChannel<[releaseName: string], boolean>
   'download:scan': DefineChannel<[], { added: number; pruned: number }>
   'download:delete-files': DefineChannel<[releaseName: string], boolean>
   'download:install-from-completed': DefineChannel<[releaseName: string, deviceId: string], void>

@@ -124,6 +124,16 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
     }
   }, [])
 
+  const moveToFront = useCallback(async (releaseName: string): Promise<boolean> => {
+    try {
+      return await window.api.downloads.moveToFront(releaseName)
+    } catch (err) {
+      console.error('Error moving item to front of queue via IPC:', err)
+      setError('Failed to bump item to front.')
+      return false
+    }
+  }, [])
+
   const cancelDownload = useCallback((releaseName: string): void => {
     try {
       window.api.downloads.cancelUserRequest(releaseName)
@@ -180,13 +190,14 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       addToQueue,
       removeFromQueue,
       removeFromQueueOnly,
+      moveToFront,
       cancelDownload,
       retryDownload,
       pauseDownload,
       resumeDownload,
       deleteFiles
     }),
-    [queue, isLoading, error, addToQueue, removeFromQueue, removeFromQueueOnly, cancelDownload, retryDownload, pauseDownload, resumeDownload, deleteFiles]
+    [queue, isLoading, error, addToQueue, removeFromQueue, removeFromQueueOnly, moveToFront, cancelDownload, retryDownload, pauseDownload, resumeDownload, deleteFiles]
   )
 
   return (
