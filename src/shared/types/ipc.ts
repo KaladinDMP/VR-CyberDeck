@@ -193,6 +193,7 @@ export interface IPCEvents {
   'adb:device-tracker-error': [error: string]
   'adb:installation-completed': [deviceId: string]
   'games:download-progress': [progress: DownloadProgress]
+  'games:background-sync-complete': [games: GameInfo[]]
   'download:queue-updated': [queue: DownloadItem[]]
   'upload:progress': [progress: UploadPreparationProgress]
   'upload:queue-updated': [queue: UploadItem[]]

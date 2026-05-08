@@ -118,6 +118,11 @@ const api = {
       typedIpcRenderer.on('games:download-progress', listener)
       return () => typedIpcRenderer.removeListener('games:download-progress', listener)
     },
+    onBackgroundSyncComplete: (callback: (games: GameInfo[]) => void): (() => void) => {
+      const listener = (_: IpcRendererEvent, games: GameInfo[]): void => callback(games)
+      typedIpcRenderer.on('games:background-sync-complete', listener)
+      return () => typedIpcRenderer.removeListener('games:background-sync-complete', listener)
+    },
     addToBlacklist: (packageName: string, version?: number | 'any'): Promise<boolean> =>
       typedIpcRenderer.invoke('games:add-to-blacklist', packageName, version),
     removeFromBlacklist: (packageName: string): Promise<boolean> =>

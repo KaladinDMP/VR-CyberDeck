@@ -100,23 +100,22 @@ class GameService extends EventEmitter implements GamesAPI {
       // Load configuration if exists
       await this.loadConfig()
 
-      // Check if we need to sync data
-      // const needsSync = await this.needsSync()
-
-      // if (needsSync) {
-      //   console.log('Syncing game data...')
-      //   await this.syncGameData()
-      // } else {
+      // Load cached data immediately so the UI is responsive.
       console.log('Using cached game data...')
       await this.loadLibrarySnapshot()
       await this.loadGameList()
       await this.loadBlacklistGames()
       await this.loadCustomBlacklistGames()
-      // Background-refresh the dev-curated notes from GitHub. Fire and
-      // forget - we don't want to block startup on an HTTP round trip,
-      // and the existing cache (or bundled fallback) handles offline.
+      // Background-refresh the dev-curated notes from GitHub.
       void this.refreshRemoteCustomNotes()
-      //}
+      // If meta.7z has never been downloaded or the cache is stale (>24 h),
+      // kick off a background sync so notes/thumbnails appear without the
+      // user having to manually click "Refresh Games".
+      const syncNeeded = await this.needsSync()
+      if (syncNeeded) {
+        console.log('[GameService] Stale or missing meta data - starting background sync.')
+        void this.backgroundSync()
+      }
     } catch (error) {
       console.error('Error initializing game service:', error)
       this.status = 'ERROR'
@@ -192,27 +191,31 @@ class GameService extends EventEmitter implements GamesAPI {
     }
   }
 
-  // private async needsSync(): Promise<boolean> {
-  //   try {
-  //     // Check if game list file exists
-  //     const gameListExists = await fileExists(this.gameListPath)
-  //     if (!gameListExists) {
-  //       return true
-  //     }
+  private async needsSync(): Promise<boolean> {
+    try {
+      const gameListExists = await fileExists(this.gameListPath)
+      if (!gameListExists) return true
+      if (!this.vrpConfig?.lastSync) return true
+      const ONE_DAY = 24 * 60 * 60 * 1000
+      return Date.now() - this.vrpConfig.lastSync.getTime() > ONE_DAY
+    } catch {
+      return true
+    }
+  }
 
-  //     // If no last sync time or it's been more than 24 hours, sync again
-  //     if (!this.vrpConfig?.lastSync) {
-  //       return true
-  //     }
-
-  //     const lastSync = this.vrpConfig.lastSync
-  //     const ONE_DAY = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-  //     return Date.now() - lastSync.getTime() > ONE_DAY
-  //   } catch (error) {
-  //     console.error('Error checking if sync is needed:', error)
-  //     return true // Default to sync on error
-  //   }
-  // }
+  private async backgroundSync(): Promise<void> {
+    try {
+      console.log('[GameService] Starting background sync on launch...')
+      await this.syncGameData()
+      console.log('[GameService] Background sync complete, notifying renderer.')
+      const mainWindow = BrowserWindow.getAllWindows()[0]
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        typedWebContentsSend.send(mainWindow, 'games:background-sync-complete', this.games)
+      }
+    } catch (err) {
+      console.error('[GameService] Background sync failed:', err)
+    }
+  }
 
   async syncGameData(): Promise<void> {
     try {

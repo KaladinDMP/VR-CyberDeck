@@ -311,6 +311,14 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   }, [])
 
   useEffect(() => {
+    const remove = window.api.games.onBackgroundSyncComplete((games) => {
+      console.log('[GamesProvider] Background sync complete, updating game list.')
+      setRawGames(games)
+    })
+    return remove
+  }, [])
+
+  useEffect(() => {
     const initializeAndLoad = async (): Promise<void> => {
       if (isReady && !isInitialLoadComplete) {
         console.log('Dependencies ready, initializing game service and loading games...')
