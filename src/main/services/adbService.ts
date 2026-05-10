@@ -748,7 +748,12 @@ class AdbService extends EventEmitter implements AdbAPI {
     return true
   }
 
-  async pushFileOrFolder(serial: string, localPath: string, remotePath: string): Promise<boolean> {
+  async pushFileOrFolder(
+    serial: string,
+    localPath: string,
+    remotePath: string,
+    skipEnsureParentDir = false
+  ): Promise<boolean> {
     if (!this.client) {
       throw new Error('[ADB Service] adb service not initialized!')
     }
@@ -800,7 +805,7 @@ class AdbService extends EventEmitter implements AdbAPI {
         // This is required on Quest 3 (and generally) when the destination folder
         // may not yet exist (e.g. /sdcard/Android/obb/<pkg>/ on a fresh device).
         const remoteParentDir = path.posix.dirname(finalRemotePath)
-        if (remoteParentDir && remoteParentDir !== '.') {
+        if (!skipEnsureParentDir && remoteParentDir && remoteParentDir !== '.') {
           console.log(
             `[ADB Service] Ensuring remote parent directory exists: ${remoteParentDir}`
           )

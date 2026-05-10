@@ -412,6 +412,7 @@ export class InstallationProcessor {
             // Create remote OBB directory
             await this.adbService.runShellCommand(deviceId, `mkdir -p "${deviceObbTargetPath}"`)
 
+            const createdRemoteDirs = new Set<string>([deviceObbTargetPath])
             let transferredSize = 0
             // Push each file individually to track progress
             for (let i = 0; i < filesInfo.length; i++) {
@@ -419,16 +420,19 @@ export class InstallationProcessor {
               const relativePath = filePath.substring(obbPath.length + 1) // +1 for the slash
               const remoteFilePath = `${deviceObbTargetPath}/${relativePath}`
 
-              // Create parent directory if needed
+              // Only mkdir for directories we haven't already created
               const remoteDir = remoteFilePath.substring(0, remoteFilePath.lastIndexOf('/'))
-              await this.adbService.runShellCommand(deviceId, `mkdir -p "${remoteDir}"`)
+              if (!createdRemoteDirs.has(remoteDir)) {
+                await this.adbService.runShellCommand(deviceId, `mkdir -p "${remoteDir}"`)
+                createdRemoteDirs.add(remoteDir)
+              }
 
               console.log(
                 `[InstallProc Standard] Pushing file ${i + 1}/${filesInfo.length}: ${filePath} (${size} bytes)`
               )
 
-              // Push the file
-              await this.adbService.pushFileOrFolder(deviceId, filePath, remoteFilePath)
+              // Push the file — parent dir already ensured above
+              await this.adbService.pushFileOrFolder(deviceId, filePath, remoteFilePath, true)
 
               // Update progress
               transferredSize += size
