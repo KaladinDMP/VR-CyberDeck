@@ -68,7 +68,8 @@ const PRESETS: PresetCategory[] = [
       { label: 'WIFI INFO', command: 'dumpsys wifi | head -40' },
       { label: 'IP ADDR', command: 'ip route | awk \'{print $9}\'', desc: 'Print device IP address' },
       { label: 'PROXIMITY OFF', command: 'am broadcast -a com.oculus.vrpowermanager.prox_close', desc: 'Disable proximity sensor (sleep prevention)' },
-      { label: 'PROXIMITY ON', command: 'am broadcast -a com.oculus.vrpowermanager.automation_disable' }
+      { label: 'PROXIMITY ON', command: 'am broadcast -a com.oculus.vrpowermanager.automation_disable' },
+      { label: 'REVERT UI (PRE NAVIGATOR)', command: 'adb shell pm clear com.oculus.vrshell', desc: 'Clear VR shell data to revert UI to pre-Navigator state' }
     ]
   },
   {
