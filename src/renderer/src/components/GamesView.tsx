@@ -69,6 +69,8 @@ import MirrorManagement from './MirrorManagement'
 import LocalUploadDialog from './LocalUploadDialog'
 import { AdbShellDialog } from './AdbShellDialog'
 import { useTablePreferences } from '@renderer/hooks/useTablePreferences'
+import { useSettings } from '../hooks/useSettings'
+import { useMirrors } from '../hooks/useMirrors'
 
 // Column width constants
 const COLUMN_WIDTHS = {
@@ -480,6 +482,9 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
 
   const styles = useStyles()
   const { t } = useLanguage()
+  const { serverConfig } = useSettings()
+  const { activeMirror } = useMirrors()
+  const isUsingVrSrcEndpoint = !activeMirror && serverConfig.baseUri.includes('srcdl1.xyz')
 
   const [shellDialogOpen, setShellDialogOpen] = useState(false)
   const [viewOptionsOpen, setViewOptionsOpen] = useState(false)
@@ -1597,6 +1602,24 @@ const GamesView: React.FC<GamesViewProps> = ({ onBackToDevices, onTransfers, onS
             </section>
 
           </div>
+
+          {/* ── DONATION BANNER — only shown when using the default vrSrc endpoint ── */}
+          {isUsingVrSrcEndpoint && (
+            <div style={{ flexShrink: 0, margin: '0', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.15)', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.15)', background: 'rgba(var(--vrcd-neon-raw),0.04)' }}>
+              <Text size={100} style={{ display: 'block', color: 'rgba(var(--vrcd-neon-raw),0.65)', fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.08em', lineHeight: '1.5', textAlign: 'center' }}>
+                Want this server to remain free and public?
+              </Text>
+              <Text size={100} style={{ display: 'block', color: 'rgba(var(--vrcd-neon-raw),0.65)', fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.08em', lineHeight: '1.5', textAlign: 'center' }}>
+                Consider donating Crypto here:
+              </Text>
+              <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                <a href="https://vrsrc.fyi/donate" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'var(--vrcd-neon)', fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.1em', textDecoration: 'none', borderBottom: '1px solid rgba(var(--vrcd-neon-raw),0.4)', paddingBottom: '1px' }}>
+                  vrsrc.fyi/donate
+                </a>
+              </div>
+            </div>
+          )}
 
           {/* ── SIDEBAR FOOTER — outside scroll so always visible ── */}
           <div style={{ flexShrink: 0, borderTop: '1px solid rgba(var(--vrcd-neon-raw),0.10)', padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM} 10px`, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
