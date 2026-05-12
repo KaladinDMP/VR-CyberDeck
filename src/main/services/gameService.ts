@@ -390,6 +390,13 @@ class GameService extends EventEmitter implements GamesAPI {
               '--progress'
             ]
 
+            const apiKeyMirror = process.env.API_KEY
+            if (apiKeyMirror) {
+              rcloneArgs.push('--header', `X-API-Key: ${apiKeyMirror}`)
+            } else {
+              console.warn('[GameService] API_KEY is not set — meta.7z mirror request will be sent without authentication header.')
+            }
+
             // Execute rclone using execa with progress reporting
             const rcloneProcess = execa(rclonePath, rcloneArgs, {
               stdio: ['ignore', 'pipe', 'pipe']
@@ -464,27 +471,32 @@ class GameService extends EventEmitter implements GamesAPI {
       // `copy <file_source> <dir_dest>` drops the file into the dir. Used here
       // (not `sync` or `copyto`) because the rclone HTTP backend with our flag
       // set was misclassifying source type, and `copy` is unambiguous.
-      const rcloneProcess = execa(
-        rclonePath,
-        [
-          'copy',
-          `:http:/meta.7z`,
-          dirname(destination),
-          '--config',
-          nullConfigPath,
-          '--http-url',
-          baseUri,
-          '--tpslimit',
-          '1.0',
-          '--tpslimit-burst',
-          '3',
-          '--no-check-certificate',
-          '--progress'
-        ],
-        {
-          stdio: ['ignore', 'pipe', 'pipe']
-        }
-      )
+      const publicRcloneArgs = [
+        'copy',
+        `:http:/meta.7z`,
+        dirname(destination),
+        '--config',
+        nullConfigPath,
+        '--http-url',
+        baseUri,
+        '--tpslimit',
+        '1.0',
+        '--tpslimit-burst',
+        '3',
+        '--no-check-certificate',
+        '--progress'
+      ]
+
+      const apiKey = process.env.API_KEY
+      if (apiKey) {
+        publicRcloneArgs.push('--header', `X-API-Key: ${apiKey}`)
+      } else {
+        console.warn('[GameService] API_KEY is not set — meta.7z public endpoint request will be sent without authentication header.')
+      }
+
+      const rcloneProcess = execa(rclonePath, publicRcloneArgs, {
+        stdio: ['ignore', 'pipe', 'pipe']
+      })
 
       // Process stdout for progress information
       if (rcloneProcess.stdout) {

@@ -327,13 +327,24 @@ export class DownloadProcessor {
         ]
       }
 
+      // Inject API key if compiled into build
+      const apiKey = process.env.API_KEY
+      if (apiKey) {
+        copyArgs.push('--header', `X-API-Key: ${apiKey}`)
+      } else {
+        console.warn('[DownProc] API_KEY is not set — requests will be sent without authentication header.')
+      }
+
       // Apply bandwidth limit if set
       const downloadSpeedLimit = settingsService.getDownloadSpeedLimit()
       if (downloadSpeedLimit > 0) {
         copyArgs.push('--bwlimit', `${downloadSpeedLimit}k`)
       }
 
-      console.log(`[DownProc] Running: rclone ${copyArgs.join(' ')}`)
+      const safeArgs = copyArgs.map((arg, i) =>
+        copyArgs[i - 1] === '--header' && arg.startsWith('X-API-Key:') ? 'X-API-Key:[REDACTED]' : arg
+      )
+      console.log(`[DownProc] Running: rclone ${safeArgs.join(' ')}`)
 
       const rcloneProcess = execa(rclonePath, copyArgs, {
         all: true,
