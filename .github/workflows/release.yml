@@ -166,6 +166,7 @@ jobs:
       - name: Build application
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VRSRC_API_KEY: ${{ secrets.VRSRC_API_KEY }}
           ELECTRON_BUILDER_DOWNLOAD_TIMEOUT: 120000
           npm_config_fetch_timeout: 120000
           npm_config_fetch_retry_mintimeout: 20000
